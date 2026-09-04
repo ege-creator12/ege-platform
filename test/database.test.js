@@ -21,11 +21,11 @@ after(async()=>{ await new Promise(resolve=>server.close(resolve)); await db.clo
 
 test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
-  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions'];
+  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,3);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,4);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,3);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,4);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -38,9 +38,9 @@ test('registration, login and persistent session work', async()=>{
 });
 
 test('lesson and full training result persist with XP and statistics', async()=>{
-  const lesson=await db.row("SELECT id FROM topics WHERE kind='lesson' ORDER BY id LIMIT 1");
+  const lesson=await db.row('SELECT id,topic_id FROM lessons ORDER BY id LIMIT 1');
   let result=await request(`/api/lesson-progress/${lesson.id}`,{method:'POST',body:JSON.stringify({theoryRead:true})}); assert.equal(result.status,200);
-  result=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:lesson.id,targetQuestions:1,mode:'adaptive'})}); assert.equal(result.status,201);
+  result=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:lesson.topic_id,targetQuestions:1,mode:'adaptive'})}); assert.equal(result.status,201);
   const sessionId=result.body.session.id;
   result=await request(`/api/training/sessions/${sessionId}/next`); const question=result.body.question;
   const expected=JSON.parse((await db.row('SELECT answer_json FROM questions WHERE id=?',question.id)).answer_json);
@@ -53,8 +53,8 @@ test('lesson and full training result persist with XP and statistics', async()=>
 });
 
 test('numeric topic ids in recursive queries cannot become PostgreSQL text', async()=>{
-  const lesson=await db.row("SELECT id FROM topics WHERE kind='lesson' ORDER BY id LIMIT 1");
-  const result=await request(`/api/training/next?topic=${String(lesson.id)}`);
+  const lesson=await db.row('SELECT id,topic_id FROM lessons ORDER BY id LIMIT 1');
+  const result=await request(`/api/training/next?topic=${String(lesson.topic_id)}`);
   assert.equal(result.status,200);
   assert.ok(result.body.question.id);
   const invalid=await request('/api/training/next?topic=not-a-number');
@@ -71,5 +71,28 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.deepEqual(result.body,{ok:true,database:'sqlite'});
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,4);
+});
+
+
+test('content API exposes both subjects and structured lessons',async()=>{
+  let result=await request('/api/subjects'); assert.equal(result.status,200); assert.deepEqual(result.body.subjects.map(x=>x.slug),['biology','chemistry']);
+  result=await request('/api/subjects/chemistry'); assert.equal(result.status,200); assert.equal(result.body.sections.length,6);
+  const section=result.body.sections[0]; result=await request('/api/sections/'+section.id); assert.ok(result.body.topics.length);
+  const topic=result.body.topics[0]; result=await request('/api/topics/'+topic.id); assert.ok(result.body.lessons.length);
+  result=await request('/api/lessons/'+result.body.lessons[0].id); assert.equal(result.status,200); assert.ok(result.body.blocks.length>=8);
+});
+
+test('invalid input returns safe 4xx and logout revokes auth',async()=>{
+  let result=await request('/api/training/sessions/not-a-number/next'); assert.equal(result.status,404);
+  result=await request('/api/lesson-progress/999999',{method:'POST',body:'{}'}); assert.equal(result.status,404);
+  result=await request('/api/logout',{method:'POST'}); assert.equal(result.status,200);
+  result=await request('/api/me'); assert.equal(result.status,401);
+  cookie=''; result=await request('/api/login',{method:'POST',body:JSON.stringify({email:'student@test.local',password:'StrongPass123!'})}); assert.equal(result.status,200);
+});
+
+test('database transaction rolls back all writes',async()=>{
+  const before=(await db.row('SELECT COUNT(*) n FROM users')).n;
+  await assert.rejects(db.transaction(async tx=>{await tx.run('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)','Rollback','rollback@test.local','not-a-real-password');throw Error('rollback')}));
+  assert.equal((await db.row('SELECT COUNT(*) n FROM users')).n,before);
 });
