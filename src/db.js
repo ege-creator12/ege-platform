@@ -41,6 +41,31 @@ async function run(sql, ...params) {
   return sqlite.prepare(sql).run(...params.map(value => typeof value === 'boolean' ? Number(value) : value));
 }
 
+async function transaction(callback) {
+  if (postgres) {
+    const client = await pool.connect();
+    const scoped = {
+      rows: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows,
+      row: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows[0],
+      run: async (sql, ...params) => {
+        const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|sections|topics|lessons|lesson_blocks|questions|question_options|attempts|skills|training_sessions)\b/i.test(sql);
+        const result = await client.query(`${pgSql(sql)}${returnsId && !/\bRETURNING\b/i.test(sql) ? ' RETURNING id' : ''}`, params);
+        return { changes: result.rowCount, lastInsertRowid: result.rows[0]?.id };
+      }
+    };
+    await client.query('BEGIN');
+    try { const value = await callback(scoped); await client.query('COMMIT'); return value; }
+    catch (error) { await client.query('ROLLBACK'); throw error; }
+    finally { client.release(); }
+  }
+  sqlite.exec('BEGIN');
+  try {
+    const value = await callback({ rows, row, run });
+    sqlite.exec('COMMIT');
+    return value;
+  } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+}
+
 async function migrate() {
   const base = resolve(__dirname, postgres ? '../migrations/postgres' : '../migrations');
   if (postgres) {
@@ -66,7 +91,7 @@ async function migrate() {
       catch (error) { sqlite.exec('ROLLBACK'); throw error; }
     }
   }
-  await require('./bootstrap').bootstrapCourse({ row, run });
+  await require('./bootstrap').bootstrapCourse({ row, rows, run, transaction });
 }
 
 async function healthcheck() {
@@ -75,4 +100,4 @@ async function healthcheck() {
 }
 async function close() { if (pool) await pool.end(); else sqlite?.close(); }
 
-module.exports = { migrate, rows, row, run, healthcheck, close, dialect: postgres ? 'postgresql' : 'sqlite' };
+module.exports = { migrate, rows, row, run, transaction, healthcheck, close, dialect: postgres ? 'postgresql' : 'sqlite' };
