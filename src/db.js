@@ -1,5 +1,5 @@
 const { DatabaseSync } = require('node:sqlite');
-const { mkdirSync, readFileSync } = require('node:fs');
+const { mkdirSync, readFileSync, readdirSync } = require('node:fs');
 const { dirname, resolve } = require('node:path');
 
 const path = resolve(process.env.DATABASE_PATH || './data/ege.sqlite');
@@ -8,7 +8,21 @@ const db = new DatabaseSync(path);
 db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
 
 function migrate() {
-  db.exec(readFileSync(resolve(__dirname, '../migrations/001_initial.sql'), 'utf8'));
+  db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)');
+  const directory = resolve(__dirname, '../migrations');
+  for (const name of readdirSync(directory).filter(name => name.endsWith('.sql')).sort()) {
+    if (row('SELECT name FROM schema_migrations WHERE name=?', name)) continue;
+    db.exec('BEGIN');
+    try {
+      db.exec(readFileSync(resolve(directory, name), 'utf8'));
+      run('INSERT INTO schema_migrations(name) VALUES(?)', name);
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  }
+  require('./bootstrap').bootstrapCourse({ row, run });
 }
 
 function rows(sql, ...params) { return db.prepare(sql).all(...params); }
