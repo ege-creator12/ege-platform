@@ -60,6 +60,19 @@ function bootstrapCourse(db) {
     const inserted = db.run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json,source,exam_line,points) VALUES(?,?,?,?,?,?,?,?,?)', lesson.id, 'single', prompt, explanation, 1, JSON.stringify(answer), 'Базовый курс ОСНОВА', 1, 1);
     options.forEach((label, position) => db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)', Number(inserted.lastInsertRowid), String(position), label, position));
   });
+  const skills = [
+    ['concepts', 'Знание биологических понятий', 'Узнавать термины, структуры и их функции.'],
+    ['processes', 'Анализ биологических процессов', 'Устанавливать причины, этапы и последствия процессов.'],
+    ['evidence', 'Работа с данными', 'Интерпретировать схемы, таблицы и экспериментальные данные.']
+  ];
+  skills.forEach(([slug, title, description], position) => {
+    db.run(`INSERT INTO skills(subject_id,slug,title,description,position) VALUES(?,?,?,?,?)
+      ON CONFLICT(subject_id,slug) DO UPDATE SET title=excluded.title,description=excluded.description,position=excluded.position`,
+      subject.id, slug, title, description, position);
+  });
+  const concepts = db.row("SELECT id FROM skills WHERE subject_id=? AND slug='concepts'", subject.id);
+  if (concepts) db.run(`INSERT OR IGNORE INTO question_skills(question_id,skill_id)
+    SELECT q.id,? FROM questions q JOIN topics t ON t.id=q.topic_id WHERE t.subject_id=?`, concepts.id, subject.id);
 }
 
 module.exports = { bootstrapCourse };

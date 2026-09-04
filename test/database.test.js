@@ -8,7 +8,7 @@ const { migrate, row, rows } = require('../src/db');
 
 test('migration creates the complete learning schema', () => {
   migrate();
-  const required = ['users','subjects','topics','questions','question_options','attempts','topic_progress','mock_exams','mock_exam_attempts'];
+  const required = ['users','subjects','topics','questions','question_options','attempts','topic_progress','mock_exams','mock_exam_attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions'];
   for (const name of required) assert.ok(row("SELECT name FROM sqlite_master WHERE type='table' AND name=?", name));
 });
 
@@ -33,5 +33,22 @@ test('extended learning fields and migration history are available', () => {
   for (const column of ['review_stage','result_json','next_review_at','interval_days']) {
     assert.ok(rows('PRAGMA table_info(attempts)').some(item => item.name === column));
   }
-  assert.equal(row('SELECT COUNT(*) count FROM schema_migrations').count, 2);
+  for (const column of ['instruction','media_json','tags_json','estimated_seconds']) {
+    assert.ok(rows('PRAGMA table_info(questions)').some(item => item.name === column));
+  }
+  assert.equal(row('SELECT COUNT(*) count FROM schema_migrations').count, 3);
+});
+
+test('adaptive learning data can be connected to a persistent training session', () => {
+  migrate();
+  const { run } = require('../src/db');
+  const insertedUser = run("INSERT INTO users(name,email,password_hash) VALUES('Тест','session-test@ege.local','unused')");
+  const user = { id: Number(insertedUser.lastInsertRowid) };
+  const question = row('SELECT id,topic_id FROM questions ORDER BY id LIMIT 1');
+  const skill = row('SELECT id FROM skills ORDER BY id LIMIT 1');
+  assert.ok(user && question && skill);
+  assert.ok(row('SELECT 1 ok FROM question_skills WHERE question_id=? AND skill_id=?', question.id, skill.id));
+  const session = run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)', user.id, question.topic_id, 'adaptive', 5);
+  run('INSERT INTO training_session_questions(session_id,question_id,position) VALUES(?,?,0)', Number(session.lastInsertRowid), question.id);
+  assert.equal(row('SELECT status FROM training_sessions WHERE id=?', Number(session.lastInsertRowid)).status, 'active');
 });
