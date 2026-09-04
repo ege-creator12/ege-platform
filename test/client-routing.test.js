@@ -9,6 +9,7 @@ test('training route does not trigger the hashchange dashboard race', () => {
   assert.doesNotMatch(client, /location\.hash\s*=\s*['"]training['"]/);
   assert.match(client, /history\.replaceState\(null,'','#training'\)/);
   assert.match(client, /state\.route==='training'.*startTraining/);
+  assert.match(client, /sessionStorage\.setItem\('training'/);
 });
 
 test('finishing a session renders persisted result summary', () => {
@@ -16,4 +17,5 @@ test('finishing a session renders persisted result summary', () => {
   assert.match(client, /state\.route='training-result'/);
   assert.match(client, /Результат занятия/);
   assert.match(client, /Прогресс и расписание повторений сохранены/);
+  assert.match(client, /Promise\.all\(\[api\('\/me'\),api\('\/topics'\)\]\)/);
 });
