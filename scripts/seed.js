@@ -1,11 +1,12 @@
 const { scryptSync, randomBytes } = require('node:crypto');
 const { migrate, row, run } = require('../src/db');
-migrate();
+async function seed() {
+await migrate();
 const hash = p => { const salt=randomBytes(16).toString('hex'); return `${salt}:${scryptSync(p,salt,64).toString('hex')}`; };
-if (!row('SELECT id FROM users WHERE email=?','admin@ege.local')) run('INSERT INTO users(name,email,password_hash,role,xp) VALUES(?,?,?,?,?)','Администратор','admin@ege.local',hash('Admin123!'),'admin',420);
-if (!row('SELECT id FROM users WHERE email=?','student@ege.local')) run('INSERT INTO users(name,email,password_hash,role,xp) VALUES(?,?,?,?,?)','Александра','student@ege.local',hash('Student123!'),'student',760);
-let subject=row('SELECT id FROM subjects WHERE slug=?','biology');
-if (!subject) { run('INSERT INTO subjects(slug,title,description,icon) VALUES(?,?,?,?)','biology','Биология','Системная подготовка по всем линиям ЕГЭ','dna'); subject=row('SELECT id FROM subjects WHERE slug=?','biology'); }
+if (!await row('SELECT id FROM users WHERE email=?','admin@ege.local')) await run('INSERT INTO users(name,email,password_hash,role,xp) VALUES(?,?,?,?,?)','Администратор','admin@ege.local',hash('Admin123!'),'admin',420);
+if (!await row('SELECT id FROM users WHERE email=?','student@ege.local')) await run('INSERT INTO users(name,email,password_hash,role,xp) VALUES(?,?,?,?,?)','Александра','student@ege.local',hash('Student123!'),'student',760);
+let subject=await row('SELECT id FROM subjects WHERE slug=?','biology');
+if (!subject) { await run('INSERT INTO subjects(slug,title,description,icon) VALUES(?,?,?,?)','biology','Биология','Системная подготовка по всем линиям ЕГЭ','dna'); subject=await row('SELECT id FROM subjects WHERE slug=?','biology'); }
 const topics=[
  ['science','Биология как наука','Методы, уровни организации и признаки живого','Биология изучает живые системы на разных уровнях: от молекулярного до биосферного. Наблюдение описывает явления без вмешательства, эксперимент проверяет гипотезу в контролируемых условиях.'],
  ['cell','Клетка','Строение, обмен веществ и деление клетки','Клетка — структурная и функциональная единица живого. Мембрана обеспечивает избирательный транспорт, а органоиды выполняют специализированные функции.'],
@@ -17,7 +18,7 @@ const topics=[
  ['evolution','Эволюция','Механизмы и доказательства эволюции','Естественный отбор сохраняет наследственные изменения, повышающие приспособленность в данных условиях.'],
  ['ecology','Экология','Экосистемы и биосфера','Экосистема включает сообщество организмов и неживую среду, связанные потоками энергии и круговоротами веществ.']
 ];
-for(let i=0;i<topics.length;i++){const [slug,title,description,theory]=topics[i]; if(!row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,slug)) run('INSERT INTO topics(subject_id,slug,title,description,theory,position) VALUES(?,?,?,?,?,?)',subject.id,slug,title,description,theory,i);}
+for(let i=0;i<topics.length;i++){const [slug,title,description,theory]=topics[i]; if(!await row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,slug)) await run('INSERT INTO topics(subject_id,slug,title,description,theory,position) VALUES(?,?,?,?,?,?)',subject.id,slug,title,description,theory,i);}
 const qs=[
  ['cell','single','Какой органоид отвечает за синтез АТФ при аэробном дыхании?',['Ядро','Митохондрия','Лизосома','Комплекс Гольджи'],['1'],'Внутренняя мембрана митохондрий содержит ферменты дыхательной цепи и АТФ-синтазу.',1],
  ['cell','multiple','Выберите структуры, характерные для растительной клетки.',['Клеточная стенка из целлюлозы','Крупная центральная вакуоль','Центриоли во всех клетках','Пластиды'],['0','1','3'],'Растительные клетки имеют целлюлозную стенку, пластиды и обычно крупную вакуоль.',1],
@@ -27,5 +28,8 @@ const qs=[
  ['evolution','single','Какой фактор эволюции непосредственно приводит к преимущественному выживанию более приспособленных особей?',['Мутационный процесс','Естественный отбор','Изоляция','Популяционные волны'],['1'],'Именно естественный отбор дифференцирует выживание и размножение особей.',1],
  ['science','multiple','Какие признаки отличают корректный научный эксперимент?',['Наличие проверяемой гипотезы','Контроль условий','Изменение сразу всех факторов','Возможность повторения'],['0','1','3'],'Эксперимент проверяет гипотезу, контролирует переменные и должен быть воспроизводимым.',2]
 ];
-for(const [slug,type,prompt,opts,answer,explanation,difficulty] of qs){const t=row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,slug);if(row('SELECT id FROM questions WHERE prompt=?',prompt))continue;const x=run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json) VALUES(?,?,?,?,?,?)',t.id,type,prompt,explanation,difficulty,JSON.stringify(answer)); const id=Number(x.lastInsertRowid); opts.forEach((label,i)=>run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',id,String(i),label,i));}
+for(const [slug,type,prompt,opts,answer,explanation,difficulty] of qs){const t=await row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,slug);if(await row('SELECT id FROM questions WHERE prompt=?',prompt))continue;const x=await run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json) VALUES(?,?,?,?,?,?)',t.id,type,prompt,explanation,difficulty,JSON.stringify(answer)); const id=Number(x.lastInsertRowid); for (const [i,label] of opts.entries()) await run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',id,String(i),label,i);}
 console.log('Seed complete. Demo: student@ege.local / Student123!; admin@ege.local / Admin123!');
+
+}
+seed().catch(error=>{console.error(error);process.exitCode=1});
