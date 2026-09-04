@@ -52,6 +52,18 @@ test('lesson and full training result persist with XP and statistics', async()=>
   assert.equal((await db.row('SELECT theory_read FROM lesson_progress WHERE user_id=? AND lesson_id=?',user.id,lesson.id)).theory_read,1);
 });
 
+test('numeric topic ids in recursive queries cannot become PostgreSQL text', async()=>{
+  const lesson=await db.row("SELECT id FROM topics WHERE kind='lesson' ORDER BY id LIMIT 1");
+  const result=await request(`/api/training/next?topic=${String(lesson.id)}`);
+  assert.equal(result.status,200);
+  assert.ok(result.body.question.id);
+  const invalid=await request('/api/training/next?topic=not-a-number');
+  assert.equal(invalid.status,400);
+  const source=require('node:fs').readFileSync(join(__dirname,'../server.js'),'utf8');
+  assert.doesNotMatch(source,/tree\(id\) AS \(SELECT \?/);
+  assert.match(source,/tree\(id\) AS \(SELECT CAST\(\? AS BIGINT\)/);
+});
+
 test('bootstrap adds content without changing user data', async()=>{
   const user=await db.row('SELECT id,xp FROM users WHERE email=?','student@test.local');
   await db.migrate();
