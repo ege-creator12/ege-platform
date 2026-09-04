@@ -21,7 +21,7 @@ async function stats(uid){
  let streak=0,d=new Date(); const set=new Set(activity.map(a=>a.day)); while(set.has(d.toISOString().slice(0,10))){streak++;d.setUTCDate(d.getUTCDate()-1)}
  const progress=await rows(`WITH RECURSIVE tree(root,id) AS (SELECT id,id FROM topics WHERE parent_id IS NULL UNION ALL SELECT tree.root,t.id FROM topics t JOIN tree ON t.parent_id=tree.id) SELECT root.id,root.slug,root.title,COALESCE(ROUND(AVG(tp.mastery)),0) mastery,COUNT(DISTINCT q.id) questions FROM topics root JOIN tree ON tree.root=root.id LEFT JOIN topic_progress tp ON tp.topic_id=tree.id AND tp.user_id=? LEFT JOIN questions q ON q.topic_id=tree.id WHERE root.parent_id IS NULL GROUP BY root.id ORDER BY root.position`,uid);
  const recent=await rows(`SELECT a.correct,a.created_at,q.prompt,t.title topic FROM attempts a JOIN questions q ON q.id=a.question_id JOIN topics t ON t.id=q.topic_id WHERE a.user_id=? ORDER BY a.id DESC LIMIT 5`,uid);
- return {solved:total.n,accuracy:total.accuracy,streak,activity,progress,recent,mastery:Math.round(progress.reduce((s,p)=>s+Number(p.mastery),0)/(progress.length||1))};
+ return {solved:Number(total.n),accuracy:Number(total.accuracy),streak,activity,progress:progress.map(item=>({...item,mastery:Number(item.mastery),questions:Number(item.questions)})),recent,mastery:Math.round(progress.reduce((s,p)=>s+Number(p.mastery),0)/(progress.length||1))};
 }
 const trainingModes=new Set(['adaptive','mixed','new','review','mistakes','errors','hard','infinite','topic']);
 async function questionPool(userId,topicId,mode,limit){
@@ -52,14 +52,14 @@ async function recordAnswer(userId,q,b,db=database){
  const xp=correct?20:5,result={correct,expected,explanation:q.explanation,xp};
  const nextReviewAt=new Date(Date.now()+interval*86400000).toISOString();
  const attempt=await run("INSERT INTO attempts(user_id,question_id,answer_json,correct,duration_seconds,next_review_at,interval_days,review_stage,result_json) VALUES(?,?,?,?,?,?,?,?,?)",userId,q.id,JSON.stringify(given),correct,Math.max(0,Number(b.duration)||0),nextReviewAt,interval,stage,JSON.stringify(result));
- await run("INSERT INTO activity_days(user_id,day,solved) VALUES(?,CURRENT_DATE,1) ON CONFLICT(user_id,day) DO UPDATE SET solved=solved+1",userId);await run('UPDATE users SET xp=xp+? WHERE id=?',xp,userId);
- const topicStats=await row('SELECT COUNT(*) n,AVG(correct)*100 score FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.topic_id=?',userId,q.topic_id),mastery=Math.min(100,Math.round(topicStats.score*Math.min(1,topicStats.n/5)));
+ await run("INSERT INTO activity_days(user_id,day,solved) VALUES(?,CURRENT_DATE,1) ON CONFLICT(user_id,day) DO UPDATE SET solved=activity_days.solved+1",userId);await run('UPDATE users SET xp=xp+? WHERE id=?',xp,userId);
+ const topicStats=await row('SELECT COUNT(*) n,AVG(correct)*100 score FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.topic_id=?',userId,q.topic_id),attemptCount=Number(topicStats.n),mastery=Math.min(100,Math.round(Number(topicStats.score)*Math.min(1,attemptCount/5)));
  await run("INSERT INTO topic_progress(user_id,topic_id,mastery) VALUES(?,?,?) ON CONFLICT(user_id,topic_id) DO UPDATE SET mastery=excluded.mastery,updated_at=CURRENT_TIMESTAMP",userId,q.topic_id,mastery);
  if(q.lesson_id) await run(`INSERT INTO lesson_progress(user_id,lesson_id,status,questions_solved,correct_answers,last_activity_at,last_opened_at)
    VALUES(?,?,'in_progress',1,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) ON CONFLICT(user_id,lesson_id) DO UPDATE SET
    status=CASE WHEN lesson_progress.questions_solved+1>=5 THEN 'completed' ELSE 'in_progress' END,
    questions_solved=lesson_progress.questions_solved+1,correct_answers=lesson_progress.correct_answers+excluded.correct_answers,
-   last_activity_at=CURRENT_TIMESTAMP,last_opened_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN lesson_progress.questions_solved+1>=5 THEN CURRENT_TIMESTAMP ELSE completed_at END`,userId,q.lesson_id,correct?1:0);
+   last_activity_at=CURRENT_TIMESTAMP,last_opened_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN lesson_progress.questions_solved+1>=5 THEN CURRENT_TIMESTAMP ELSE lesson_progress.completed_at END`,userId,q.lesson_id,correct?1:0);
  return {...result,attemptId:Number(attempt.lastInsertRowid),nextReviewInDays:interval};
 }
 async function api(req,res,path){

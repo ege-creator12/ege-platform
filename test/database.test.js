@@ -37,19 +37,38 @@ test('registration, login and persistent session work', async()=>{
   assert.match((await db.row('SELECT password_hash FROM users WHERE email=?','student@test.local')).password_hash,/^[a-f0-9]+:[a-f0-9]+$/);
 });
 
-test('lesson and full training result persist with XP and statistics', async()=>{
-  const lesson=await db.row('SELECT id,topic_id FROM lessons ORDER BY id LIMIT 1');
-  let result=await request(`/api/lesson-progress/${lesson.id}`,{method:'POST',body:JSON.stringify({theoryRead:true})}); assert.equal(result.status,200);
-  result=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:lesson.topic_id,targetQuestions:1,mode:'adaptive'})}); assert.equal(result.status,201);
+test('POST session answer saves correct and incorrect attempts, progress, XP and statistics', async()=>{
+  let result=await request('/api/subjects/biology'); assert.equal(result.status,200); assert.ok(result.body.sections.length);
+  result=await request(`/api/sections/${result.body.sections[0].id}`); assert.equal(result.status,200); assert.ok(result.body.topics.length);
+  result=await request(`/api/topics/${result.body.topics[0].id}`); assert.equal(result.status,200); assert.ok(result.body.lessons.length);
+  const lesson=await db.row('SELECT id,topic_id FROM lessons WHERE id=?',result.body.lessons[0].id);
+  result=await request(`/api/lessons/${lesson.id}`); assert.equal(result.status,200); assert.ok(result.body.blocks.length);
+  result=await request(`/api/lesson-progress/${lesson.id}`,{method:'POST',body:JSON.stringify({theoryRead:true})}); assert.equal(result.status,200);
+  result=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:lesson.topic_id,targetQuestions:2,mode:'adaptive'})}); assert.equal(result.status,201);
   const sessionId=result.body.session.id;
   result=await request(`/api/training/sessions/${sessionId}/next`); const question=result.body.question;
   const expected=JSON.parse((await db.row('SELECT answer_json FROM questions WHERE id=?',question.id)).answer_json);
   result=await request(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:question.id,answer:expected,duration:5})});
-  assert.equal(result.status,200); assert.equal(result.body.correct,true); assert.equal(result.body.done,true);
+  assert.equal(result.status,200); assert.equal(result.body.correct,true); assert.equal(result.body.done,false); assert.equal(typeof result.body.explanation,'string');
+  result=await request(`/api/training/sessions/${sessionId}/next`); const nextQuestion=result.body.question; assert.notEqual(nextQuestion.id,question.id);
+  result=await request(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:nextQuestion.id,answer:['definitely-wrong'],duration:3})});
+  assert.equal(result.status,200); assert.equal(result.body.correct,false); assert.equal(result.body.done,true); assert.equal(typeof result.body.explanation,'string'); assert.ok(result.body.expected.length);
+  assert.equal(result.body.stats.solved,2); assert.equal(typeof result.body.stats.solved,'number');
   const user=await db.row('SELECT id,xp FROM users WHERE email=?','student@test.local'); assert.ok(user.xp>=20);
-  assert.equal((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n,1);
+  assert.equal(user.xp,25); assert.equal((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n,2);
+  assert.equal((await db.row('SELECT solved FROM activity_days WHERE user_id=?',user.id)).solved,2);
   assert.equal((await db.row('SELECT status FROM training_sessions WHERE id=?',sessionId)).status,'completed');
+  const completed=await db.row('SELECT answered_count,correct_count FROM training_sessions WHERE id=?',sessionId); assert.equal(completed.answered_count,2); assert.equal(completed.correct_count,1);
   assert.equal((await db.row('SELECT theory_read FROM lesson_progress WHERE user_id=? AND lesson_id=?',user.id,lesson.id)).theory_read,1);
+});
+
+test('PostgreSQL answer upsert qualifies solved and COUNT results are normalized', async()=>{
+  const source=require('node:fs').readFileSync(join(__dirname,'../server.js'),'utf8');
+  assert.match(source,/DO UPDATE SET solved=activity_days\.solved\+1/);
+  assert.doesNotMatch(source,/DO UPDATE SET solved=solved\+1/);
+  const result=await request('/api/me');
+  assert.equal(typeof result.body.stats.solved,'number');
+  assert.ok(result.body.stats.progress.every(topic=>typeof topic.questions==='number'));
 });
 
 test('numeric topic ids in recursive queries cannot become PostgreSQL text', async()=>{
