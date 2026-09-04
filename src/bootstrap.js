@@ -27,52 +27,52 @@ const starterQuestions = [
   ['ecosystem-structure', 'Как называют последовательность организмов, в которой передаются вещество и энергия?', ['Пищевая цепь','Популяция','Биосфера','Сукцессия'], ['0'], 'Пищевая цепь отражает перенос вещества и энергии между организмами.']
 ];
 
-function ensureTopic(db, subjectId, parentId, slug, title, kind, position, theory = '') {
-  let topic = db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subjectId, slug);
+async function ensureTopic(db, subjectId, parentId, slug, title, kind, position, theory = '') {
+  let topic = await db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subjectId, slug);
   if (!topic) {
-    db.run('INSERT INTO topics(subject_id,parent_id,slug,title,description,theory,position,kind,published) VALUES(?,?,?,?,?,?,?,?,1)', subjectId, parentId, slug, title, '', theory, position, kind);
-    topic = db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subjectId, slug);
+    await db.run('INSERT INTO topics(subject_id,parent_id,slug,title,description,theory,position,kind,published) VALUES(?,?,?,?,?,?,?,?,TRUE)', subjectId, parentId, slug, title, '', theory, position, kind);
+    topic = await db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subjectId, slug);
   } else {
-    db.run('UPDATE topics SET parent_id=?,title=?,kind=?,position=?,published=1 WHERE id=?', parentId, title, kind, position, topic.id);
+    await db.run('UPDATE topics SET parent_id=?,title=?,kind=?,position=?,published=TRUE WHERE id=?', parentId, title, kind, position, topic.id);
   }
   return topic.id;
 }
 
-function bootstrapCourse(db) {
-  let subject = db.row("SELECT id FROM subjects WHERE slug='biology'");
+async function bootstrapCourse(db) {
+  let subject = await db.row("SELECT id FROM subjects WHERE slug='biology'");
   if (!subject) {
-    db.run('INSERT INTO subjects(slug,title,description,icon) VALUES(?,?,?,?)', 'biology', 'Биология', 'Полный курс подготовки к ЕГЭ по биологии', 'dna');
-    subject = db.row("SELECT id FROM subjects WHERE slug='biology'");
+    await db.run('INSERT INTO subjects(slug,title,description,icon) VALUES(?,?,?,?)', 'biology', 'Биология', 'Полный курс подготовки к ЕГЭ по биологии', 'dna');
+    subject = await db.row("SELECT id FROM subjects WHERE slug='biology'");
   }
-  curriculum.forEach(([sectionSlug, sectionTitle, themes], sectionIndex) => {
-    const sectionId = ensureTopic(db, subject.id, null, sectionSlug, sectionTitle, 'section', sectionIndex);
-    themes.forEach(([themeSlug, themeTitle, subtopics], themeIndex) => {
-      const themeId = ensureTopic(db, subject.id, sectionId, themeSlug, themeTitle, 'topic', themeIndex);
-      subtopics.forEach(([subtopicSlug, subtopicTitle, lesson], subtopicIndex) => {
-        const subtopicId = ensureTopic(db, subject.id, themeId, subtopicSlug, subtopicTitle, 'subtopic', subtopicIndex);
-        ensureTopic(db, subject.id, subtopicId, lesson[0], lesson[1], 'lesson', 0, lesson[2]);
-      });
-    });
-  });
-  starterQuestions.forEach(([lessonSlug, prompt, options, answer, explanation]) => {
-    const lesson = db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subject.id, lessonSlug);
-    if (!lesson || db.row('SELECT id FROM questions WHERE prompt=?', prompt)) return;
-    const inserted = db.run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json,source,exam_line,points) VALUES(?,?,?,?,?,?,?,?,?)', lesson.id, 'single', prompt, explanation, 1, JSON.stringify(answer), 'Базовый курс ОСНОВА', 1, 1);
-    options.forEach((label, position) => db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)', Number(inserted.lastInsertRowid), String(position), label, position));
-  });
+  for (const [sectionIndex, [sectionSlug, sectionTitle, themes]] of curriculum.entries()) {
+    const sectionId = await ensureTopic(db, subject.id, null, sectionSlug, sectionTitle, 'section', sectionIndex);
+    for (const [themeIndex, [themeSlug, themeTitle, subtopics]] of themes.entries()) {
+      const themeId = await ensureTopic(db, subject.id, sectionId, themeSlug, themeTitle, 'topic', themeIndex);
+      for (const [subtopicIndex, [subtopicSlug, subtopicTitle, lesson]] of subtopics.entries()) {
+        const subtopicId = await ensureTopic(db, subject.id, themeId, subtopicSlug, subtopicTitle, 'subtopic', subtopicIndex);
+        await ensureTopic(db, subject.id, subtopicId, lesson[0], lesson[1], 'lesson', 0, lesson[2]);
+      }
+    }
+  }
+  for (const [lessonSlug, prompt, options, answer, explanation] of starterQuestions) {
+    const lesson = await db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?', subject.id, lessonSlug);
+    if (!lesson || await db.row('SELECT id FROM questions WHERE prompt=?', prompt)) continue;
+    const inserted = await db.run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json,source,exam_line,points) VALUES(?,?,?,?,?,?,?,?,?)', lesson.id, 'single', prompt, explanation, 1, JSON.stringify(answer), 'Базовый курс ОСНОВА', 1, 1);
+    for (const [position, label] of options.entries()) await db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)', Number(inserted.lastInsertRowid), String(position), label, position);
+  }
   const skills = [
     ['concepts', 'Знание биологических понятий', 'Узнавать термины, структуры и их функции.'],
     ['processes', 'Анализ биологических процессов', 'Устанавливать причины, этапы и последствия процессов.'],
     ['evidence', 'Работа с данными', 'Интерпретировать схемы, таблицы и экспериментальные данные.']
   ];
-  skills.forEach(([slug, title, description], position) => {
-    db.run(`INSERT INTO skills(subject_id,slug,title,description,position) VALUES(?,?,?,?,?)
+  for (const [position, [slug, title, description]] of skills.entries()) {
+    await db.run(`INSERT INTO skills(subject_id,slug,title,description,position) VALUES(?,?,?,?,?)
       ON CONFLICT(subject_id,slug) DO UPDATE SET title=excluded.title,description=excluded.description,position=excluded.position`,
       subject.id, slug, title, description, position);
-  });
-  const concepts = db.row("SELECT id FROM skills WHERE subject_id=? AND slug='concepts'", subject.id);
-  if (concepts) db.run(`INSERT OR IGNORE INTO question_skills(question_id,skill_id)
-    SELECT q.id,? FROM questions q JOIN topics t ON t.id=q.topic_id WHERE t.subject_id=?`, concepts.id, subject.id);
+  }
+  const concepts = await db.row("SELECT id FROM skills WHERE subject_id=? AND slug='concepts'", subject.id);
+  if (concepts) await db.run(`INSERT INTO question_skills(question_id,skill_id)
+    SELECT q.id,? FROM questions q JOIN topics t ON t.id=q.topic_id WHERE t.subject_id=? ON CONFLICT(question_id,skill_id) DO NOTHING`, concepts.id, subject.id);
 }
 
 module.exports = { bootstrapCourse };
