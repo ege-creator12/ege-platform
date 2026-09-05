@@ -215,6 +215,26 @@ test('phase 2 subtopics import under plant and animal parents and remain visible
   assert.ok(response.body.topics.every(topic=>topic.parent_id===null));
 });
 
+test('biology navigation exposes seven hierarchy levels without root duplicates',async()=>{
+  const root=await request('/api/subjects/biology/navigation');
+  assert.equal(root.status,200); assert.equal(root.body.groups.length,7);
+  assert.equal(new Set(root.body.groups.map(group=>group.title)).size,7);
+  assert.ok(root.body.groups.every(group=>group.childCount>0&&group.questionCount>=0));
+  const diversity=root.body.groups.find(group=>group.slug==='diversity');
+  const section=await request('/api/subjects/biology/groups/diversity');
+  assert.equal(section.status,200); assert.equal(section.body.topics.length,5);
+  assert.ok(section.body.topics.every(topic=>topic.parent_id===null));
+  assert.equal(section.body.group.questionCount,diversity.questionCount);
+  const plants=section.body.topics.find(topic=>/Растения/.test(topic.title));
+  const animals=section.body.topics.find(topic=>/Животные/.test(topic.title));
+  for(const parent of [plants,animals]){const page=await request('/api/topics/'+parent.id);assert.equal(page.body.children.length,12);assert.deepEqual(page.body.breadcrumbs.map(x=>x.id),[parent.id]);}
+  const plantPage=await request('/api/topics/'+plants.id),child=plantPage.body.children[0];
+  const childPage=await request('/api/topics/'+child.id);
+  assert.deepEqual(childPage.body.breadcrumbs.map(x=>x.id),[plants.id,child.id]);
+  const lesson=await request('/api/lessons/'+childPage.body.lessons[0].id);
+  assert.equal(lesson.status,200); assert.deepEqual(lesson.body.breadcrumbs.map(x=>x.id),[plants.id,child.id]);
+});
+
 test('content validator rejects incomplete solutions, invalid metadata and duplicate prompts',()=>{
   const base={subject:{slug:'biology'},codifier:[{code:'5.0',examLines:[1]}],sections:[{topics:[{slug:'quality-check',codifierCode:'5.0',lesson:{slug:'lesson',contentStatus:'review',blocks:[]},questions:[]}]}]};
   const question={key:'quality-1',type:'calculation',prompt:'Рассчитайте число молекул по условию опыта',answer:['2'],explanation:'Подробное объяснение результата.',difficulty:3,contentStatus:'review',examLine:29};
