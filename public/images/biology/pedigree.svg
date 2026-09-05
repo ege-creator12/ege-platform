@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 300" role="img" aria-labelledby="t d">
+ <title id="t">Учебная родословная</title><desc id="d">Три поколения с условными обозначениями пола и проявления признака</desc>
+ <style>.x{stroke:#293b35;stroke-width:4;fill:white}.f{fill:#376f5b}.l{stroke:#293b35;stroke-width:4}.t{font:18px sans-serif;fill:#17231e}</style>
+ <text class="t" x="20" y="70">I</text><rect class="x" x="120" y="35" width="54" height="54"/><circle class="x f" cx="260" cy="62" r="28"/><path class="l" d="M174 62h58M203 62v55M80 117h246"/>
+ <text class="t" x="20" y="150">II</text><path class="l" d="M100 117v20M205 117v20M310 117v20"/><circle class="x" cx="100" cy="166" r="28"/><rect class="x f" x="178" y="138" width="54" height="54"/><circle class="x" cx="310" cy="166" r="28"/><path class="l" d="M232 166h70M267 166v52M220 218h95"/>
+ <text class="t" x="20" y="255">III</text><path class="l" d="M235 218v20M300 218v20"/><rect class="x" x="208" y="238" width="54" height="54"/><circle class="x f" cx="300" cy="265" r="27"/>
+ <text class="t" x="385" y="70">□ мужчина</text><text class="t" x="385" y="110">○ женщина</text><text class="t" x="385" y="150">■ / ● признак проявился</text><text class="t" x="385" y="205">Горизонталь — брак</text><text class="t" x="385" y="240">Вертикаль — потомство</text>
+</svg>

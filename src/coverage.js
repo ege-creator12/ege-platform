@@ -14,4 +14,14 @@ async function coverageReport(db, subjectSlug, examYear=2027) {
     return {...item,theory_blocks:theoryBlocks,question_count:questionCount,represented_lines:representedLines,theory_covered:theoryBlocks>0,practice_covered:questionCount>0,needs_content:theoryBlocks===0||questionCount<2};
   });
 }
-module.exports={coverageReport};
+async function getTheoryForExamLine(db,line,subjectSlug='biology',examYear=2027) {
+  if(!Number.isInteger(line)||line<1||line>28) throw new TypeError('exam line must be an integer from 1 to 28');
+  const lessons=await db.rows(`SELECT l.id,l.slug,l.title,l.summary,l.codifier_code,l.exam_lines_json,l.skills_json,
+    sec.slug section_slug,sec.title section_title,t.slug topic_slug,t.title topic_title
+    FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections sec ON sec.id=t.section_id JOIN subjects s ON s.id=t.subject_id
+    WHERE s.slug=? AND l.exam_year=? AND l.published=TRUE AND l.content_status IN ('review','verified')
+    ORDER BY sec.position,t.position,l.position`,subjectSlug,examYear);
+  return lessons.filter(lesson=>JSON.parse(lesson.exam_lines_json||'[]').includes(line)).map(lesson=>({...lesson,
+    exam_lines:JSON.parse(lesson.exam_lines_json||'[]'),skills:JSON.parse(lesson.skills_json||'[]')}));
+}
+module.exports={coverageReport,getTheoryForExamLine};

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 260" role="img" aria-labelledby="t d">
+  <title id="t">Основные стадии эмбриогенеза</title><desc id="d">Последовательность от зиготы через дробление, бластулу и гаструлу к органогенезу</desc>
+  <style>.s{fill:#eff8f3;stroke:#237a57;stroke-width:4}.a{stroke:#445;stroke-width:3;marker-end:url(#m)}.t{font:18px sans-serif;fill:#17231e}.g{fill:#f7c96b}.e{fill:#66b98f}.i{fill:#94b8e8}</style>
+  <defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#445"/></marker></defs>
+  <g text-anchor="middle"><circle class="s" cx="65" cy="100" r="37"/><text class="t" x="65" y="175">зигота</text>
+  <g class="s"><circle cx="188" cy="82" r="23"/><circle cx="222" cy="82" r="23"/><circle cx="188" cy="116" r="23"/><circle cx="222" cy="116" r="23"/></g><text class="t" x="205" y="175">дробление</text>
+  <circle class="s" cx="350" cy="100" r="52"/><circle cx="350" cy="100" r="29" fill="white" stroke="#237a57" stroke-width="3"/><text class="t" x="350" y="175">бластула</text>
+  <circle class="g" cx="505" cy="100" r="53"/><path class="e" d="M461 91q44-35 88 0v45q-44-42-88 0z"/><path class="i" d="M480 106q25-20 50 0v34q-25-23-50 0z"/><text class="t" x="505" y="175">гаструла</text>
+  <circle class="s" cx="680" cy="100" r="54"/><path d="M649 83q31-29 62 0M648 117q32 28 64 0" fill="none" stroke="#237a57" stroke-width="8"/><text class="t" x="680" y="175">органогенез</text></g>
+  <path class="a" d="M107 100h37M253 100h40M407 100h39M562 100h58"/>
+  <text class="t" x="380" y="232" text-anchor="middle">эктодерма • мезодерма • энтодерма формируют ткани и органы</text>
+</svg>

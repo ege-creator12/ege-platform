@@ -6,7 +6,7 @@ const { join } = require('node:path');
 process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), 'ege-')), 'test.sqlite');
 process.env.PORT = '32117';
 const db = require('../src/db');
-const { coverageReport } = require('../src/coverage');
+const { coverageReport, getTheoryForExamLine } = require('../src/coverage');
 const { validateCourse } = require('../src/bootstrap');
 const { start } = require('../server');
 let server;
@@ -162,6 +162,27 @@ test('molecular biology and cytology content meets editorial coverage targets',(
   assert.equal(byKey['bio-80-009'].answer[0],'9 глюкоз и 18 АТФ');
   assert.equal(byKey['bio-110-010'].answer[0],'16 хромосом и 16 молекул ДНК');
   assert.equal(byKey['bio-110-013'].answer[0],'4 хромосомы и 8 молекул ДНК');
+});
+
+test('phase 1 biology has complete lessons, balanced practice and key biological answers',async()=>{
+  const course=require('../content/biology/course.json');
+  const topics=course.sections.filter(section=>['biology-reproduction','biology-genetics'].includes(section.slug)).flatMap(section=>section.topics);
+  const questions=topics.flatMap(topic=>topic.questions);
+  assert.equal(topics.length,7); assert.equal(questions.length,56);
+  assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,questions.filter(q=>q.difficulty===level).length])),{1:14,2:28,3:14});
+  for(const topic of topics) {
+    assert.equal(topic.lesson.contentStatus,'review'); assert.ok(topic.questions.length>=8,topic.slug);
+    const types=new Set(topic.lesson.blocks.map(block=>block.type));
+    for(const required of ['definition','table','algorithm','exam_trap','ege_example','deep_dive','summary','quiz']) assert.ok(types.has(required),`${topic.slug}: ${required}`);
+  }
+  const byKey=Object.fromEntries(questions.map(question=>[question.key,question]));
+  assert.equal(byKey['phase1-bio-reproduction-2-04'].answer[0],'144');
+  assert.equal(byKey['phase1-bio-genetics-1-03'].answer[0],'3/16');
+  assert.equal(byKey['phase1-bio-genetics-2-02'].answer[0],'AB — 42%, ab — 42%, Ab — 8%, aB — 8%');
+  assert.equal(byKey['phase1-bio-genetics-4-08'].answer[0],'тотипотентность');
+  const lineTheory=await getTheoryForExamLine(db,28);
+  assert.ok(lineTheory.some(lesson=>lesson.slug==='bio-genetics-1-lesson'));
+  assert.ok(lineTheory.every(lesson=>lesson.exam_lines.includes(28)));
 });
 
 test('content validator rejects incomplete solutions, invalid metadata and duplicate prompts',()=>{
