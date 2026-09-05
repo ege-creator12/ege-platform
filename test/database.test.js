@@ -64,6 +64,29 @@ test('POST session answer saves correct and incorrect attempts, progress, XP and
   assert.equal((await db.row('SELECT theory_read FROM lesson_progress WHERE user_id=? AND lesson_id=?',user.id,lesson.id)).theory_read,1);
 });
 
+test('reveal is a zero-XP incorrect attempt, exposes the solution once, and feeds adaptive mistakes',async()=>{
+  const user=await db.row('SELECT id,xp FROM users WHERE email=?','student@test.local');
+  const topic=await db.row('SELECT topic_id id FROM questions WHERE active=1 ORDER BY id LIMIT 1');
+  let result=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:topic.id,targetQuestions:1,mode:'adaptive'})});
+  assert.equal(result.status,201);const sessionId=result.body.session.id;
+  result=await request(`/api/training/sessions/${sessionId}/next`);assert.equal(result.status,200);const question=result.body.question;
+  for(const secret of ['answer_json','answer_data_json','explanation','explanation_json','solution_steps_json']) assert.equal(Object.hasOwn(question,secret),false,`${secret} leaked`);
+  const attemptsBefore=Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n);
+  result=await request(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:question.id,duration:4})});
+  assert.equal(result.status,200);assert.equal(result.body.correct,false);assert.equal(result.body.xp,0);assert.equal(result.body.resolutionType,'revealed');assert.ok(result.body.expected.length);assert.equal(typeof result.body.explanation,'string');assert.ok(Array.isArray(result.body.solutionSteps));
+  const attempt=await db.row('SELECT correct,result_json,review_stage,next_review_at FROM attempts WHERE id=?',result.body.attemptId);
+  assert.equal(attempt.correct,0);assert.equal(JSON.parse(attempt.result_json).resolutionType,'revealed');assert.equal(attempt.review_stage,0);assert.ok(attempt.next_review_at);
+  assert.equal((await db.row('SELECT xp FROM users WHERE id=?',user.id)).xp,user.xp);
+  assert.equal(Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n),attemptsBefore+1);
+  assert.equal(result.body.stats.solved,attemptsBefore+1);assert.ok(result.body.stats.accuracy<100);
+  const duplicate=await request(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:question.id})});
+  assert.equal(duplicate.status,200);assert.equal(duplicate.body.alreadySaved,true);assert.equal(Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n),attemptsBefore+1);
+  const answerAfterReveal=await request(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:question.id,answer:result.body.expected})});
+  assert.equal(answerAfterReveal.status,409);assert.equal((await db.row('SELECT xp FROM users WHERE id=?',user.id)).xp,user.xp);
+  const mistakes=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:topic.id,targetQuestions:20,mode:'mistakes'})});
+  assert.equal(mistakes.status,201);assert.ok(mistakes.body.session.questions.some(item=>item.id===question.id));
+});
+
 test('PostgreSQL answer upsert qualifies solved and COUNT results are normalized', async()=>{
   const source=require('node:fs').readFileSync(join(__dirname,'../server.js'),'utf8');
   assert.match(source,/DO UPDATE SET solved=activity_days\.solved\+1/);
