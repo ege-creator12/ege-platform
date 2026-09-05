@@ -153,7 +153,8 @@ test('molecular biology and cytology content meets editorial coverage targets',(
   assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,original.filter(q=>q.difficulty===level).length])),{1:28,2:49,3:28});
   assert.ok(new Set(original.map(question=>question.type)).size>=12);
   for(const topic of topics) {
-    const types=new Set(topic.lesson.blocks.map(block=>block.type));
+    const lessons=topic.lessons||[topic.lesson];
+    const types=new Set(lessons.flatMap(lesson=>lesson.blocks).map(block=>block.type));
     for(const required of ['definition','table','algorithm','exam_trap','ege_example','deep_dive','summary','quiz']) assert.ok(types.has(required),`${topic.slug}: ${required}`);
     assert.ok(topic.questions.length>=15,topic.slug);
   }
@@ -172,8 +173,9 @@ test('phase 1 biology has complete lessons, balanced practice and key biological
   assert.equal(topics.length,7); assert.equal(questions.length,56);
   assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,questions.filter(q=>q.difficulty===level).length])),{1:14,2:28,3:14});
   for(const topic of topics) {
-    assert.equal(topic.lesson.contentStatus,'review'); assert.ok(topic.questions.length>=8,topic.slug);
-    const types=new Set(topic.lesson.blocks.map(block=>block.type));
+    assert.ok((topic.lessons||[topic.lesson]).every(lesson=>lesson.contentStatus==='review')); assert.ok(topic.questions.length>=8,topic.slug);
+    const lessons=topic.lessons||[topic.lesson];
+    const types=new Set(lessons.flatMap(lesson=>lesson.blocks).map(block=>block.type));
     for(const required of ['definition','table','algorithm','exam_trap','ege_example','deep_dive','summary','quiz']) assert.ok(types.has(required),`${topic.slug}: ${required}`);
   }
   const byKey=Object.fromEntries(questions.map(question=>[question.key,question]));
@@ -191,7 +193,7 @@ test('phase 2 diversity has complete reviewed theory, practice and biological as
   const report=phase2Report(course);
   assert.equal(report.topics,29);
   assert.equal(report.subtopics,24);
-  assert.equal(report.lessons,27);
+  assert.equal(report.lessons,41);
   assert.equal(report.blocks,411);
   assert.equal(report.questions,210);
   assert.equal(report.questionsLost,0);
