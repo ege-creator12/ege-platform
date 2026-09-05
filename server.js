@@ -3,6 +3,7 @@ const { readFileSync, existsSync } = require('node:fs');
 const { extname, join, normalize } = require('node:path');
 const { randomBytes, scryptSync, timingSafeEqual } = require('node:crypto');
 const database = require('./src/db');
+const { coverageReport } = require('./src/coverage');
 const { migrate, rows, row, run, healthcheck } = database;
 
 const PORT=Number(process.env.PORT||3000), PUBLIC=join(__dirname,'public');
@@ -113,6 +114,7 @@ async function api(req,res,path){
    const result=await database.transaction(tx=>recordAnswer(u.id,q,b,tx));return json(res,200,{...result,stats:await stats(u.id)});
   }
   if(path==='/api/admin/stats'){const u=await auth(req,res,true);if(u)return json(res,200,{users:await rows(`SELECT u.id,u.name,u.email,u.xp,COUNT(a.id) solved,COALESCE(ROUND(AVG(a.correct)*100),0) accuracy FROM users u LEFT JOIN attempts a ON a.user_id=u.id WHERE u.role='student' GROUP BY u.id ORDER BY solved DESC`),counts:await row("SELECT (SELECT COUNT(*) FROM users WHERE role='student') students,(SELECT COUNT(*) FROM questions) questions,(SELECT COUNT(*) FROM attempts) attempts")})}
+  if(path==='/api/admin/coverage'){const u=await auth(req,res,true);if(!u)return;const url=new URL(req.url,'http://x'),year=Number(url.searchParams.get('year'))||2027,subject=url.searchParams.get('subject')||'biology';return json(res,200,{subject,examYear:year,items:await coverageReport(database,subject,year)})}
   if(path==='/api/admin/questions'&&req.method==='GET'){const u=await auth(req,res,true);if(u)return json(res,200,{questions:await rows('SELECT q.id,q.prompt,q.type,q.difficulty,q.active,t.title topic FROM questions q JOIN topics t ON t.id=q.topic_id ORDER BY q.id DESC')})}
   if(path==='/api/admin/questions'&&req.method==='POST'){const u=await auth(req,res,true);if(!u)return;const b=await body(req),topicId=numericId(b.topicId);if(!b.prompt||!b.explanation||!Array.isArray(b.answer)||!topicId)return json(res,400,{error:'Заполните обязательные поля'});const x=await run('INSERT INTO questions(topic_id,type,prompt,explanation,difficulty,answer_json) VALUES(?,?,?,?,?,?)',topicId,b.type||'single',b.prompt,b.explanation,Math.min(3,Math.max(1,Number(b.difficulty)||1)),JSON.stringify(b.answer));for(const [i,label] of (b.options||[]).entries()) await run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',Number(x.lastInsertRowid),String(i),label,i);return json(res,201,{id:Number(x.lastInsertRowid)})}
   if(path.match(/^\/api\/admin\/questions\/\d+$/)&&req.method==='DELETE'){const u=await auth(req,res,true);if(u){const id=numericId(path.split('/').pop());if(!id)return json(res,400,{error:'Некорректный идентификатор задания'});await run('DELETE FROM questions WHERE id=?',id);return json(res,200,{ok:true})}}
@@ -120,7 +122,7 @@ async function api(req,res,path){
  }catch(e){const status=e.status||500,code=e.code&&typeof e.code==='string'&&!/^\d+$/.test(e.code)?e.code:'INTERNAL_ERROR';console.error(JSON.stringify({route:`${req.method} ${path}`,code,postgresCode:e.code||null,message:e.message,stack:e.stack}));if(!res.headersSent)json(res,status,{error:status===500?'Внутренняя ошибка сервера':e.message,code})}
 }
 async function login(res,userId){const token=randomBytes(32).toString('hex');await run("INSERT INTO sessions(token,user_id,expires_at) VALUES(?,?,?)",token,userId,new Date(Date.now()+2592000000).toISOString());res.setHeader('set-cookie',`session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax${process.env.NODE_ENV==='production'?'; Secure':''}`);json(res,200,{ok:true});}
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
 async function start() {
  await migrate();
  return http.createServer((req,res)=>{const path=new URL(req.url,'http://x').pathname;if(path.startsWith('/api/'))return api(req,res,path);let file=normalize(join(PUBLIC,path==='/'?'index.html':path));if(!file.startsWith(PUBLIC)||!existsSync(file))file=join(PUBLIC,'index.html');res.writeHead(200,{'content-type':mime[extname(file)]||'application/octet-stream','cache-control':'no-cache'});res.end(readFileSync(file));}).listen(PORT,()=>console.log(`EGE Platform: http://localhost:${PORT}`));

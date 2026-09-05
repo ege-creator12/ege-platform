@@ -6,6 +6,8 @@ const { join } = require('node:path');
 process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), 'ege-')), 'test.sqlite');
 process.env.PORT = '32117';
 const db = require('../src/db');
+const { coverageReport } = require('../src/coverage');
+const { validateCourse } = require('../src/bootstrap');
 const { start } = require('../server');
 let server;
 let cookie;
@@ -21,11 +23,11 @@ after(async()=>{ await new Promise(resolve=>server.close(resolve)); await db.clo
 
 test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
-  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources'];
+  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,4);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,5);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,4);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,5);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -90,7 +92,38 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,4);
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,5);
+});
+
+test('content import is idempotent and coverage links question, lesson, topic and exam line',async()=>{
+  const before=await db.row("SELECT COUNT(*) questions FROM questions WHERE subject_id=(SELECT id FROM subjects WHERE slug='biology')");
+  await db.migrate();
+  const after=await db.row("SELECT COUNT(*) questions FROM questions WHERE subject_id=(SELECT id FROM subjects WHERE slug='biology')");
+  assert.equal(after.questions,before.questions);
+  const linked=await db.row(`SELECT q.exam_line,q.codifier_code,l.id lesson_id,t.id topic_id FROM questions q JOIN lessons l ON l.id=q.lesson_id JOIN topics t ON t.id=q.topic_id JOIN content_coverage c ON c.entity_type='question' AND c.entity_id=q.id JOIN exam_spec_items e ON e.id=c.spec_item_id AND e.codifier_code=q.codifier_code WHERE q.external_key='bio-dna-calc-001'`);
+  assert.ok(linked.lesson_id); assert.ok(linked.topic_id); assert.equal(linked.exam_line,27);
+});
+
+test('coverage reports gaps and counts only reviewed content',async()=>{
+  const report=await coverageReport(db,'biology',2027);
+  const sample=report.find(item=>item.title==='Нуклеиновые кислоты и реализация генетической информации');
+  const draft=report.find(item=>item.title==='Вирусы');
+  assert.equal(sample.theory_covered,true); assert.ok(sample.question_count>=2);
+  assert.equal(draft.theory_covered,false); assert.equal(draft.needs_content,true);
+});
+
+test('missing image is rejected and nullable question images remain safe',async()=>{
+  const invalid={subject:{slug:'biology'},sections:[{topics:[{slug:'x',codifierCode:'x',lesson:{blocks:[]},questions:[{key:'x',type:'image',prompt:'x',answer:['x'],image:'/missing.svg'}]}]}]};
+  assert.throws(()=>validateCourse(invalid),/missing image/);
+  assert.ok(await db.row("SELECT id FROM questions WHERE image_url IS NULL AND content_status='verified' LIMIT 1"));
+});
+
+test('legacy questions remain trainable without entering verified coverage',async()=>{
+  const topic=await db.row('SELECT id FROM topics ORDER BY id LIMIT 1');
+  await db.run(`INSERT INTO questions(topic_id,external_key,type,question_type,prompt,explanation,difficulty,answer_json,content_status,active) VALUES(?,?,'text','short_answer','Архивный вопрос','Архивное объяснение',1,'["ответ"]','legacy',TRUE)`,topic.id,'test-legacy-question');
+  const q=await db.row("SELECT * FROM questions WHERE external_key='test-legacy-question' AND content_status='legacy' AND active=1");
+  assert.ok(q); // active keeps it compatible with adaptive training
+  assert.equal((await db.row("SELECT COUNT(*) n FROM content_coverage WHERE entity_type='question' AND entity_id=?",q.id)).n,0);
 });
 
 

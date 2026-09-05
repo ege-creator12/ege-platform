@@ -1,0 +1,21 @@
+-- Additive and idempotent: learner progress, attempts, sessions and users are untouched.
+ALTER TABLE lesson_blocks DROP CONSTRAINT IF EXISTS lesson_blocks_type_check;
+ALTER TABLE lesson_blocks ADD CONSTRAINT lesson_blocks_type_check CHECK(type IN ('text','heading','definition','remember','important','example','exam_example','ege_example','exam_trap','formula','reaction','table','list','image','diagram','comparison','algorithm','experiment','deep_dive','note','quiz','summary'));
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS codifier_code TEXT;
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS exam_lines_json JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS skills_json JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS content_status TEXT NOT NULL DEFAULT 'draft';
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_ege_required BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_beyond_ege BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS codifier_code TEXT;
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS skills_json JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS solution_steps_json JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS max_score INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS content_status TEXT NOT NULL DEFAULT 'draft';
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT;
+CREATE TABLE IF NOT EXISTS exam_spec_items (id BIGSERIAL PRIMARY KEY,subject_id BIGINT NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,exam_year INTEGER NOT NULL,codifier_code TEXT NOT NULL,title TEXT NOT NULL,parent_code TEXT,exam_lines_json JSONB NOT NULL DEFAULT '[]',skills_json JSONB NOT NULL DEFAULT '[]',difficulty TEXT NOT NULL DEFAULT 'base',is_ege_required BOOLEAN NOT NULL DEFAULT TRUE,source_version TEXT NOT NULL,content_status TEXT NOT NULL DEFAULT 'draft' CHECK(content_status IN ('draft','review','verified')),UNIQUE(subject_id,exam_year,codifier_code));
+CREATE TABLE IF NOT EXISTS content_coverage (id BIGSERIAL PRIMARY KEY,spec_item_id BIGINT NOT NULL REFERENCES exam_spec_items(id) ON DELETE CASCADE,entity_type TEXT NOT NULL CHECK(entity_type IN ('topic','lesson','block','question')),entity_id BIGINT NOT NULL,coverage_kind TEXT NOT NULL CHECK(coverage_kind IN ('theory','practice')),UNIQUE(spec_item_id,entity_type,entity_id,coverage_kind));
+CREATE TABLE IF NOT EXISTS media_assets (id BIGSERIAL PRIMARY KEY,external_key TEXT NOT NULL UNIQUE,path TEXT NOT NULL,mime_type TEXT NOT NULL CHECK(mime_type IN ('image/svg+xml','image/png','image/webp')),alt_text TEXT NOT NULL,width INTEGER,height INTEGER,metadata_json JSONB NOT NULL DEFAULT '{}',content_status TEXT NOT NULL DEFAULT 'draft' CHECK(content_status IN ('draft','review','verified')));
+CREATE INDEX IF NOT EXISTS idx_exam_spec_year_code ON exam_spec_items(subject_id,exam_year,codifier_code);
+CREATE INDEX IF NOT EXISTS idx_coverage_spec_kind ON content_coverage(spec_item_id,coverage_kind);
+CREATE INDEX IF NOT EXISTS idx_questions_codifier ON questions(subject_id,exam_year,codifier_code,content_status);
