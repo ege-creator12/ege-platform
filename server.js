@@ -4,6 +4,7 @@ const { extname, join, normalize } = require('node:path');
 const { randomBytes, scryptSync, timingSafeEqual } = require('node:crypto');
 const database = require('./src/db');
 const { coverageReport } = require('./src/coverage');
+const { formatAnswerForReview } = require('./src/answer-review');
 const { migrate, rows, row, run, healthcheck } = database;
 
 const PORT=Number(process.env.PORT||3000), PUBLIC=join(__dirname,'public');
@@ -53,7 +54,8 @@ async function recordAnswer(userId,q,b,db=database,resolutionType='answered'){
  const correct=resolutionType==='answered'&&(q.type==='sequence'?JSON.stringify(norm(given))===JSON.stringify(norm(expected)):norm(given).sort().join('|')===norm(expected).sort().join('|'));
  const previous=await row('SELECT review_stage FROM attempts WHERE user_id=? AND question_id=? ORDER BY id DESC LIMIT 1',userId,q.id),stage=correct?Math.min(5,(previous?.review_stage||0)+1):0,interval=[1,2,4,7,14,30][stage];
  const nextReviewAt=new Date(Date.now()+interval*86400000).toISOString();
- const xp=resolutionType==='revealed'?0:correct?20:5,result={correct,expected,explanation:q.explanation,solutionSteps:parseJsonArray(q.solution_steps_json),maxScore:q.max_score||q.points||1,resolutionType,xp,nextReviewInDays:interval};
+ const reviewAnswer=formatAnswerForReview(q,await db.rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',q.id));
+ const xp=resolutionType==='revealed'?0:correct?20:5,result={correct,expected,reviewAnswer,explanation:q.explanation,solutionSteps:parseJsonArray(q.solution_steps_json),maxScore:q.max_score||q.points||1,resolutionType,xp,nextReviewInDays:interval};
  const attempt=await run("INSERT INTO attempts(user_id,question_id,answer_json,correct,duration_seconds,next_review_at,interval_days,review_stage,result_json) VALUES(?,?,?,?,?,?,?,?,?)",userId,q.id,JSON.stringify(given),correct,Math.max(0,Number(b.duration)||0),nextReviewAt,interval,stage,JSON.stringify(result));
  await run("INSERT INTO activity_days(user_id,day,solved) VALUES(?,CURRENT_DATE,1) ON CONFLICT(user_id,day) DO UPDATE SET solved=activity_days.solved+1",userId);await run('UPDATE users SET xp=xp+? WHERE id=?',xp,userId);
  const topicStats=await row('SELECT COUNT(*) n,AVG(correct)*100 score FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.topic_id=?',userId,q.topic_id),attemptCount=Number(topicStats.n),mastery=Math.min(100,Math.round(Number(topicStats.score)*Math.min(1,attemptCount/5)));
