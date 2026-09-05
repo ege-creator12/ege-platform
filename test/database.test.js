@@ -128,12 +128,12 @@ test('content import is idempotent and coverage links question, lesson, topic an
   assert.ok(linked.lesson_id); assert.ok(linked.topic_id); assert.equal(linked.exam_line,27);
 });
 
-test('coverage reports gaps and counts only reviewed content',async()=>{
+test('coverage counts only reviewed content, including completed human theory',async()=>{
   const report=await coverageReport(db,'biology',2027);
   const sample=report.find(item=>item.title==='Нуклеиновые кислоты и реализация генетической информации');
-  const draft=report.find(item=>item.title==='Ткани и опорно-двигательная система');
+  const human=report.find(item=>item.title==='Ткани и опорно-двигательная система');
   assert.equal(sample.theory_covered,true); assert.ok(sample.question_count>=2);
-  assert.equal(draft.theory_covered,false); assert.equal(draft.needs_content,true);
+  assert.equal(human.theory_covered,true); assert.ok(human.question_count>=2); assert.equal(human.needs_content,false);
 });
 
 test('missing image is rejected and nullable question images remain safe',async()=>{
