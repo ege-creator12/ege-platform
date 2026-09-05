@@ -193,14 +193,14 @@ test('phase 2 diversity has complete reviewed theory, practice and biological as
   const report=phase2Report(course);
   assert.equal(report.topics,29);
   assert.equal(report.subtopics,24);
-  assert.equal(report.lessons,45);
+  assert.equal(report.lessons,64);
   // Theory deepening may add connected explanatory blocks; guard against loss,
   // rather than freezing the editorial structure at the Phase 2 baseline.
   assert.ok(report.blocks>=451);
-  assert.equal(report.questions,210);
+  assert.equal(report.questions,228);
   assert.equal(report.questionsLost,0);
-  assert.deepEqual(report.byDifficulty,{1:54,2:105,3:51});
-  assert.equal(Object.keys(report.byType).length,13);
+  assert.deepEqual(report.byDifficulty,{1:67,2:96,3:65});
+  assert.equal(Object.keys(report.byType).length,14);
   assert.equal(report.assets,18);
   assert.deepEqual(report.codifierCodes,['19.0','20.0','21.0','22.0','23.0']);
 });
