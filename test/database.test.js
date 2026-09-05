@@ -8,6 +8,7 @@ process.env.PORT = '32117';
 const db = require('../src/db');
 const { coverageReport, getTheoryForExamLine } = require('../src/coverage');
 const { validateCourse } = require('../src/bootstrap');
+const { phase2Report } = require('../scripts/audit-phase2');
 const { start } = require('../server');
 let server;
 let cookie;
@@ -130,7 +131,7 @@ test('content import is idempotent and coverage links question, lesson, topic an
 test('coverage reports gaps and counts only reviewed content',async()=>{
   const report=await coverageReport(db,'biology',2027);
   const sample=report.find(item=>item.title==='Нуклеиновые кислоты и реализация генетической информации');
-  const draft=report.find(item=>item.title==='Вирусы');
+  const draft=report.find(item=>item.title==='Ткани и опорно-двигательная система');
   assert.equal(sample.theory_covered,true); assert.ok(sample.question_count>=2);
   assert.equal(draft.theory_covered,false); assert.equal(draft.needs_content,true);
 });
@@ -183,6 +184,35 @@ test('phase 1 biology has complete lessons, balanced practice and key biological
   const lineTheory=await getTheoryForExamLine(db,28);
   assert.ok(lineTheory.some(lesson=>lesson.slug==='bio-genetics-1-lesson'));
   assert.ok(lineTheory.every(lesson=>lesson.exam_lines.includes(28)));
+});
+
+test('phase 2 diversity has complete reviewed theory, practice and biological assertions',()=>{
+  const course=require('../content/biology/course.json');
+  const report=phase2Report(course);
+  assert.equal(report.topics,29);
+  assert.equal(report.subtopics,24);
+  assert.equal(report.lessons,27);
+  assert.equal(report.blocks,411);
+  assert.equal(report.questions,210);
+  assert.equal(report.questionsLost,0);
+  assert.deepEqual(report.byDifficulty,{1:54,2:105,3:51});
+  assert.equal(Object.keys(report.byType).length,13);
+  assert.equal(report.assets,18);
+  assert.deepEqual(report.codifierCodes,['19.0','20.0','21.0','22.0','23.0']);
+});
+
+test('phase 2 subtopics import under plant and animal parents and remain visible by exam line',async()=>{
+  const plantChildren=await db.row("SELECT COUNT(*) n FROM topics WHERE parent_id=(SELECT id FROM topics WHERE slug='bio-diversity-4')");
+  const animalChildren=await db.row("SELECT COUNT(*) n FROM topics WHERE parent_id=(SELECT id FROM topics WHERE slug='bio-diversity-5')");
+  assert.equal(plantChildren.n,12); assert.equal(animalChildren.n,12);
+  const theory=await getTheoryForExamLine(db,23);
+  assert.ok(theory.some(lesson=>lesson.slug==='bio-diversity-4-plant-root-lesson'));
+  const animalTheory=await getTheoryForExamLine(db,3);
+  assert.ok(animalTheory.some(lesson=>lesson.slug==='bio-diversity-5-animal-birds-lesson'));
+  const section=await db.row("SELECT id FROM sections WHERE slug='biology-diversity'");
+  const response=await request(`/api/sections/${section.id}`);
+  assert.equal(response.body.topics.length,5);
+  assert.ok(response.body.topics.every(topic=>topic.parent_id===null));
 });
 
 test('content validator rejects incomplete solutions, invalid metadata and duplicate prompts',()=>{
