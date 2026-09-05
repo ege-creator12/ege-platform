@@ -54,7 +54,7 @@ test('POST session answer saves correct and incorrect attempts, progress, XP and
   assert.equal(result.status,200); assert.equal(result.body.correct,true); assert.equal(result.body.done,false); assert.equal(typeof result.body.explanation,'string');
   result=await request(`/api/training/sessions/${sessionId}/next`); const nextQuestion=result.body.question; assert.notEqual(nextQuestion.id,question.id);
   result=await request(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:nextQuestion.id,answer:['definitely-wrong'],duration:3})});
-  assert.equal(result.status,200); assert.equal(result.body.correct,false); assert.equal(result.body.done,true); assert.equal(typeof result.body.explanation,'string'); assert.ok(result.body.expected.length);
+  assert.equal(result.status,200); assert.equal(result.body.correct,false); assert.equal(result.body.done,true); assert.equal(typeof result.body.explanation,'string'); assert.ok(result.body.expected.length); assert.equal(typeof result.body.reviewAnswer.examAnswer,'string');
   assert.equal(result.body.stats.solved,2); assert.equal(typeof result.body.stats.solved,'number');
   const user=await db.row('SELECT id,xp FROM users WHERE email=?','student@test.local'); assert.ok(user.xp>=20);
   assert.equal(user.xp,25); assert.equal((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n,2);
@@ -73,14 +73,14 @@ test('reveal is a zero-XP incorrect attempt, exposes the solution once, and feed
   for(const secret of ['answer_json','answer_data_json','explanation','explanation_json','solution_steps_json']) assert.equal(Object.hasOwn(question,secret),false,`${secret} leaked`);
   const attemptsBefore=Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n);
   result=await request(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:question.id,duration:4})});
-  assert.equal(result.status,200);assert.equal(result.body.correct,false);assert.equal(result.body.xp,0);assert.equal(result.body.resolutionType,'revealed');assert.ok(result.body.expected.length);assert.equal(typeof result.body.explanation,'string');assert.ok(Array.isArray(result.body.solutionSteps));
+  assert.equal(result.status,200);assert.equal(result.body.correct,false);assert.equal(result.body.xp,0);assert.equal(result.body.resolutionType,'revealed');assert.ok(result.body.expected.length);assert.equal(typeof result.body.explanation,'string');assert.ok(Array.isArray(result.body.solutionSteps));assert.equal(typeof result.body.reviewAnswer.examAnswer,'string');
   const attempt=await db.row('SELECT correct,result_json,review_stage,next_review_at FROM attempts WHERE id=?',result.body.attemptId);
   assert.equal(attempt.correct,0);assert.equal(JSON.parse(attempt.result_json).resolutionType,'revealed');assert.equal(attempt.review_stage,0);assert.ok(attempt.next_review_at);
   assert.equal((await db.row('SELECT xp FROM users WHERE id=?',user.id)).xp,user.xp);
   assert.equal(Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n),attemptsBefore+1);
   assert.equal(result.body.stats.solved,attemptsBefore+1);assert.ok(result.body.stats.accuracy<100);
   const duplicate=await request(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:question.id})});
-  assert.equal(duplicate.status,200);assert.equal(duplicate.body.alreadySaved,true);assert.equal(Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n),attemptsBefore+1);
+  assert.equal(duplicate.status,200);assert.equal(duplicate.body.alreadySaved,true);assert.deepEqual(duplicate.body.reviewAnswer,result.body.reviewAnswer);assert.equal(Number((await db.row('SELECT COUNT(*) n FROM attempts WHERE user_id=?',user.id)).n),attemptsBefore+1);
   const answerAfterReveal=await request(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:question.id,answer:result.body.expected})});
   assert.equal(answerAfterReveal.status,409);assert.equal((await db.row('SELECT xp FROM users WHERE id=?',user.id)).xp,user.xp);
   const mistakes=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({topicId:topic.id,targetQuestions:20,mode:'mistakes'})});
