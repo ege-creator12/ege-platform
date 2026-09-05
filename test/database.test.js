@@ -194,7 +194,9 @@ test('phase 2 diversity has complete reviewed theory, practice and biological as
   assert.equal(report.topics,29);
   assert.equal(report.subtopics,24);
   assert.equal(report.lessons,45);
-  assert.equal(report.blocks,451);
+  // Theory deepening may add connected explanatory blocks; guard against loss,
+  // rather than freezing the editorial structure at the Phase 2 baseline.
+  assert.ok(report.blocks>=451);
   assert.equal(report.questions,210);
   assert.equal(report.questionsLost,0);
   assert.deepEqual(report.byDifficulty,{1:54,2:105,3:51});

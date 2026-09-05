@@ -5,7 +5,31 @@ const ROOT=resolve(__dirname,'..'), COURSE=resolve(ROOT,'content/biology/course.
 const TASK1_TOPICS=['bio-science-1','bio-science-2','bio-science-3','bio-molecular-1','bio-molecular-2','bio-molecular-3','bio-molecular-4','bio-cell-1','bio-cell-2','bio-exam-practice-1','bio-exam-practice-2'];
 const TASK2_TOPICS=['bio-cell-3','bio-reproduction-1','bio-reproduction-2','bio-reproduction-3','bio-genetics-1','bio-genetics-2','bio-genetics-3'];
 const TASK3_TOPICS=['bio-genetics-4','bio-diversity-1','bio-diversity-2','bio-diversity-3'];
-const TARGET_TOPICS=new Set([...TASK1_TOPICS,...TASK2_TOPICS,...TASK3_TOPICS]);
+const BOTANY_TOPICS=['bio-diversity-4-plant-cell-tissues','bio-diversity-4-plant-root','bio-diversity-4-plant-shoot','bio-diversity-4-plant-leaf','bio-diversity-4-plant-flower-pollination','bio-diversity-4-plant-double-fertilization','bio-diversity-4-plant-seed-fruit','bio-diversity-4-plant-physiology','bio-diversity-4-plant-algae-mosses','bio-diversity-4-plant-spore-vascular','bio-diversity-4-plant-seed-groups','bio-diversity-4-plant-life-cycles'];
+const TARGET_TOPICS=new Set([...TASK1_TOPICS,...TASK2_TOPICS,...TASK3_TOPICS,...BOTANY_TOPICS]);
+const BOTANY_REQUIRED={
+ 'bio-diversity-4-plant-cell-tissues-lesson':['целлюлозн','плазмодесм','вакуол','хлоропласт','хромопласт','лейкопласт','верхушечная','вставочная','ксилем','флоэм','клетки-спутницы'],
+ 'bio-diversity-4-plant-root-lesson':['чехлик','зоне деления','зоне растяжения','зоне всасывания','зоне проведения','корневой волосок','осмотическ'],
+ 'bio-diversity-4-plant-root-lesson-2':['главный корень','придаточные','стержневая','мочковатая','корнеплод','корневые клубни','дыхательные корни'],
+ 'bio-diversity-4-plant-root-lesson-3':['корневое давление','транспирацион','когез','азот','фосфор','калий','магний'],
+ 'bio-diversity-4-plant-shoot-lesson':['узел','междоузли','верхушечная почка','боковая','вегетативная почка','генеративная'],
+ 'bio-diversity-4-plant-shoot-lesson-2':['луб','камбий','древесин','сердцевин','годичные кольца','корневище','клубень картофеля','луковица'],
+ 'bio-diversity-4-plant-leaf-lesson':['кутикул','столбчат','губчат','межклетник','устьиц','жилкован','листорасполож'],
+ 'bio-diversity-4-plant-leaf-lesson-2':['замыкающих клеток','щели','транспирац','межклетник','дышит','днём'],
+ 'bio-diversity-4-plant-flower-pollination-lesson':['цветонож','цветолож','чашеч','венчик','пыльник','рыльце','семязачат','однодомн','двудомн'],
+ 'bio-diversity-4-plant-flower-pollination-lesson-2':['самоопыл','перекрёст','ветроопыляем','насекомоопыляем'],
+ 'bio-diversity-4-plant-double-fertilization-lesson':['пыльцевое зерно','пыльцев','два спермия','зигота 2n','3n','центральная клетка'],
+ 'bio-diversity-4-plant-seed-fruit-lesson':['зародыш','семенн','семядол','эндосперм','кислород','зерновк','стручок','распростран'],
+ 'bio-diversity-4-plant-physiology-lesson':['фотосинтез','дыхание','днём','ночью','лимитир'],
+ 'bio-diversity-4-plant-physiology-lesson-2':['источник','потребитель','когез','фототропизм','гравитропизм','хемотропизм','глубже егэ'],
+ 'bio-diversity-4-plant-algae-mosses-lesson':['слоевище','таллом','кутикул','проводящей системы','пыльца'],
+ 'bio-diversity-4-plant-algae-mosses-lesson-2':['гаметофит n','спорофит 2n','протонем','ризоид','мейоз','water'],
+ 'bio-diversity-4-plant-spore-vascular-lesson':['плауны','хвощ','спороносные колоски','спорофит','вод'],
+ 'bio-diversity-4-plant-spore-vascular-lesson-2':['корневищ','вай','сорус','споранги','заросток','water'],
+ 'bio-diversity-4-plant-seed-groups-lesson':['микроспор','мегаспор','пыльца','женский гаметофит','семя','нет','плод'],
+ 'bio-diversity-4-plant-seed-groups-lesson-2':['двудольн','однодольн','капустные','розоцветные','бобовые','паслёновые','астровые','лилейные','мятликовые','формул'],
+ 'bio-diversity-4-plant-life-cycles-lesson':['гаметофит n','спорофит 2n','гаметы n митозом','споры n мейозом','оплодотворение','двойное оплодотворение']
+};
 const TASK3_REQUIRED={
  'bio-genetics-4-lesson':['наследственная изменчивость','массовом отборе','индивидуальном отборе','инбридинг','аутбридинг','гетерозис'],
  'bio-genetics-4-lesson-2':['чистые линии','полиплоидия','оценка потомства','искусственный мутагенез','штамм'],
@@ -58,6 +82,7 @@ function auditBiologyTheory(course,publicRoot=resolve(ROOT,'public')){
    if(!types.has('text')||!types.has('heading')||!types.has('summary'))throw new Error(`${lesson.slug}: incomplete connected learning sequence`);
    if([...types].every(t=>['definition','summary','table','heading'].includes(t)))throw new Error(`${lesson.slug}: theory consists only of reference blocks`);
    for(const concept of [...(TASK2_REQUIRED[lesson.slug]||[]),...(TASK3_REQUIRED[lesson.slug]||[])])if(!corpus.includes(concept.toLocaleLowerCase('ru')))throw new Error(`${lesson.slug}: mandatory concept missing: ${concept}`);
+   for(const concept of BOTANY_REQUIRED[lesson.slug]||[])if(!corpus.includes(concept.toLocaleLowerCase('ru')))throw new Error(`${lesson.slug}: mandatory botany concept missing: ${concept}`);
    if(ALGORITHMIC.has(lesson.slug)&&(!types.has('algorithm')||![...types].some(t=>['example','ege_example'].includes(t))))throw new Error(`${lesson.slug}: algorithm/example missing`);
    if(NC_REQUIRED.has(lesson.slug)&&(!corpus.includes('2n2c')||!corpus.includes('2n4c')||!corpus.includes('n2c')))throw new Error(`${lesson.slug}: n/c sequence missing`);
    for(const b of lesson.blocks.filter(b=>['image','diagram'].includes(b.type))){if(!assets.has(b.content.assetKey))throw new Error(`${lesson.slug}: unknown media ${b.content.assetKey}`);if(!b.content.alt)throw new Error(`${lesson.slug}: media alt missing`)}
@@ -67,6 +92,12 @@ function auditBiologyTheory(course,publicRoot=resolve(ROOT,'public')){
     if(!types.has('comparison')||!types.has('exam_trap')||!types.has('ege_example'))throw new Error(`${lesson.slug}: task 3 comparison/trap/application missing`);
     if(lesson.blocks.filter(b=>b.type==='text').length<2)throw new Error(`${lesson.slug}: task 3 lacks connected explanation`);
    }
+   if(BOTANY_REQUIRED[lesson.slug]){
+    for(const requiredType of ['text','comparison','algorithm','exam_trap','ege_example','diagram','summary'])if(!types.has(requiredType))throw new Error(`${lesson.slug}: botany block missing: ${requiredType}`);
+    if(lesson.blocks.filter(b=>b.type==='text').length<2)throw new Error(`${lesson.slug}: botany theory lacks connected explanation`);
+    if(!corpus.includes('ege_required')||!corpus.includes('глубже егэ'))throw new Error(`${lesson.slug}: EGE_REQUIRED/DEEP_DIVE separation missing`);
+    for(const b of lesson.blocks.filter(b=>b.type==='diagram'))if(!b.content.alt)throw new Error(`${lesson.slug}: diagram alt missing`);
+   }
    const entry=auditText.split(new RegExp(`(?=^## )`,'m')).find(x=>x.includes(`lesson: ${lesson.slug}`));
    if(!entry)throw new Error(`${lesson.slug}: THEORY_AUDIT entry missing`);
    for(const field of ((TASK2_REQUIRED[lesson.slug]||TASK3_REQUIRED[lesson.slug])?AUDIT_FIELDS:['lesson','mandatoryConcepts']))if(!entry.includes(`- ${field}:`))throw new Error(`${lesson.slug}: audit field missing: ${field}`);
@@ -74,7 +105,11 @@ function auditBiologyTheory(course,publicRoot=resolve(ROOT,'public')){
  }
  const missing=Object.keys(TASK2_REQUIRED).filter(slug=>!selected.includes(slug)); if(missing.length)throw new Error(`required lessons absent: ${missing.join(', ')}`);
  const task3Missing=Object.keys(TASK3_REQUIRED).filter(slug=>!selected.includes(slug)); if(task3Missing.length)throw new Error(`task 3 lessons absent: ${task3Missing.join(', ')}`);
- return {lessonsAudited:selected.length,task2LessonsAudited:Object.keys(TASK2_REQUIRED).length,task3LessonsAudited:Object.keys(TASK3_REQUIRED).length,task3StatusBefore:{MISSING:9,WEAK:0,PARTIAL:4,FULL:0},task3StatusAfter:{MISSING:0,WEAK:0,PARTIAL:0,FULL:Object.keys(TASK3_REQUIRED).length},duplicateSlugs:0,brokenMedia:0,sourceVersion:course.subject.sourceVersion,examYear:course.subject.examYear};
+ const botanyMissing=Object.keys(BOTANY_REQUIRED).filter(slug=>!selected.includes(slug)); if(botanyMissing.length)throw new Error(`required botany lessons absent: ${botanyMissing.join(', ')}`);
+ const botanyAudit=auditText.slice(auditText.indexOf('# Аудит теории — задача 4A'));
+ for(const slug of Object.keys(BOTANY_REQUIRED)){const entry=botanyAudit.split(/(?=^## )/m).find(x=>x.includes(`lesson: ${slug}`));if(!entry)throw new Error(`${slug}: botany audit entry missing`);for(const field of AUDIT_FIELDS)if(!entry.includes(`- ${field}:`))throw new Error(`${slug}: botany audit field missing: ${field}`);if(!entry.includes('- statusAfter: FULL'))throw new Error(`${slug}: FULL was not manually recorded`)}
+ for(const asset of course.assets.filter(a=>a.key.startsWith('botany-'))){const svg=readFileSync(resolve(publicRoot,asset.path.replace(/^\//,'')),'utf8');if(!svg.includes('<title')||!svg.includes('<desc')||!svg.includes('viewBox='))throw new Error(`${asset.key}: inaccessible or non-responsive SVG`);if(asset.source!=='original'||!asset.alt)throw new Error(`${asset.key}: media provenance/alt missing`)}
+ return {lessonsAudited:selected.length,task2LessonsAudited:Object.keys(TASK2_REQUIRED).length,task3LessonsAudited:Object.keys(TASK3_REQUIRED).length,botanyLessonsAudited:Object.keys(BOTANY_REQUIRED).length,botanyStatusBefore:{MISSING:0,WEAK:10,PARTIAL:11,FULL:0},botanyStatusAfter:{MISSING:0,WEAK:0,PARTIAL:0,FULL:Object.keys(BOTANY_REQUIRED).length},task3StatusBefore:{MISSING:9,WEAK:0,PARTIAL:4,FULL:0},task3StatusAfter:{MISSING:0,WEAK:0,PARTIAL:0,FULL:Object.keys(TASK3_REQUIRED).length},duplicateSlugs:0,brokenMedia:0,sourceVersion:course.subject.sourceVersion,examYear:course.subject.examYear};
 }
 if(require.main===module)process.stdout.write(`${JSON.stringify(auditBiologyTheory(JSON.parse(readFileSync(COURSE,'utf8'))),null,2)}\n`);
 module.exports={auditBiologyTheory};
