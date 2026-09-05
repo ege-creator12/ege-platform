@@ -10,7 +10,8 @@
     "import-content": "node scripts/import-content.js",
     "audit:phase2": "node scripts/audit-phase2.js",
     "check": "node --check server.js && node --check src/db.js && node --check src/bootstrap.js && node --check src/coverage.js && node --check src/answer-review.js && node --check scripts/import-content.js && node --check public/app.js",
-    "test": "node --test"
+    "test": "node --test",
+    "audit:biology-theory": "node scripts/audit-biology-theory.js"
   },
   "engines": {
     "node": ">=22.5"
