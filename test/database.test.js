@@ -193,8 +193,8 @@ test('phase 2 diversity has complete reviewed theory, practice and biological as
   const report=phase2Report(course);
   assert.equal(report.topics,29);
   assert.equal(report.subtopics,24);
-  assert.equal(report.lessons,41);
-  assert.equal(report.blocks,411);
+  assert.equal(report.lessons,45);
+  assert.equal(report.blocks,451);
   assert.equal(report.questions,210);
   assert.equal(report.questionsLost,0);
   assert.deepEqual(report.byDifficulty,{1:54,2:105,3:51});
