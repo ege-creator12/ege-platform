@@ -1309,6 +1309,10 @@
 - lessonsAfter: 36
 - statusBefore: MISSING 19; WEAK 17; PARTIAL 0; FULL 0
 - statusAfter: MISSING 0; WEAK 0; PARTIAL 0; FULL 36
+- correctionAuditBefore: MISSING 0; WEAK 0; PARTIAL 36; FULL 0 — прежний FULL отозван, поскольку фиксировал термины и блоки, но не самостоятельную обучаемость
+- correctionAuditAfter: MISSING 0; WEAK 0; PARTIAL 0; FULL 36 — после повторного чтения и углубления всех уроков
+- lessonsContentReviewed: 36
+- lessonsSubstantiallyRewritten: 36
 - questionBankBefore: 90
 - questionBankAfter: 108
 - newQuestions: 18
@@ -1332,6 +1336,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1351,6 +1364,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1370,6 +1392,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1389,6 +1420,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1408,6 +1448,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1427,6 +1476,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1446,6 +1504,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1465,6 +1532,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1484,6 +1560,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1503,6 +1588,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1522,6 +1616,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1541,6 +1644,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1560,6 +1672,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1579,6 +1700,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1598,6 +1728,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1617,6 +1756,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1636,6 +1784,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1655,6 +1812,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1674,6 +1840,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1693,6 +1868,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1712,6 +1896,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1731,6 +1924,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1750,6 +1952,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1769,6 +1980,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1788,6 +2008,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1807,6 +2036,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1826,6 +2064,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1845,6 +2092,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1864,6 +2120,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1883,6 +2148,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1902,6 +2176,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1921,6 +2204,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1940,6 +2232,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1959,6 +2260,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1978,6 +2288,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -1997,6 +2316,15 @@
 - requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
 - requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
 - requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true или reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
 - statusBefore: MISSING
 - statusAfter: FULL
 
@@ -2009,19 +2337,29 @@
 - Для рыб, земноводных, птиц и млекопитающих отдельные уроки получили кровообращение, развитие, дыхание или размножение там, где механика самостоятельна.
 - Сравнительная анатомия стала восемью уроками: покровы/движение, дыхание, кровообращение, выделение/нервная система, размножение/терморегуляция, паразиты, распознавание и причинные ответы.
 
-## Ручная проверка минимальной выборки
+## Повторный ручной review после углубления
 
-- Простейшие, губки, кишечнополостные (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Черви и паразиты (3 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Моллюски (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Членистоногие (3 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Рыбы (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Земноводные (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Пресмыкающиеся (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Птицы (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Млекопитающие (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
-- Сравнительная анатомия (4 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+Предыдущий статус FULL был снят на время повторной проверки: наличие терминов и коротких корректных тезисов не доказывало самостоятельную обучаемость. Все 36 уроков прочитаны как учебные маршруты с нуля; FULL возвращён только после проверки механизма, структуры-функции, причинных связей и экзаменационного применения.
+
+### 12 обязательных полных review: BEFORE → AFTER
+
+1. **Инфузория (`bio-zoo-protists`).** BEFORE: реснички, рот, ядра и конъюгация были перечислены в одном коротком абзаце. AFTER: прослежен пищевой ток от биения ресничек до рта, вакуоли и порошицы; объяснена осморегуляция, роли двух ядер, деление и причина, по которой конъюгация не увеличивает численность.
+2. **Паразитические плоские черви (`bio-zoo-tapeworm-fluke`).** BEFORE: циклы были компактными цепочками. AFTER: определены хозяева, личинка и финна; для каждого перехода раскрыты выход яиц, развитие, заразная стадия и конкретная точка профилактического разрыва.
+3. **Аскарида (`bio-zoo-roundworms`).** BEFORE: миграция перечисляла органы. AFTER: объяснены созревание яйца в почве, выход личинки, проход через стенку кишечника, кровь, печень, сердце, лёгкие, повторное проглатывание и отсутствие промежуточного хозяина.
+4. **Насекомые (`bio-zoo-insects`).** BEFORE: трахеи и гемолимфа были двумя утверждениями. AFTER: воздух прослежен через дыхальца, трахеи и трахеолы; раскрыты диффузия газов, вентиляция брюшком и независимость главного транспорта O2 от незамкнутой системы.
+5. **Рыбы (`bio-zoo-fish`, `bio-zoo-fish-circulation`).** BEFORE: адаптации и маршрут крови были кратким списком. AFTER: связаны форма, мышцы, плавники, слизь, боковая линия, жаберная вентиляция, почки и размножение; объяснены две капиллярные сети, венозная кровь в сердце и критерий одного круга.
+6. **Земноводные (`bio-zoo-amphibians`).** BEFORE: наземные признаки не образовывали единой модели. AFTER: показан компромисс двух сред через конечности, глоточную вентиляцию, влажную кожу, потерю воды, наружное оплодотворение и водного головастика.
+7. **Пресмыкающиеся (`bio-zoo-reptiles`).** BEFORE: сухая кожа, яйцо и сердце лишь перечислялись. AFTER: раскрыта единая причинная линия экономии воды, рёберной вентиляции, внутреннего оплодотворения, прямого развития, разделения потоков и исключения крокодилов.
+8. **Птицы (`bio-diversity-5-animal-birds-lesson`).** BEFORE: адаптации к полёту занимали три коротких блока. AFTER: каждая структура связана с тягой, управлением, жёсткостью или энергоснабжением; добавлена оговорка, что полыми являются не все кости и облегчение не отменяет прочности.
+9. **Дыхание птиц (`bio-zoo-bird-respiration`).** BEFORE: роль мешков и два цикла были сжаты. AFTER: порция воздуха прослежена через задние мешки, лёгкие и передние мешки на двух вдохах и выдохах; отдельно объяснены однонаправленный поток, градиент и газообмен только в лёгких.
+10. **Млекопитающие (`bio-zoo-mammals`).** BEFORE: альвеолы, диафрагма и сердце были тезисами. AFTER: воздух прослежен до альвеол, объяснены стенка, капилляры, направления O2/CO2, совместная работа вентиляции и кровотока и последствия потери поверхности.
+11. **Кровообращение позвоночных (`bio-zoo-compare-circulation`).** BEFORE: материал был почти таблицей камер. AFTER: определены большой и малый круги, их начало и конец; для каждого класса прослежено направление крови, место насыщения и смешения, давление и связь полного разделения с высоким обменом.
+12. **Размножение позвоночных (`bio-zoo-compare-reproduction-thermoregulation`).** BEFORE: способы оплодотворения и яйца перечислялись. AFTER: построена линия от наружного оплодотворения и икры к внутреннему оплодотворению, амниотическим оболочкам, насиживанию, плаценте и возрастающей родительской заботе.
+
+### Содержательный review остальных 24 уроков
+
+Каждый оставшийся урок проверен по восьми усиленным критериям в его карточке аудита. Дополнительно пройдены сценарии «ученик с нуля»: определение группы, план строения, питание, дыхание, транспорт, выделение, размножение, адаптации, отличие от соседней группы и механизм экзаменационного ответа. Схема признана интегрированной только при наличии вводного текста «Как читать схему» и корректного пути изображения; для уроков без обязательной схемы зафиксировано `reviewed-not-required`.
 
 ## Специальная сверка позвоночных
 
-Рыбы → земноводные → пресмыкающиеся → птицы → млекопитающие вручную сопоставлены по покровам, скелету, дыханию, камерам сердца, кругам, смешению, выделению, нервной системе, чувствам, размножению, развитию и терморегуляции. Согласованы исключения: крокодилы имеют четыре камеры; газообмен птиц идёт в лёгких; у птиц правая, у млекопитающих левая дуга аорты. Противоречий между уроками не выявлено.
+Рыбы → земноводные → пресмыкающиеся → птицы → млекопитающие повторно сопоставлены по покровам, скелету, дыханию, камерам сердца, кругам, смешению, выделению, нервной системе, чувствам, размножению, развитию и терморегуляции. Согласованы исключения: крокодилы имеют четыре камеры; газообмен птиц идёт в лёгких; у птиц правая, у млекопитающих левая дуга аорты. Противоречий между уроками не выявлено.
