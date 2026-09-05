@@ -8,10 +8,12 @@ main>header,.topics,.lesson{animation:calm-in 240ms ease both}.card,.progress i{
 .lesson-content img, .lesson-content svg, .question-card img { max-width: 100%; height: auto; }
 .lesson-content table { width: 100%; }
 .lesson-content { min-width: 0; overflow-wrap: anywhere; }
+.lesson-prose{padding:2px 2px 8px;max-width:74ch;font-size:16px;line-height:1.78}.lesson-prose+.lesson-prose{margin-top:-6px}.lesson-prose h3{margin:8px 0 9px;font-size:20px;line-height:1.35;color:var(--text)}.lesson-prose p{margin:0;color:var(--text)}.lesson-prose p+p{margin-top:12px}.lesson-content>.lesson-block:not(.visual),.lesson-content>.lesson-table{margin-block:8px}.lesson-content>.exam_trap,.lesson-content>.algorithm,.lesson-content>.deep_dive{box-shadow:0 4px 16px rgba(29,46,37,.04)}
 @media (max-width: 430px) {
   .lesson-content table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .lesson-content th, .lesson-content td { min-width: 8rem; }
   .question-card ol, .question-card ul { padding-inline-start: 1.25rem; }
+  .lesson-prose{font-size:15px;line-height:1.72;padding-inline:0}.lesson-prose h3{font-size:18px}
 }
 
 /* Biology course hierarchy */
