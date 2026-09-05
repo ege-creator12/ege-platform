@@ -2371,7 +2371,7 @@
 - BEFORE theory: MISSING 63 / WEAK 0 / PARTIAL 0 / FULL 0.
 - AFTER topics: 13; lessons: 63; questions: 315.
 - AFTER theory: MISSING 0 / WEAK 0 / PARTIAL 0 / FULL 63.
-- Media review: 33 прежних однотипных декоративных эскиза заменены 33 предметными схемами с уникальными биологическими подписями, направлениями, доступным описанием и мобильной типографикой.
+- Media review: из 33 однотипных карточных placeholders 25 анатомических media полностью перерисованы как изображения объектов; 8 процессных схем сохранены как flowchart после содержательной проверки. Все 33 имеют предметные подписи, направления, доступное описание и мобильную типографику.
 - Existing human lesson IDs/slugs: отсутствовали; шесть пустых container slugs заменены учебными topics без удаления пользовательских lesson records.
 - Coverage: кодификатор 24.0–29.0 → topic → lesson → prose/media/practice → линии 1, 3, 4, 22–26.
 - Source note: используется проект ФИПИ ЕГЭ-2027; он не назван окончательно утверждённым.
@@ -2379,9 +2379,11 @@
 
 ## Почему 63 урока имели PARTIAL до повторного review
 
-- 33 урока с обязательным media (`epithelial`, `skeleton`, `bone`, `joint`, `muscle`, `blood`, `immunity`, `heart`, `cardiac-cycle`, `vessels`, `circuits`, `airways`, `alveoli`, `ventilation`, `digestion-basics`, `stomach`, `absorption`, `nephron`, `skin`, `neuron-synapse`, `reflex`, `spinal`, `brain`, `somatic-autonomic`, `glands`, `eye`, `accommodation`, `ear`, `male`, `female-cycle`, `fertilization`, `implantation`, `exercise`) были PARTIAL по точной причине: связанный SVG был одинаковым трёхкружковым эскизом с английской подписью и не показывал обязательные структуры.
-- Остальные 30 уроков (`integration`, `connective`, `muscle-tissue`, `nervous-tissue`, `homeostasis`, `muscle-work`, `movement-health`, `internal-medium`, `clotting`, `blood-groups`, `hemodynamics`, `gas-transport`, `resp-health`, `small-intestine`, `liver-colon`, `nutrition`, `urinary`, `urine`, `water-balance`, `thermoregulation`, `hormones`, `glucose`, `analyzer`, `taste-smell`, `reflex-learning`, `higher-functions`, `sleep`, `development`, `prevention`, `experiments`) удерживались в PARTIAL консервативно до завершения общего media-аудита и повторного ручного чтения; индивидуального содержательного дефекта у них не было.
-- AFTER: каждый из 33 media содержит предметные русские подписи, корректное направление/сопоставление, `title`, `desc`, `viewBox`, `preserveAspectRatio` и alt mapping. После каждой схемы добавлен связный абзац «Как читать схему» с ожидаемой механикой ЕГЭ. Все 63 урока повторно проверены по восьми критериям ниже.
+- Все 33 media первоначально были карточными placeholders. После классификации выяснено, что flowchart соответствует учебной задаче только для 8 процессов: `immune-response`, `heart-valves`, `circulation`, `ventilation`, `autonomic`, `accommodation`, `implantation`, `exercise-integration`. Они оставлены в процессном формате после проверки направлений и терминов.
+- 25 SVG, где требуется распознавать объект или пространственное строение, полностью переработаны: `tissues`, `long-bone`, `joint`, `skeleton`, `muscle`, `blood-cells`, `heart`, `vessels`, `respiratory-system`, `alveolus`, `digestive-system`, `tooth`, `intestinal-villus`, `nephron`, `skin`, `neuron`, `reflex-arc`, `spinal-cord`, `brain`, `endocrine-glands`, `eye`, `ear`, `male-reproductive`, `female-reproductive`, `placenta`.
+- Остальные 30 lessons без собственного обязательного media удерживались в PARTIAL до общего финального review. После повторного чтения содержательного дефекта у них не найдено.
+- Автоматический аудит проверяет только техническую целостность: refs, XML/accessibility metadata, уникальность файлов, поддерживаемые block/question types и наличие редакционной записи. Количество блоков, длина текста, число assets, число подписей и строка `FULL` не считаются доказательством качества.
+- FULL присвоен по результату ручного чтения теории и изображений: автономность изучения, механизм, structure → function, cause → mechanism → consequence, экзаменационное применение и согласованность систем. После каждой схемы остаётся абзац «Как читать схему» с ожидаемой механикой ЕГЭ.
 
 ## Организм как целостная система
 
@@ -4400,6 +4402,8 @@
 - trapReview: ЧСС и дыхание растут не «ради нагрузки», а чтобы согласовать доставку и удаление с обменом мышц.
 
 ## Обязательный ручной просмотр и межурочная сверка
+
+Повторный обязательный review выполнен чтением целых lessons, а не поиском терминов: `bio-human-homeostasis`, `bio-human-immunity`, `bio-human-heart`, `bio-human-cardiac-cycle`, `bio-human-alveoli`, `bio-human-ventilation`, `bio-human-small-intestine`, `bio-human-nephron`, `bio-human-urine`, `bio-human-neuron-synapse`, `bio-human-reflex`, `bio-human-brain`, `bio-human-glucose`, `bio-human-eye`, `bio-human-male`, `bio-human-female-cycle`, `bio-human-fertilization`, `bio-human-implantation`, `bio-human-exercise`. Для каждого подтверждены автономное введение, объяснение механизма, связь строения с функцией, причинная цепь и применение к сложному ЕГЭ. Дополнительно расширены 25 lessons с анатомическими схемами абзацами чтения изображения; иных пробелов, требующих изменения theory blocks, не обнаружено.
 
 Полностью перечитаны тематические связки: ткани; гомеостаз; кость и сустав; мышца и работа мышц; кровь; иммунитет; сердце; сердечный цикл; круги; альвеолы и газообмен; вентиляция; тонкий кишечник; печень; нефрон и мочеобразование; терморегуляция; нейрон и синапс; рефлекторная дуга; головной мозг; автономная система; инсулин/глюкагон; глаз; ухо; размножение; оплодотворение, имплантация и плацента; нагрузка. Сверены кровь ↔ кровообращение ↔ дыхание; пищеварение ↔ обмен ↔ печень; почка ↔ гомеостаз; кожа ↔ терморегуляция; нервная ↔ эндокринная ↔ размножение; анализаторы ↔ ЦНС; нагрузка ↔ дыхание ↔ кровоток ↔ клеточный обмен. Противоречий после правки не выявлено.
 
