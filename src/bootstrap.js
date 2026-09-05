@@ -12,15 +12,38 @@ function validateCourse(course, publicRoot=resolve(__dirname,'../public')) {
   const errors=[];
   if (!course?.subject?.slug || !Array.isArray(course.sections)) errors.push('subject and sections are required');
   const keys=new Set(), slugs=new Set();
+  const codifier=new Map((course.codifier||[]).map(item=>[item.code,new Set(item.examLines||[])]));
+  const allowedDifficulties=new Set([1,2,3]);
+  const allowedStatuses=new Set(['draft','review','verified','legacy']);
+  const normalizedPrompts=new Map();
   for (const section of course.sections||[]) for (const topic of section.topics||[]) {
     if (slugs.has(topic.slug)) errors.push(`duplicate topic slug: ${topic.slug}`); slugs.add(topic.slug);
     if (course.subject.slug==='biology' && !topic.codifierCode) errors.push(`missing codifierCode: ${topic.slug}`);
+    if (course.subject.slug==='biology' && topic.codifierCode && !codifier.has(topic.codifierCode)) errors.push(`unknown codifierCode: ${topic.codifierCode}`);
     const lesson=topic.lesson;
-    if (course.subject.slug==='biology' && lesson) for (const block of lesson.blocks||[]) if (!blockTypes.has(block.type)) errors.push(`unsupported block type: ${block.type}`);
+    if (course.subject.slug==='biology' && lesson) {
+      if (!allowedStatuses.has(lesson.contentStatus)) errors.push(`invalid lesson contentStatus: ${lesson.slug}`);
+      for (const block of lesson.blocks||[]) {
+        if (!blockTypes.has(block.type)) errors.push(`unsupported block type: ${block.type}`);
+        if (!block.content || !Object.keys(block.content).length) errors.push(`empty lesson block: ${lesson.slug}`);
+        const assetKey=block.content?.assetKey;
+        if (assetKey && !(course.assets||[]).some(asset=>asset.key===assetKey)) errors.push(`unknown lesson asset: ${assetKey}`);
+      }
+    }
     for (const q of topic.questions||[]) {
       if (keys.has(q.key)) errors.push(`duplicate question key: ${q.key}`); keys.add(q.key);
       if (course.subject.slug==='biology' && !questionTypes.has(q.type) && !legacyQuestionTypes.has(q.type)) errors.push(`unsupported question type: ${q.type}`);
-      if (course.subject.slug==='biology' && (!q.prompt || !Array.isArray(q.answer) || !q.answer.length)) errors.push(`incomplete question: ${q.key}`);
+      if (course.subject.slug==='biology' && (!q.prompt?.trim() || !Array.isArray(q.answer) || !q.answer.length || q.answer.some(value=>!String(value).trim()))) errors.push(`incomplete question: ${q.key}`);
+      if (!allowedDifficulties.has(q.difficulty)) errors.push(`invalid difficulty: ${q.key}`);
+      if (course.subject.slug==='biology' && !allowedStatuses.has(q.contentStatus)) errors.push(`invalid contentStatus: ${q.key}`);
+      if (!q.explanation?.trim()) errors.push(`missing explanation: ${q.key}`);
+      if (Array.isArray(q.options) && q.options.some(option=>!String(option).trim())) errors.push(`empty option: ${q.key}`);
+      if (q.examLine != null && (!Number.isInteger(q.examLine) || q.examLine<1 || q.examLine>28)) errors.push(`invalid examLine ${q.examLine}: ${q.key}`);
+      if ((q.type==='calculation' || q.difficulty===3 || q.contentStatus==='verified') && (!Array.isArray(q.solutionSteps) || q.solutionSteps.length<2)) errors.push(`missing solutionSteps: ${q.key}`);
+      if (q.contentStatus==='verified' && (q.explanation.trim().length<40 || q.prompt.trim().length<20)) errors.push(`verified question is under-explained: ${q.key}`);
+      const normalized=q.prompt?.toLowerCase().replace(/\d+/g,'#').replace(/[^а-яёa-z#]+/gi,' ').trim();
+      if (normalized && normalizedPrompts.has(normalized)) errors.push(`probable duplicate prompt: ${q.key} and ${normalizedPrompts.get(normalized)}`);
+      if (normalized) normalizedPrompts.set(normalized,q.key);
       if (q.image && !existsSync(resolve(publicRoot,q.image.replace(/^\//,'')))) errors.push(`missing image: ${q.image}`);
     }
   }

@@ -118,6 +118,38 @@ test('missing image is rejected and nullable question images remain safe',async(
   assert.ok(await db.row("SELECT id FROM questions WHERE image_url IS NULL AND content_status='verified' LIMIT 1"));
 });
 
+test('molecular biology and cytology content meets editorial coverage targets',()=>{
+  const course=require('../content/biology/course.json');
+  const sections=course.sections.filter(section=>['biology-molecular','biology-cell'].includes(section.slug));
+  const topics=sections.flatMap(section=>section.topics);
+  const questions=topics.flatMap(topic=>topic.questions);
+  const original=questions.filter(question=>question.contentStatus==='review');
+  assert.equal(topics.length,7);
+  assert.equal(original.length,105);
+  assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,original.filter(q=>q.difficulty===level).length])),{1:28,2:49,3:28});
+  assert.ok(new Set(original.map(question=>question.type)).size>=12);
+  for(const topic of topics) {
+    const types=new Set(topic.lesson.blocks.map(block=>block.type));
+    for(const required of ['definition','table','algorithm','exam_trap','ege_example','deep_dive','summary','quiz']) assert.ok(types.has(required),`${topic.slug}: ${required}`);
+    assert.ok(topic.questions.length>=15,topic.slug);
+  }
+  const byKey=Object.fromEntries(questions.map(question=>[question.key,question]));
+  assert.equal(byKey['bio-70-004'].answer[0],'5′-УГЦ-ААУ-ЦГУ-3′');
+  assert.equal(byKey['bio-70-010'].answer[0],'520');
+  assert.equal(byKey['bio-80-009'].answer[0],'9 глюкоз и 18 АТФ');
+  assert.equal(byKey['bio-110-010'].answer[0],'16 хромосом и 16 молекул ДНК');
+  assert.equal(byKey['bio-110-013'].answer[0],'4 хромосомы и 8 молекул ДНК');
+});
+
+test('content validator rejects incomplete solutions, invalid metadata and duplicate prompts',()=>{
+  const base={subject:{slug:'biology'},codifier:[{code:'5.0',examLines:[1]}],sections:[{topics:[{slug:'quality-check',codifierCode:'5.0',lesson:{slug:'lesson',contentStatus:'review',blocks:[]},questions:[]}]}]};
+  const question={key:'quality-1',type:'calculation',prompt:'Рассчитайте число молекул по условию опыта',answer:['2'],explanation:'Подробное объяснение результата.',difficulty:3,contentStatus:'review',examLine:29};
+  base.sections[0].topics[0].questions=[question,{...question,key:'quality-2'}];
+  assert.throws(()=>validateCourse(base),/invalid examLine 29/);
+  assert.throws(()=>validateCourse(base),/missing solutionSteps/);
+  assert.throws(()=>validateCourse(base),/probable duplicate prompt/);
+});
+
 test('legacy questions remain trainable without entering verified coverage',async()=>{
   const topic=await db.row('SELECT id FROM topics ORDER BY id LIMIT 1');
   await db.run(`INSERT INTO questions(topic_id,external_key,type,question_type,prompt,explanation,difficulty,answer_json,content_status,active) VALUES(?,?,'text','short_answer','Архивный вопрос','Архивное объяснение',1,'["ответ"]','legacy',TRUE)`,topic.id,'test-legacy-question');
