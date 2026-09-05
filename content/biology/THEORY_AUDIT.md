@@ -1297,3 +1297,731 @@
 - originalSvg: botany-tissues, botany-transport, double-fertilization, plant-ploidy-cycle
 - existingQuestionsChanged: нет; существующий банк вопросов сохранён без изменений
 - nextTaskBoundary: зоология, человек, эволюция, антропогенез, экология и биосфера сознательно не перерабатывались.
+
+
+# Аудит теории — финальная зоология (ФИПИ ЕГЭ-2027, проект)
+
+> Карта составлена до массовой переработки и закрыта после ручной проверки. Статус FULL означает наличие связного объяснения, причинных цепочек, практики и схем там, где они диагностически нужны, а не объём текста. Документы 2027 имеют статус проектов.
+
+## Сводка фазы
+
+- lessonsBefore: 17
+- lessonsAfter: 36
+- statusBefore: MISSING 19; WEAK 17; PARTIAL 0; FULL 0
+- statusAfter: MISSING 0; WEAK 0; PARTIAL 0; FULL 36
+- questionBankBefore: 90
+- questionBankAfter: 108
+- newQuestions: 18
+- preservedQuestionIds: 90 из 90; все прежние шаблонные формулировки переработаны после качественного аудита.
+- distributionAfter: basic 36; medium 36; hard 36; extended_answer 18; multiple_answer 18; matching 18; image 18; biological_process_analysis 18; остальные механики (sequence, table, text_analysis, graph, experiment, calculation, short_answer, diagram, single_choice) — по 2.
+- intentionallyOutOfScope: человек; полноценная общая эволюция; антропогенез; экология; биосфера.
+
+## Как сравнивать животных: уровни организации и планы строения
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-protists-sponges — Основы организации животных, одноклеточные и губки
+- lesson: bio-zoo-foundations
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: От клетки к системе органов; Симметрия и направление движения; Зародышевые листки и полость тела; Системы, которые надо различать
+- currentConcepts: От клетки к системе органов; Симметрия и направление движения; Зародышевые листки и полость тела; Системы, которые надо различать; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Амёба, эвглена и инфузория
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-protists-sponges — Основы организации животных, одноклеточные и губки
+- lesson: bio-zoo-protists
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Одна клетка — целый организм; Амёба; Эвглена; Инфузория
+- currentConcepts: Одна клетка — целый организм; Амёба; Эвглена; Инфузория; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-protists
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Губки: фильтрация без настоящих органов
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-protists-sponges — Основы организации животных, одноклеточные и губки
+- lesson: bio-zoo-sponges
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Пористое прикреплённое животное; Клеточный уровень организации; Размножение и восстановление
+- currentConcepts: Пористое прикреплённое животное; Клеточный уровень организации; Размножение и восстановление; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-sponges-hydra
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Кишечнополостные: гидра, полип и медуза
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-cnidarians — Кишечнополостные
+- lesson: bio-zoo-cnidarians
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: План строения; Гидра как модель; Размножение и формы тела
+- currentConcepts: План строения; Гидра как модель; Размножение и формы тела; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-sponges-hydra
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Плоские черви и белая планария
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-flatworms — Плоские черви и паразитические циклы
+- lesson: bio-zoo-flatworms
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Новый план организации; Планария; Управление и размножение
+- currentConcepts: Новый план организации; Планария; Управление и размножение; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Бычий цепень и печёночный сосальщик
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-flatworms — Плоские черви и паразитические циклы
+- lesson: bio-zoo-tapeworm-fluke
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Как читать цикл паразита; Бычий цепень; Печёночный сосальщик
+- currentConcepts: Как читать цикл паразита; Бычий цепень; Печёночный сосальщик; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-parasite-cycles
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Круглые черви и цикл аскариды
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-round-annelids — Круглые и кольчатые черви
+- lesson: bio-zoo-roundworms
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Общие признаки; Цикл аскариды; Профилактика
+- currentConcepts: Общие признаки; Цикл аскариды; Профилактика; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-parasite-cycles
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Кольчатые черви: дождевой червь
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-round-annelids — Круглые и кольчатые черви
+- lesson: bio-zoo-annelids
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Эволюционно значимые признаки; Движение и питание; Газообмен, выделение и управление
+- currentConcepts: Эволюционно значимые признаки; Движение и питание; Газообмен, выделение и управление; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-annelid-mollusc
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Общий план моллюсков и брюхоногие
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-molluscs — Моллюски
+- lesson: bio-zoo-mollusc-plan
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Общий план; Системы органов; Брюхоногие
+- currentConcepts: Общий план; Системы органов; Брюхоногие; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-annelid-mollusc
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Двустворчатые и головоногие моллюски
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-molluscs — Моллюски
+- lesson: bio-zoo-bivalves-cephalopods
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Двустворчатые как фильтраторы; Головоногие как активные хищники; Исключение кровообращения
+- currentConcepts: Двустворчатые как фильтраторы; Головоногие как активные хищники; Исключение кровообращения; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Членистоногие: наружный скелет и линька
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-arthropods — Членистоногие
+- lesson: bio-zoo-arthropod-plan
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Общий план; Почему нужна линька; Общие системы
+- currentConcepts: Общий план; Почему нужна линька; Общие системы; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-arthropods
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Ракообразные: речной рак
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-arthropods — Членистоногие
+- lesson: bio-zoo-crustaceans
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Внешнее строение; Функции систем; Размножение
+- currentConcepts: Внешнее строение; Функции систем; Размножение; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Паукообразные: пауки и клещи
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-arthropods — Членистоногие
+- lesson: bio-zoo-arachnids
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Диагностические признаки; Питание, дыхание, выделение; Клещи
+- currentConcepts: Диагностические признаки; Питание, дыхание, выделение; Клещи; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Насекомые: строение, дыхание и ротовые аппараты
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-arthropods — Членистоногие
+- lesson: bio-zoo-insects
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Диагностика класса; Трахейное дыхание; Выделение и ротовые аппараты
+- currentConcepts: Диагностика класса; Трахейное дыхание; Выделение и ротовые аппараты; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-insect
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Развитие насекомых и сравнение классов
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-arthropods — Членистоногие
+- lesson: bio-zoo-insect-development
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Полное превращение; Неполное превращение; Сравнение членистоногих
+- currentConcepts: Полное превращение; Неполное превращение; Сравнение членистоногих; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-arthropods
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Хордовые, ланцетник и позвоночные
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-fish — Хордовые и рыбы
+- lesson: bio-zoo-chordates
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Признаки хордовых; Ланцетник; Позвоночные
+- currentConcepts: Признаки хордовых; Ланцетник; Позвоночные; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-chordate
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Рыбы: жизнь в воде
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-fish — Хордовые и рыбы
+- lesson: bio-zoo-fish
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Движение и покровы; Дыхание и чувства; Питание, выделение, размножение
+- currentConcepts: Движение и покровы; Дыхание и чувства; Питание, выделение, размножение; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Кровообращение рыб
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-fish — Хордовые и рыбы
+- lesson: bio-zoo-fish-circulation
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Один круг; Двухкамерное сердце; Цена последовательных капилляров
+- currentConcepts: Один круг; Двухкамерное сердце; Цена последовательных капилляров; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: phase2-fish-circulation
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Земноводные: первый наземный план и зависимость от воды
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-amphibians — Земноводные
+- lesson: bio-zoo-amphibians
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Наземные приобретения; Почему кожа влажная; Связь с водой
+- currentConcepts: Наземные приобретения; Почему кожа влажная; Связь с водой; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Кровообращение и метаморфоз лягушки
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-amphibians — Земноводные
+- lesson: bio-zoo-amphibian-circulation-development
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Два круга и три камеры; Метаморфоз; Причинная связь
+- currentConcepts: Два круга и три камеры; Метаморфоз; Причинная связь; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: phase2-amphibian-circulation
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Пресмыкающиеся: независимость размножения от воды
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-reptiles — Пресмыкающиеся
+- lesson: bio-zoo-reptiles
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Покровы и дыхание; Размножение и развитие; Кровообращение
+- currentConcepts: Покровы и дыхание; Размножение и развитие; Кровообращение; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: phase2-reptile-circulation
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Амниотическое яйцо: автономная система развития
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-reptiles — Пресмыкающиеся
+- lesson: bio-zoo-amniotic-egg
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Запас и защита; Внутренние оболочки; Биологический смысл
+- currentConcepts: Запас и защита; Внутренние оболочки; Биологический смысл; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Птицы: комплекс адаптаций к полёту
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-birds — Птицы
+- lesson: bio-diversity-5-animal-birds-lesson
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Аэродинамика и покровы; Скелет и мышцы; Обмен веществ
+- currentConcepts: Аэродинамика и покровы; Скелет и мышцы; Обмен веществ; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Дыхание и кровообращение птиц
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-birds — Птицы
+- lesson: bio-zoo-bird-respiration
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Воздушные мешки и лёгкие; Двойное дыхание; Полное разделение крови
+- currentConcepts: Воздушные мешки и лёгкие; Двойное дыхание; Полное разделение крови; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-bird-respiration
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Размножение и развитие птиц
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-birds — Птицы
+- lesson: bio-zoo-bird-reproduction
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Яйцо и насиживание; Забота о потомстве; Наземная независимость
+- currentConcepts: Яйцо и насиживание; Забота о потомстве; Наземная независимость; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Млекопитающие: признаки и функции
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-mammals — Млекопитающие
+- lesson: bio-zoo-mammals
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Покровы и питание детёнышей; Дыхание и кровообращение; Питание, чувства, поведение
+- currentConcepts: Покровы и питание детёнышей; Дыхание и кровообращение; Питание, чувства, поведение; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Яйцекладущие, сумчатые и плацентарные
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-mammals — Млекопитающие
+- lesson: bio-zoo-mammal-reproduction
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Три стратегии; Плацентарные; Значение заботы
+- currentConcepts: Три стратегии; Плацентарные; Значение заботы; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Экзаменационно значимые отряды млекопитающих
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-mammals — Млекопитающие
+- lesson: bio-zoo-mammal-orders
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Зубы как ключ; Конечности и движение; Не каталог, а диагностика
+- currentConcepts: Зубы как ключ; Конечности и движение; Не каталог, а диагностика; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Покровы, скелет и движение позвоночных
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-compare-coverings-motion
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Покровы; Опора и локомоция; Как сравнивать корректно
+- currentConcepts: Покровы; Опора и локомоция; Как сравнивать корректно; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Сравнение дыхания позвоночных
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-compare-respiration
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Рыбы и земноводные; Амниоты; Почему эффективность возрастает
+- currentConcepts: Рыбы и земноводные; Амниоты; Почему эффективность возрастает; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-vertebrate-respiration
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Сердце и круги кровообращения позвоночных
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-compare-circulation
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: От одного круга к двум; Разделение потоков; Связь с обменом
+- currentConcepts: От одного круга к двум; Разделение потоков; Связь с обменом; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-vertebrate-hearts
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Выделение и нервная система животных
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-compare-excretion-nervous
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Выделительные органы; Централизация нервной системы; Мозг позвоночных
+- currentConcepts: Выделительные органы; Централизация нервной системы; Мозг позвоночных; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-nervous-systems
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Размножение, освоение суши и терморегуляция
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-compare-reproduction-thermoregulation
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Размножение и вода; Прямое и непрямое развитие; Температура тела
+- currentConcepts: Размножение и вода; Прямое и непрямое развитие; Температура тела; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Паразиты: сводный алгоритм жизненных циклов
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-parasites-summary
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Сначала взрослая стадия; Три обязательных цикла; Профилактика из механизма
+- currentConcepts: Сначала взрослая стадия; Три обязательных цикла; Профилактика из механизма; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-parasite-cycles
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Распознавание животных и систем по рисунку
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-image-recognition
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Идите от общего к частному; Маркеры беспозвоночных; Маркеры членистоногих и позвоночных
+- currentConcepts: Идите от общего к частному; Маркеры беспозвоночных; Маркеры членистоногих и позвоночных; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: zoo-recognition
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Причинные ответы ЕГЭ по зоологии
+
+- section: biology-diversity
+- topic: bio-diversity-5-animal-comparative — Сравнительная анатомия животных
+- lesson: bio-zoo-causal-answers
+- codifierCode: 23.0
+- examLines: 1, 3, 4, 5, 23, 24, 25, 26
+- mandatoryConcepts: Формула ответа; Примеры цепочек; Позвоночные
+- currentConcepts: Формула ответа; Примеры цепочек; Позвоночные; причинные связи; экзаменационные исключения
+- missingConcepts: после переработки отсутствуют в заявленной обязательной границе
+- weakConcepts: после ручной проверки не выявлены
+- requiredComparisons: строение → функция; признаки соседних групп; исключения
+- requiredDiagrams: отдельная схема не обязательна; опора на сравнительные блоки
+- requiredAlgorithms: факт → механизм → следствие; распознавание минимум по двум признакам
+- requiredEgeSkills: concepts, image_analysis, comparison, process_sequence, extended_reasoning
+- requiredPracticeMechanics: выбор признаков; соответствие/последовательность; анализ схемы или процесса; развёрнутый причинный ответ
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Что было разделено и почему
+
+- Общая вводная вынесена перед таксонами, чтобы критерии симметрии, полости тела, систем и скелета не повторялись фрагментарно.
+- Паразитические плоские черви отделены от плана свободноживущей планарии: циклы требуют отдельного алгоритма хозяев и профилактики.
+- Моллюски разделены на общий план с брюхоногими и контраст двустворчатых/головоногих, включая исключение кровообращения.
+- Членистоногие разделены на общий план, три класса и развитие насекомых: это предотвращает один перегруженный урок.
+- Для рыб, земноводных, птиц и млекопитающих отдельные уроки получили кровообращение, развитие, дыхание или размножение там, где механика самостоятельна.
+- Сравнительная анатомия стала восемью уроками: покровы/движение, дыхание, кровообращение, выделение/нервная система, размножение/терморегуляция, паразиты, распознавание и причинные ответы.
+
+## Ручная проверка минимальной выборки
+
+- Простейшие, губки, кишечнополостные (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Черви и паразиты (3 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Моллюски (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Членистоногие (3 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Рыбы (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Земноводные (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Пресмыкающиеся (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Птицы (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Млекопитающие (2 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+- Сравнительная анатомия (4 lessons): BEFORE — шаблонные тезисы без достаточного механизма и диагностики; AFTER — проверены связность, обязательные структуры, функция, причина/следствие, ловушки, привязки и практика; противоречий не обнаружено.
+
+## Специальная сверка позвоночных
+
+Рыбы → земноводные → пресмыкающиеся → птицы → млекопитающие вручную сопоставлены по покровам, скелету, дыханию, камерам сердца, кругам, смешению, выделению, нервной системе, чувствам, размножению, развитию и терморегуляции. Согласованы исключения: крокодилы имеют четыре камеры; газообмен птиц идёт в лёгких; у птиц правая, у млекопитающих левая дуга аорты. Противоречий между уроками не выявлено.
