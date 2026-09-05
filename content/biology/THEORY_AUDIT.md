@@ -2363,3 +2363,2048 @@
 ## Специальная сверка позвоночных
 
 Рыбы → земноводные → пресмыкающиеся → птицы → млекопитающие повторно сопоставлены по покровам, скелету, дыханию, камерам сердца, кругам, смешению, выделению, нервной системе, чувствам, размножению, развитию и терморегуляции. Согласованы исключения: крокодилы имеют четыре камеры; газообмен птиц идёт в лёгких; у птиц правая, у млекопитающих левая дуга аорты. Противоречий между уроками не выявлено.
+# PHASE 3 — человек и его здоровье
+
+## Карта покрытия и исходное состояние
+
+- BEFORE topics: 6 контейнеров; lessons: 0; questions: 0.
+- BEFORE theory: MISSING 63 / WEAK 0 / PARTIAL 0 / FULL 0.
+- AFTER topics: 13; lessons: 63; questions: 315.
+- AFTER theory: MISSING 0 / WEAK 0 / PARTIAL 0 / FULL 63.
+- Media review: из 33 однотипных карточных placeholders 25 анатомических media полностью перерисованы как изображения объектов; 8 процессных схем сохранены как flowchart после содержательной проверки. Все 33 имеют предметные подписи, направления, доступное описание и мобильную типографику.
+- Existing human lesson IDs/slugs: отсутствовали; шесть пустых container slugs заменены учебными topics без удаления пользовательских lesson records.
+- Coverage: кодификатор 24.0–29.0 → topic → lesson → prose/media/practice → линии 1, 3, 4, 22–26.
+- Source note: используется проект ФИПИ ЕГЭ-2027; он не назван окончательно утверждённым.
+
+
+## Почему 63 урока имели PARTIAL до повторного review
+
+- Все 33 media первоначально были карточными placeholders. После классификации выяснено, что flowchart соответствует учебной задаче только для 8 процессов: `immune-response`, `heart-valves`, `circulation`, `ventilation`, `autonomic`, `accommodation`, `implantation`, `exercise-integration`. Они оставлены в процессном формате после проверки направлений и терминов.
+- 25 SVG, где требуется распознавать объект или пространственное строение, полностью переработаны: `tissues`, `long-bone`, `joint`, `skeleton`, `muscle`, `blood-cells`, `heart`, `vessels`, `respiratory-system`, `alveolus`, `digestive-system`, `tooth`, `intestinal-villus`, `nephron`, `skin`, `neuron`, `reflex-arc`, `spinal-cord`, `brain`, `endocrine-glands`, `eye`, `ear`, `male-reproductive`, `female-reproductive`, `placenta`.
+- Остальные 30 lessons без собственного обязательного media удерживались в PARTIAL до общего финального review. После повторного чтения содержательного дефекта у них не найдено.
+- Автоматический аудит проверяет только техническую целостность: refs, XML/accessibility metadata, уникальность файлов, поддерживаемые block/question types и наличие редакционной записи. Количество блоков, длина текста, число assets, число подписей и строка `FULL` не считаются доказательством качества.
+- FULL присвоен по результату ручного чтения теории и изображений: автономность изучения, механизм, structure → function, cause → mechanism → consequence, экзаменационное применение и согласованность систем. После каждой схемы остаётся абзац «Как читать схему» с ожидаемой механикой ЕГЭ.
+
+## Организм как целостная система
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-integration
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Клетка → ткань → орган → система органов → организм: на каждом уровне возникает функция, которой нет у отдельной части. Органы связаны внутренней средой, нервными импульсами и гормонами.
+- requiredMechanisms: Изменение работы одной системы меняет условия для остальных: дыхание насыщает кровь кислородом, кровообращение доставляет его клеткам, а выделение удаляет продукты обмена. Поэтому устойчивость организма — результат согласованной регуляции, а не независимой работы органов.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Орган — не просто совокупность одинаковых клеток: он образован несколькими тканями, совместно выполняющими функцию.
+
+## Эпителиальная ткань
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-epithelial
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Клетки эпителия расположены тесно, межклеточного вещества мало; пласты лежат на базальной мембране и быстро обновляются. Покровный эпителий отделяет среды, железистый образует секрет.
+- requiredMechanisms: Плотность контактов создаёт барьер, а быстрое деление компенсирует износ. Однослойный тонкий эпителий удобен для обмена в альвеолах и капиллярах, многослойный защищает кожу и слизистые от повреждений.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-tissues
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Эпителий не содержит собственных кровеносных сосудов и питается диффузией из подлежащей соединительной ткани.
+
+## Соединительные ткани человека
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-connective
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Соединительные ткани имеют сравнительно много межклеточного вещества: основное вещество и волокна определяют их свойства. К ним относят рыхлую и плотную ткань, жир, хрящ, кость, кровь и лимфу.
+- requiredMechanisms: Коллагеновые волокна дают прочность сухожилию, упругое вещество и клетки хряща смягчают нагрузку, минерализованный матрикс кости создаёт опору, жидкая плазма крови обеспечивает транспорт. Различия функции следуют прежде всего из состава матрикса.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Кровь относят к соединительным тканям, хотя её межклеточное вещество жидкое.
+
+## Мышечные ткани
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-muscle-tissue
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Скелетная поперечнополосатая ткань образует произвольные мышцы; гладкая входит в стенки внутренних органов; сердечная поперечнополосатая формирует миокард. Их клетки различаются формой, контактами, управлением и устойчивостью к работе.
+- requiredMechanisms: Скелетные волокна быстро сокращаются по соматическим командам, но утомляются. Медленные непроизвольные сокращения гладких клеток продвигают содержимое органов. Ветвящиеся кардиомиоциты соединены контактами, поэтому возбуждение охватывает миокард согласованно.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Поперечная исчерченность не означает произвольность: сердечная ткань исчерчена, но сознанию не подчиняется.
+
+## Нервная ткань
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-nervous-tissue
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Нейрон имеет тело, дендриты и обычно один аксон; нейроглия питает, защищает и изолирует нейроны. Возбудимость позволяет отвечать на раздражение, проводимость — передавать изменение мембранного состояния.
+- requiredMechanisms: Дендриты преимущественно принимают сигналы, тело интегрирует их, аксон проводит импульс к другим клеткам. Миелиновая оболочка ускоряет проведение, а синапсы задают направленную передачу.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Нейроглия не является «пассивным наполнителем», а нерв состоит не только из тел нейронов.
+
+## Гомеостаз и отрицательная обратная связь
+
+- section: biology-human
+- topic: bio-human-foundations
+- lesson: bio-human-homeostasis
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Гомеостаз — динамическое поддержание температуры, pH, глюкозы, воды, солей и газового состава около рабочего диапазона. Значения колеблются, но регуляция не позволяет им надолго выйти за допустимые границы.
+- requiredMechanisms: Отклонение параметра воспринимают рецепторы → информация поступает в регулирующий центр → эффектор меняет процесс в противоположную сторону → параметр возвращается к диапазону. Нервные команды быстры и адресны, гормоны разносятся кровью и часто действуют дольше.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Отрицательная обратная связь не «запрещает» изменение: она уменьшает исходное отклонение.
+
+## Скелет и особенности человека
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-skeleton
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Скелет даёт опору, защищает мозг, спинной мозг и органы грудной клетки, служит системой рычагов, хранит кальций и фосфаты; красный костный мозг обеспечивает кроветворение. Выделяют осевой скелет и скелет конечностей с поясами.
+- requiredMechanisms: S-образный позвоночник, широкий таз, своды стопы и положение большого затылочного отверстия связаны с прямохождением: амортизируют толчки и удерживают центр тяжести. Освобождённая верхняя конечность и противопоставленный большой палец поддерживают точные трудовые движения.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-skeleton
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Прямохождение не означает, что позвоночник прямой: физиологические изгибы нужны для амортизации.
+
+## Строение и состав кости
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-bone
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Надкостница содержит сосуды и клетки роста; компактное вещество выдерживает нагрузку, губчатое облегчает кость, костномозговая полость содержит мозг, суставной хрящ уменьшает трение. Рост в толщину идёт за счёт надкостницы, в длину — зон хряща у молодых костей.
+- requiredMechanisms: Органическая основа придаёт упругость, минеральные соли — твёрдость. После прокаливания органика разрушается и кость становится хрупкой; кислота растворяет соли, оставляя гибкую органическую основу. Оба опыта доказывают совместную роль компонентов.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-long-bone
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Красный и жёлтый костный мозг различны: кроветворение связано прежде всего с красным.
+
+## Соединения костей и сустав
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-joint
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Швы черепа неподвижны, соединения позвонков полуподвижны, суставы подвижны. В суставе покрытые хрящом поверхности заключены в капсулу; полость содержит синовиальную жидкость, связки направляют и ограничивают движение.
+- requiredMechanisms: Гладкий упругий хрящ распределяет давление, жидкость снижает трение, герметичная капсула удерживает среду, связки препятствуют чрезмерному смещению. Поэтому повреждение каждого элемента по-разному нарушает устойчивость и подвижность.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-joint
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Связки соединяют кости с костями, сухожилия прикрепляют мышцу к кости.
+
+## Строение и сокращение мышцы
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-muscle
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Орган-мышца состоит из пучков; пучок — из мышечных волокон, волокно содержит миофибриллы с актином и миозином. Сухожилие передаёт усилие к кости, сосуды доставляют кислород и субстраты, двигательный нерв запускает сокращение.
+- requiredMechanisms: При возбуждении тонкие актиновые нити скользят относительно миозиновых, саркомеры укорачиваются, и суммарно укорачивается мышца. Энергия АТФ нужна и для цикла взаимодействия белков, и для восстановления исходного состояния.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-muscle
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Нити актина и миозина не становятся короче — меняется степень их взаимного перекрывания.
+
+## Работа мышц и утомление
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-muscle-work
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Сгибатели и разгибатели — антагонисты: при движении один сокращается, другой контролируемо расслабляется; синергисты помогают одному движению. Динамическая работа чередует сокращение и расслабление, статическая удерживает напряжение без заметного движения.
+- requiredMechanisms: Длительное статическое напряжение пережимает сосуды → доставка кислорода и удаление метаболитов ухудшаются → утомление нарастает. Нервная система подбирает число активных двигательных единиц; тренировка улучшает координацию и кровоснабжение.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Утомление — защитное обратимое снижение работоспособности, а не просто «окончание кислорода».
+
+## Здоровье ОДС и первая помощь
+
+- section: biology-human
+- topic: bio-human-movement
+- lesson: bio-human-movement-health
+- codifierCode: 24.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Осанку поддерживают мышцы и физиологические изгибы позвоночника; своды стопы амортизируют. Гиподинамия ослабляет мышцы и обмен, перегрузка без восстановления повышает риск травм. Нагрузка должна расти постепенно и сочетаться с отдыхом.
+- requiredMechanisms: При подозрении на перелом повреждённую область обездвиживают в найденном положении, не пытаясь вправлять; вызывают помощь. При растяжении прекращают нагрузку, обеспечивают покой и холод через ткань. Профилактика плоскостопия включает подходящую обувь и разумную активность.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Первая помощь не включает самостоятельное вправление вывиха или костных отломков.
+
+## Внутренняя среда и лимфа
+
+- section: biology-human
+- topic: bio-human-blood
+- lesson: bio-human-internal-medium
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Плазма выходит через стенки кровеносных капилляров и образует тканевую жидкость, которая омывает клетки. Большая часть возвращается в кровь, избыток входит в слепо начинающиеся лимфатические капилляры и становится лимфой.
+- requiredMechanisms: Лимфатические сосуды с клапанами возвращают жидкость в венозное русло; узлы фильтруют лимфу и участвуют в иммунном ответе. Лимфатические капилляры ворсинок кишечника всасывают значительную часть продуктов переваривания жиров.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Кровь, тканевая жидкость и лимфа связаны, но это не одна и та же жидкость.
+
+## Плазма и форменные элементы крови
+
+- section: biology-human
+- topic: bio-human-blood
+- lesson: bio-human-blood
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Плазма содержит воду, белки, соли, питательные вещества, гормоны и продукты обмена. Эритроциты переносят газы, лейкоциты защищают, тромбоциты участвуют в гемостазе.
+- requiredMechanisms: Двояковогнутая форма без ядра увеличивает полезную площадь и место для гемоглобина; эластичность помогает эритроциту пройти капилляр. Лейкоциты способны выходить в ткани; часть фагоцитирует, B-лимфоциты связаны с антителами, T-лимфоциты — с клеточными реакциями.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-blood-cells
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: У зрелого эритроцита человека ядра нет; гемоглобин переносит O₂ и участвует в переносе части CO₂.
+
+## Свёртывание крови
+
+- section: biology-human
+- topic: bio-human-blood
+- lesson: bio-human-clotting
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Гемостаз ограничивает кровопотерю, сохраняя жидкость крови в неповреждённых сосудах. При повреждении сосуд сужается, тромбоциты прикрепляются и образуют первичную пробку.
+- requiredMechanisms: Запускается каскад реакций: растворимый фибриноген превращается в нити фибрина → сеть удерживает клетки крови → формируется плотный сгусток. После восстановления ткани система ограничивает и удаляет тромб.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Тромбоциты помогают создать пробку, но прочную сетку образует белок фибрин.
+
+## Группы крови ABO и резус-фактор
+
+- section: biology-human
+- topic: bio-human-blood
+- lesson: bio-human-blood-groups
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: В системе ABO на эритроцитах могут быть антигены A и B, а в плазме — антитела против отсутствующего антигена. Встреча соответствующего антигена и антитела вызывает агглютинацию и опасное повреждение клеток.
+- requiredMechanisms: Rh+ означает наличие антигена D в школьной модели, Rh− — отсутствие. У Rh− матери после контакта с Rh+ эритроцитами плода могут возникнуть антитела; при следующей беременности они способны пройти через плаценту и повреждать эритроциты Rh+ плода.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: «Универсальный донор» — лишь упрощение для эритроцитов; реальное переливание всегда требует определения группы, резуса и проб совместимости.
+
+## Иммунитет, вакцина и сыворотка
+
+- section: biology-human
+- topic: bio-human-blood
+- lesson: bio-human-immunity
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Врождённая защита действует быстро и неспецифично: барьеры, воспаление, фагоцитоз. Приобретённый ответ распознаёт антиген; B-клетки образуют антитела и клетки памяти, T-клетки координируют ответ или уничтожают изменённые клетки.
+- requiredMechanisms: Вакцина вводит безопасный антиген → развивается первичный активный ответ → сохраняются клетки памяти → повторная встреча вызывает быстрый ответ. Лечебная сыворотка даёт готовые антитела и быструю, но временную пассивную защиту. Антибиотик действует на бактерии, а не создаёт память.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-immune-response
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Естественный/искусственный описывает путь получения, активный/пассивный — кто произвёл антитела.
+
+## Строение сердца и клапаны
+
+- section: biology-human
+- topic: bio-human-circulation
+- lesson: bio-human-heart
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Сердце лежит в грудной полости и окружено перикардом. Правые камеры принимают кровь большого круга и направляют её в лёгкие, левые принимают кровь из лёгких и направляют в тело; перегородка разделяет потоки.
+- requiredMechanisms: Створчатые и полулунные клапаны открываются разностью давления и предотвращают обратный ток; сухожильные нити удерживают створки. Стенка левого желудочка толще, потому что создаёт давление для большого круга. Коронарные сосуды питают сам миокард.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-heart
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Клапаны не толкают кровь: движущую разность давления создаёт сокращение миокарда.
+
+## Сердечный цикл и автоматия
+
+- section: biology-human
+- topic: bio-human-circulation
+- lesson: bio-human-cardiac-cycle
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: В школьной модели цикл при покое: систола предсердий около 0,1 с, систола желудочков 0,3 с, общая пауза 0,4 с. Во время каждого этапа направление крови определяется давлением и состоянием клапанов.
+- requiredMechanisms: Клетки проводящей системы способны сами ритмически генерировать возбуждение: это автоматия. Импульс охватывает предсердия, затем после задержки — желудочки. Нервы и гормоны меняют частоту и силу, но не являются причиной каждого сокращения.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-heart-valves
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Общая пауза — не остановка всех процессов: камеры наполняются, а проводящая система готовит новый цикл.
+
+## Артерии, вены и капилляры
+
+- section: biology-human
+- topic: bio-human-circulation
+- lesson: bio-human-vessels
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Артерия несёт кровь от сердца, вена — к сердцу. Толстая упругая мышечная стенка артерии выдерживает давление; большая полость и клапаны вен помогают возврату при низком давлении; однослойная стенка капилляра сокращает путь диффузии.
+- requiredMechanisms: Огромная суммарная площадь поперечного сечения капилляров снижает линейную скорость, поэтому обмен успевает произойти. Давление падает из-за сопротивления сосудистого русла. Венозному возврату помогают мышцы и дыхательные движения.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-vessels
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Лёгочная артерия несёт венозную кровь, лёгочные вены — артериальную: название задаёт направление, не содержание O₂.
+
+## Большой и малый круги кровообращения
+
+- section: biology-human
+- topic: bio-human-circulation
+- lesson: bio-human-circuits
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Большой круг: левый желудочек → аорта → артерии → капилляры органов → вены → полые вены → правое предсердие. Малый: правый желудочек → лёгочный ствол → лёгочные капилляры → лёгочные вены → левое предсердие.
+- requiredMechanisms: В тканях O₂ выходит из крови, CO₂ входит; в лёгких направления обратны. Два круга последовательно связывают газообмен и клетки, а разделение правой и левой половин препятствует смешению потоков.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-circulation
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Круг начинается желудочком и заканчивается предсердием; сердце само не насыщает кровь кислородом.
+
+## Давление, пульс и регуляция кровотока
+
+- section: biology-human
+- topic: bio-human-circulation
+- lesson: bio-human-hemodynamics
+- codifierCode: 25.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Пульс — ритмические колебания стенки артерии после выброса крови, а давление — сила крови на стенку сосуда. Максимальное давление связано с систолой, минимальное — с диастолой.
+- requiredMechanisms: При нагрузке симпатические влияния и адреналин повышают частоту и силу сердца; сосуды разных органов меняют просвет неодинаково, перераспределяя поток. После нагрузки отрицательная обратная связь возвращает показатели к исходному диапазону.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Минимальная скорость в капиллярах связана с их суммарным сечением, а не с тем, что отдельный капилляр «самый узкий».
+
+## Дыхательные пути
+
+- section: biology-human
+- topic: bio-human-respiration
+- lesson: bio-human-airways
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Воздух проходит: носовая полость → глотка → гортань → трахея → бронхи → бронхиолы → альвеолы. Слизь задерживает частицы, реснички перемещают её, сосуды согревают воздух, влажная поверхность увлажняет.
+- requiredMechanisms: Надгортанник при глотании защищает вход в гортань. Голос возникает при колебании голосовых связок потоком воздуха, а тембр меняют резонаторы. Хрящи поддерживают просвет крупных путей.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-respiratory-system
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Дыхательные пути проводят и подготавливают воздух; газообмен происходит не в трахее и не в диафрагме.
+
+## Лёгкие, альвеолы и газообмен
+
+- section: biology-human
+- topic: bio-human-respiration
+- lesson: bio-human-alveoli
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Альвеолы — многочисленные пузырьки с тонкой влажной стенкой, оплетённые капиллярами. Большая площадь, один слой клеток и тесный контакт с кровью сокращают диффузионный путь.
+- requiredMechanisms: Из альвеол O₂ движется по градиенту парциального давления в кровь, CO₂ — из крови в альвеолы. В тканях O₂ идёт из крови к клеткам, CO₂ — обратно. Клеточное дыхание использует O₂ в митохондриях для синтеза АТФ и не равно газообмену.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-alveolus
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Внешнее дыхание, газообмен и клеточное дыхание — связанные, но разные процессы.
+
+## Вдох и выдох
+
+- section: biology-human
+- topic: bio-human-respiration
+- lesson: bio-human-ventilation
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: При спокойном вдохе диафрагма сокращается и опускается, наружные межрёберные мышцы поднимают рёбра → объём грудной полости растёт → давление в лёгких падает ниже атмосферного → воздух входит.
+- requiredMechanisms: При спокойном выдохе мышцы расслабляются, эластическая тяга уменьшает объём → давление растёт → воздух выходит. Плевральная связь заставляет лёгкие следовать за грудной клеткой; при усиленном дыхании подключаются дополнительные мышцы.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-ventilation
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Лёгкие не «засасывают» воздух сами: поток создаёт градиент давления вследствие изменения объёма.
+
+## Транспорт газов и регуляция дыхания
+
+- section: biology-human
+- topic: bio-human-respiration
+- lesson: bio-human-gas-transport
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Большая часть O₂ обратимо связывается с гемоглобином эритроцитов. CO₂ переносится растворённым, связанным с белками и преимущественно в превращённой форме в плазме; в лёгких реакции обращаются.
+- requiredMechanisms: Рост CO₂ и связанных с ним изменений pH воспринимают рецепторы → дыхательный центр продолговатого мозга усиливает команды дыхательным мышцам → вентиляция растёт → избыток CO₂ удаляется. Произвольная задержка дыхания ограничена гуморальным сигналом.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Главным текущим регуляторным сигналом обычно служит CO₂, а не простая команда «не хватает кислорода».
+
+## Здоровье дыхательной системы
+
+- section: biology-human
+- topic: bio-human-respiration
+- lesson: bio-human-resp-health
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Ресничный эпителий и слизь очищают воздух, кашель удаляет раздражитель, иммунные механизмы сдерживают инфекцию. Курение и аэрозольные загрязнители повреждают эпителий и альвеолы, уменьшая очистку и обменную поверхность.
+- requiredMechanisms: Профилактика включает отказ от курения, проветривание, физическую активность и специфическую вакцинацию там, где она предусмотрена. Антибиотики применяют против чувствительных бактерий по назначению, но не против вирусов.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Большая вентиляция при нагрузке полезна как согласованный ответ, но хроническое раздражение дымом не «тренирует» лёгкие.
+
+## Пищеварение и ротовая полость
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-digestion-basics
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Пищеварение превращает крупные пищевые молекулы в доступные для всасывания вещества. Зубы измельчают пищу, язык перемешивает и формирует комок, слюна смачивает, а амилаза начинает расщеплять крахмал.
+- requiredMechanisms: Эмаль защищает коронку, дентин образует основу, пульпа содержит сосуды и нервы, корень закреплён в челюсти. При глотании согласованные рефлексы направляют комок через глотку в пищевод и закрывают дыхательный путь.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-digestive-system
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Механическая обработка увеличивает площадь, но сама не заменяет химического расщепления ферментами.
+
+## Желудок
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-stomach
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Мышечная стенка желудка перемешивает пищу, железы выделяют сок. HCl создаёт кислую среду, денатурирует белки, активирует пепсин и подавляет многие микроорганизмы; пепсин расщепляет белки.
+- requiredMechanisms: Слизисто-бикарбонатный барьер защищает стенку от кислоты и ферментов. Порционное поступление химуса в двенадцатиперстную кишку согласует работу желудка и кишечника.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-tooth
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Желудок не переваривает всю пищу полностью и не является главным местом всасывания питательных веществ.
+
+## Тонкий кишечник, желчь и поджелудочная железа
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-small-intestine
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: В двенадцатиперстную кишку поступают желчь и сок поджелудочной железы; кишечные ферменты завершают расщепление. Протеазы действуют на белки, амилаза — на углеводы, липаза — на жиры при подходящих pH и температуре.
+- requiredMechanisms: Желчь не содержит пищеварительных ферментов: она эмульгирует жир на мелкие капли → площадь контакта с липазой растёт → расщепление ускоряется. Бикарбонаты нейтрализуют кислый химус, защищая слизистую и создавая среду для ферментов.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Поджелудочная железа смешанная: её сок идёт по протоку, а инсулин и глюкагон — непосредственно в кровь.
+
+## Ворсинки и всасывание
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-absorption
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Складки, ворсинки и микроворсинки увеличивают поверхность тонкой кишки; однослойный эпителий сокращает путь переноса. В каждой ворсинке есть кровеносные капилляры и лимфатический капилляр.
+- requiredMechanisms: Моносахариды и аминокислоты поступают преимущественно в кровь и через воротную вену — в печень. Продукты жиров в клетках эпителия упаковываются и входят преимущественно в лимфу. Всасывание — перенос, а не само расщепление.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-intestinal-villus
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Пищеварение создаёт мономеры, всасывание переносит их во внутреннюю среду — это разные этапы.
+
+## Печень и толстый кишечник
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-liver-colon
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Печень образует желчь, запасает глюкозу как гликоген, преобразует питательные вещества и обезвреживает многие соединения. Поступление крови от кишечника позволяет сначала обработать всосавшиеся вещества.
+- requiredMechanisms: В толстой кишке всасываются вода и соли, микробиота использует часть непереваренных веществ, формируются каловые массы. Нарушение возврата воды меняет их консистенцию; основное ферментативное пищеварение происходит раньше.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Детоксикация не означает, что печень делает безвредной любую дозу любого вещества.
+
+## Питание, обмен и витамины
+
+- section: biology-human
+- topic: bio-human-digestion
+- lesson: bio-human-nutrition
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Белки дают аминокислоты для собственных белков, жиры — энергию, мембранные компоненты и запас, углеводы — доступный источник энергии. После всасывания транспорт связывает кишечник с клеточным пластическим и энергетическим обменом.
+- requiredMechanisms: Витамин A важен эпителию и зрению, D — обмену кальция и костям, C — соединительной ткани, группа B — ферментным системам, K — свёртыванию. Дефицит возникает при недостатке поступления или усвоения; избыток жирорастворимых витаминов также опасен.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Витамины не являются источником энергии и не заменяют белки, жиры и углеводы.
+
+## Мочевыделительная система и почка
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-urinary
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Почки удаляют азотистые продукты и регулируют воду, соли и pH; моча идёт по мочеточникам в пузырь и выводится по мочеиспускательному каналу. В корковом веществе находятся клубочки, в мозговом — петли и собирательные трубочки; лоханка собирает мочу.
+- requiredMechanisms: Почечная артерия приносит кровь для очистки, почечная вена уносит изменённую кровь. Обильное кровоснабжение обеспечивает фильтрацию и регуляцию состава внутренней среды.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Почка образует мочу; мочевой пузырь её накапливает, но не фильтрует кровь.
+
+## Нефрон
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-nephron
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Нефрон включает капсулу с капиллярным клубочком, канальцы, петлю и соединение с собирательной трубочкой. Приносящая артериола создаёт давление в клубочке; стенки образуют избирательный фильтр.
+- requiredMechanisms: Длинные канальцы и окружающие капилляры дают площадь для обратного переноса. Разные участки возвращают воду, глюкозу, аминокислоты и ионы; петля и собирательная трубочка участвуют в создании концентрированной мочи.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-nephron
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; extended_answer
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Кровь после клубочка не сразу становится венозной: выносящая артериола образует капилляры вокруг канальцев.
+
+## Образование мочи
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-urine
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Фильтрация под давлением переводит воду и малые вещества из плазмы клубочка в капсулу: возникает первичная моча без клеток и большинства крупных белков. Затем из канальца в кровь избирательно возвращаются нужные вещества и вода.
+- requiredMechanisms: Реабсорбция резко уменьшает объём и сохраняет глюкозу; секреция переносит некоторые вещества из крови в каналец. Вторичная моча содержит мочевину, избыток солей и воды, но в норме не содержит значимой глюкозы или клеток крови.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Моча — результат фильтрации, реабсорбции и секреции, а не только простого процеживания.
+
+## АДГ и водно-солевой баланс
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-water-balance
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: При потере воды осмолярность крови растёт → рецепторы гипоталамуса активируются → выделение АДГ задней долей гипофиза возрастает → собирательные трубочки сильнее возвращают воду → мочи меньше и она концентрированнее.
+- requiredMechanisms: После восстановления концентрации стимул к выделению АДГ уменьшается: это отрицательная обратная связь. Жажда, почки, гормоны и сосудистая система работают совместно; соли также влияют на распределение воды.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: АДГ не «создаёт воду», а изменяет её реабсорбцию из формирующейся мочи.
+
+## Строение и функции кожи
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-skin
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Эпидермис образует обновляющийся водонепроницаемый барьер; дерма содержит сосуды, рецепторы, потовые и сальные железы, волокна и волосяные фолликулы; подкожная клетчатка запасает жир и теплоизолирует.
+- requiredMechanisms: Роговой слой защищает, меланин уменьшает повреждение ультрафиолетом, пот выводится на поверхность, сосуды регулируют теплоотдачу, рецепторы преобразуют прикосновение, давление, боль и температуру в нервные сигналы.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-skin
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Потовые железы лежат в дерме, хотя их протоки открываются на поверхности эпидермиса.
+
+## Терморегуляция
+
+- section: biology-human
+- topic: bio-human-excretion
+- lesson: bio-human-thermoregulation
+- codifierCode: 26.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: При жаре сосуды кожи расширяются → приток тёплой крови к поверхности растёт → теплоотдача усиливается; пот испаряется и забирает тепло. При холоде сосуды сужаются, а дрожь повышает теплопродукцию сокращениями мышц.
+- requiredMechanisms: Терморецепторы и гипоталамус сравнивают состояние с рабочим диапазоном и через автономные, двигательные и гормональные реакции уменьшают отклонение. Поведение — одежда, тень, питьё — дополняет физиологию.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Пот охлаждает главным образом при испарении; высокая влажность снижает эффективность охлаждения.
+
+## Нейрон, импульс и синапс
+
+- section: biology-human
+- topic: bio-human-nervous
+- lesson: bio-human-neuron-synapse
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Дендриты принимают сигналы, тело нейрона интегрирует их, аксон проводит импульс к окончаниям; миелин ускоряет распространение. Импульс — краткое изменение электрического состояния мембраны, возникающее при достижении порога.
+- requiredMechanisms: В химическом синапсе импульс приходит к окончанию → выделяется медиатор → он диффундирует через щель → связывается с рецепторами постсинаптической мембраны → меняет активность следующей клетки. Передача направлена строением синапса.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-neuron
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Импульс идёт по нейрону электрически, а через типичный химический синапс — с помощью медиатора.
+
+## Рефлекс и рефлекторная дуга
+
+- section: biology-human
+- topic: bio-human-nervous
+- lesson: bio-human-reflex
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Рефлекс — закономерная ответная реакция при участии нервной системы; рефлекторная дуга — путь сигнала: рецептор → чувствительный нейрон → ЦНС (часто вставочный нейрон) → двигательный нейрон → эффектор.
+- requiredMechanisms: Рецептор преобразует раздражение, чувствительный нейрон несёт сигнал к ЦНС, центр обрабатывает, двигательный — от ЦНС, мышца или железа выполняет ответ. Обратная информация уточняет движение.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-reflex-arc
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Рефлекс — ответ, дуга — материальный путь; чувствительный и двигательный нейроны имеют противоположные направления проведения относительно ЦНС.
+
+## Спинной мозг
+
+- section: biology-human
+- topic: bio-human-nervous
+- lesson: bio-human-spinal
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Спинной мозг лежит в позвоночном канале. Серое вещество с телами нейронов находится внутри, белое с проводящими путями — снаружи; задние корешки чувствительные, передние двигательные.
+- requiredMechanisms: Рефлекторная функция обеспечивает быстрые ответы через сегменты, проводниковая передаёт восходящие сигналы мозгу и нисходящие команды. Перерезка пути нарушает функции ниже повреждения, даже если местные нейроны сохранны.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-spinal-cord
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Серое вещество не всегда снаружи: в спинном мозге оно внутри, в коре больших полушарий — снаружи.
+
+## Головной мозг
+
+- section: biology-human
+- topic: bio-human-nervous
+- lesson: bio-human-brain
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Продолговатый мозг регулирует жизненно важные дыхательные и сосудистые рефлексы; мост связывает отделы; средний мозг участвует в ориентировочных реакциях; мозжечок координирует движения и равновесие.
+- requiredMechanisms: Промежуточный мозг, особенно гипоталамус, связывает гомеостаз с эндокринной системой. Кора больших полушарий анализирует чувствительную информацию, планирует произвольные движения и поддерживает высшие функции; специализация участков работает как сеть.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-brain
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Мозжечок координирует движение, но обычно не является местом возникновения команды произвольного движения.
+
+## Соматическая и автономная системы
+
+- section: biology-human
+- topic: bio-human-nervous
+- lesson: bio-human-somatic-autonomic
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Соматическая система связывает ЦНС с кожей и скелетными мышцами, автономная регулирует сердце, гладкие мышцы и железы. Симпатический отдел мобилизует ресурсы, парасимпатический поддерживает восстановление и пищеварение.
+- requiredMechanisms: Симпатическое влияние учащает сердце и расширяет зрачок, но тормозит моторику кишечника; парасимпатическое часто действует обратно. Эффект зависит от органа и рецепторов, а оба отдела поддерживают меняющийся баланс.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-autonomic
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Неверно, что симпатическая система «ускоряет всё»: пищеварение она обычно тормозит.
+
+## Гормоны и нейрогуморальная регуляция
+
+- section: biology-human
+- topic: bio-human-endocrine
+- lesson: bio-human-hormones
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Эндокринная железа выделяет гормон в кровь; гормон действует лишь на клетки-мишени с подходящим рецептором. Малые концентрации могут менять обмен, рост или работу органов, после чего сигнал разрушается или выводится.
+- requiredMechanisms: Нервная регуляция быстрая и адресная, гуморальная распространяется с жидкостями и часто длительнее. Гипоталамус через гипофиз связывает их: нервные сигналы меняют гормональный выход, а гормоны участвуют в обратной связи.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Гормон — регуляторный сигнал, фермент — катализатор; гормон не обязан ускорять химическую реакцию непосредственно.
+
+## Железы внутренней секреции
+
+- section: biology-human
+- topic: bio-human-endocrine
+- lesson: bio-human-glands
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Гипофиз регулирует рост и многие железы; щитовидная железа тироксином влияет на обмен, паращитовидные гормоны — на кальций; надпочечники выделяют адреналин и кортикостероиды; половые железы — половые гормоны.
+- requiredMechanisms: Гипо- и гиперфункция дают противоположные системные изменения, но эффект зависит от возраста и мишени. Тропные гормоны гипофиза образуют оси с периферическими железами и отрицательной обратной связью.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-endocrine-glands
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Название железы недостаточно: в ответе нужны гормон, мишень, механизм и следствие.
+
+## Инсулин и глюкагон
+
+- section: biology-human
+- topic: bio-human-endocrine
+- lesson: bio-human-glucose
+- codifierCode: 27.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: После еды глюкоза крови растёт → β-клетки поджелудочной выделяют инсулин → клетки усиливают поглощение и использование глюкозы, печень и мышцы запасают гликоген → глюкоза снижается.
+- requiredMechanisms: При снижении глюкозы α-клетки выделяют глюкагон → печень расщепляет гликоген и образует глюкозу → уровень повышается. Возврат параметра уменьшает исходный гормональный сигнал.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Инсулин и глюкагон — гормоны-антагонисты; ни один из них не является пищеварительным ферментом.
+
+## Анализатор и кожная чувствительность
+
+- section: biology-human
+- topic: bio-human-senses
+- lesson: bio-human-analyzer
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Анализатор включает рецепторный, проводниковый и центральный отделы. Рецептор преобразует энергию раздражителя в сигнал, нервные пути проводят, кора формирует ощущение и распознавание.
+- requiredMechanisms: Кожные механорецепторы реагируют на прикосновение и давление, терморецепторы — на температуру, болевые окончания — на повреждающие воздействия. Плотность рецепторов различается, поэтому точность локализации неодинакова.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Орган чувств — преимущественно рецепторная часть; без нерва и центра полный анализатор не работает.
+
+## Глаз и сетчатка
+
+- section: biology-human
+- topic: bio-human-senses
+- lesson: bio-human-eye
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Склера защищает глаз, прозрачная роговица сильно преломляет свет, радужка регулирует зрачок, хрусталик уточняет фокус, стекловидное тело поддерживает форму. Сетчатка содержит палочки и колбочки, зрительный нерв несёт сигнал.
+- requiredMechanisms: На сетчатке возникает уменьшенное перевёрнутое изображение. Жёлтое пятно богато колбочками и даёт высокую остроту; в слепом пятне выходит нерв и фоторецепторов нет. Мозг интерпретирует распределение активности.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-eye
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Изображение формируется на сетчатке; слепое пятно не является зоной наилучшего зрения.
+
+## Аккомодация и дефекты зрения
+
+- section: biology-human
+- topic: bio-human-senses
+- lesson: bio-human-accommodation
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: При взгляде вблизи ресничная мышца изменяет натяжение связок, хрусталик становится более выпуклым и сильнее преломляет свет; вдаль он уплощается. Это аккомодация.
+- requiredMechanisms: При близорукости фокус без коррекции перед сетчаткой, рассеивающая линза уменьшает преломление. При дальнозоркости фокус оказался бы за сетчаткой, собирающая линза усиливает преломление.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-accommodation
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: «Минус» и «плюс» нужно выводить из положения фокуса, а не запоминать без механизма.
+
+## Слух и равновесие
+
+- section: biology-human
+- topic: bio-human-senses
+- lesson: bio-human-ear
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Ушная раковина и проход направляют звук к барабанной перепонке; молоточек, наковальня и стремечко передают колебания к овальному окну; жидкость улитки движется и изгибает рецепторные волосковые клетки.
+- requiredMechanisms: Рецепторы преобразуют механическое воздействие в нервный сигнал, который анализируется центральным отделом. Полукружные каналы воспринимают угловое ускорение, органы преддверия — положение и линейное ускорение; мозг объединяет их с зрением и сигналами мышц.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-ear
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Слуховые косточки усиливают передачу, но нервный импульс возникает в рецепторах внутреннего уха.
+
+## Вкус и обоняние
+
+- section: biology-human
+- topic: bio-human-senses
+- lesson: bio-human-taste-smell
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Вкусовые рецепторы реагируют на растворённые вещества в ротовой полости, обонятельные — на летучие вещества, растворившиеся в слизи носовой полости. Сигналы проходят по нервам в центральные отделы.
+- requiredMechanisms: Совместная обработка вкуса, запаха, температуры и текстуры создаёт восприятие пищи; при насморке доступ пахучих веществ к рецепторам снижается, поэтому вкус кажется беднее. Адаптация уменьшает ощущение постоянного запаха.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Рецептор не «узнаёт предмет целиком»: образ возникает при анализе сигналов мозгом.
+
+## Условные и безусловные рефлексы
+
+- section: biology-human
+- topic: bio-human-higher
+- lesson: bio-human-reflex-learning
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Безусловные рефлексы врождённы и видоспецифичны; условные приобретаются при образовании временной связи. Нейтральный сигнал многократно предшествует безусловному подкреплению и начинает сам вызывать ответ.
+- requiredMechanisms: Без подкрепления условная реакция угасает из-за торможения, а различение сходных сигналов делает поведение точным. Внутреннее и внешнее торможение предотвращают неуместный ответ и позволяют переключаться.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Условный рефлекс не наследуется готовым и требует подкрепления при формировании.
+
+## Память, обучение, речь и мышление
+
+- section: biology-human
+- topic: bio-human-higher
+- lesson: bio-human-higher-functions
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Память включает запечатление, хранение и извлечение; обучение изменяет связи нейронных сетей и поведение. Внимание отбирает информацию, повторение и смысловые связи укрепляют её доступность.
+- requiredMechanisms: Первая сигнальная система опирается на непосредственные раздражители, вторая у человека — на слова и символы. Речь позволяет обобщать опыт, мышление устанавливает связи и планирует действия; функции распределены по взаимодействующим областям мозга.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Память не хранится в одном изолированном «центре», а забывание не всегда означает стирание следа.
+
+## Сон и здоровье нервной системы
+
+- section: biology-human
+- topic: bio-human-higher
+- lesson: bio-human-sleep
+- codifierCode: 28.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Сон — организованное периодическое состояние с изменением активности мозга, а не полное выключение. Чередуются фазы, меняются мышечный тонус, движения глаз и обработка информации.
+- requiredMechanisms: Сон поддерживает восстановление, иммунную и эндокринную регуляцию, закрепление памяти. Недосып ухудшает внимание и скорость реакции; регулярный режим, темнота и ограничение возбуждающих факторов перед сном поддерживают ритм.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Во сне мозг активен; попытка постоянно сокращать сон не является тренировкой.
+
+## Мужская половая система
+
+- section: biology-human
+- topic: bio-human-reproduction
+- lesson: bio-human-male
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Семенники образуют сперматозоиды и тестостерон; придаток участвует в созревании и хранении, семявыносящие протоки проводят клетки, добавочные железы образуют компоненты семенной жидкости.
+- requiredMechanisms: Семенные канальцы создают большую поверхность сперматогенеза, клетки формируются при температуре несколько ниже температуры тела. Гормоны гипофиза и тестостерон регулируют процесс обратной связью.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-male-reproductive
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Сперматозоиды образуются в семенниках, а не в предстательной железе.
+
+## Женская половая система и цикл
+
+- section: biology-human
+- topic: bio-human-reproduction
+- lesson: bio-human-female-cycle
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Яичники образуют яйцеклетки и гормоны; маточные трубы проводят клетку и обычно служат местом оплодотворения; матка обеспечивает имплантацию и развитие, влагалище связывает матку с внешней средой.
+- requiredMechanisms: Фолликул созревает, овуляция освобождает ооцит, жёлтое тело выделяет прогестерон и поддерживает эндометрий. Без беременности снижение гормонов ведёт к менструальному отторжению функционального слоя; гипофиз и яичники образуют обратные связи.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-female-reproductive
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Овуляция — выход ооцита, менструация — отторжение эндометрия; это не одно событие.
+
+## Оплодотворение и дробление
+
+- section: biology-human
+- topic: bio-human-reproduction
+- lesson: bio-human-fertilization
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Обычно в маточной трубе сперматозоид взаимодействует с оболочками ооцита, сливаются мембраны и затем генетический материал гамет → возникает зигота 2n. Механизмы оболочек препятствуют проникновению дополнительных сперматозоидов.
+- requiredMechanisms: Зигота дробится митозом без общего роста, образуя многоклеточную стадию, которая движется к матке. Оплодотворение восстанавливает диплоидность и создаёт новое сочетание аллелей.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-implantation
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Оплодотворение происходит до имплантации и обычно не в полости матки.
+
+## Имплантация и плацента
+
+- section: biology-human
+- topic: bio-human-reproduction
+- lesson: bio-human-implantation
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Ранний зародыш внедряется в подготовленный эндометрий — это имплантация. Формируется плацента с близко расположенными, но разделёнными материнскими и плодными сосудами.
+- requiredMechanisms: Через барьер диффундируют O₂ и CO₂, переносятся питательные вещества и продукты обмена; плацента также выделяет гормоны. Большая площадь и тонкий барьер ускоряют обмен, но кровь матери и плода в норме не смешивается в единый поток.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-placenta
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Плацента не защищает от всех веществ и инфекций; материнская и плодная кровь не образуют общий кровоток.
+
+## Эмбриональное и постэмбриональное развитие
+
+- section: biology-human
+- topic: bio-human-reproduction
+- lesson: bio-human-development
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: После дробления и имплантации закладываются зародышевые листки и органы; эмбриональный период особенно чувствителен к повреждающим факторам. Далее плод растёт и системы созревают, связь с матерью обеспечивает плацента.
+- requiredMechanisms: После рождения перестраиваются дыхание и кровообращение, затем идут рост, созревание нервной и эндокринной систем и половое созревание. Развитие сочетает генетическую программу и влияние среды.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Рост — количественное изменение, развитие включает качественное созревание функций.
+
+## Профилактика и первая помощь
+
+- section: biology-human
+- topic: bio-human-health-integration
+- lesson: bio-human-prevention
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Профилактика инфекций сочетает гигиену, разрыв путей передачи и вакцинацию; рациональное питание, сон и активность уменьшают риск функциональных нарушений. Вредные вещества действуют на несколько систем одновременно.
+- requiredMechanisms: При кровотечении обеспечивают безопасность, вызывают помощь и прижимают рану чистым материалом; при сильном кровотечении следуют указаниям диспетчера. Ожог охлаждают прохладной проточной водой без льда и масел; при обморожении согревают постепенно, не растирая.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Первая помощь поддерживает пострадавшего до специалистов и не должна включать опасные манипуляции.
+
+## Физиологический эксперимент и данные
+
+- section: biology-human
+- topic: bio-human-health-integration
+- lesson: bio-human-experiments
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Корректный опыт начинается с проверяемой гипотезы. Исследователь меняет одну независимую переменную, измеряет зависимую, сохраняет прочие условия, использует контроль и повторы, затем представляет данные с единицами и неопределённостью.
+- requiredMechanisms: При сравнении пульса до и после нагрузки одинаковыми делают длительность нагрузки, позу, время измерения и состав групп. График читают по осям и масштабу; различие групп описывают отдельно от объяснения механизма. Корреляция сама по себе не доказывает причину.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: reviewed-not-required
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: reviewed-not-required
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: Один испытуемый и одно измерение не позволяют надёжно обобщать результат.
+
+## Интеграция систем при физической нагрузке
+
+- section: biology-human
+- topic: bio-human-health-integration
+- lesson: bio-human-exercise
+- codifierCode: 29.0
+- examLines: 1, 3, 4, 22, 23, 24, 25, 26
+- mandatoryConcepts: Работа мышц повышает расход АТФ → клеточное дыхание ускоряется → требуется больше O₂ и образуется больше CO₂ и тепла. Дыхательный центр повышает вентиляцию, сердце — частоту и силу сокращений, сосуды перераспределяют кровь к мышцам.
+- requiredMechanisms: Гемоглобин доставляет O₂, кровь уносит CO₂ и тепло; кожа усиливает теплоотдачу, почки и гормоны сохраняют воду и соли. После нагрузки отрицательная обратная связь постепенно возвращает показатели.
+- requiredCausalLinks: причина → механизм → следствие
+- requiredComparisons: структура / процесс / регуляция
+- requiredDiagrams: human-exercise-integration
+- requiredAlgorithms: пятишаговый причинный ответ
+- requiredEgeSkills: concepts; data_analysis; experiment_design; extended_reasoning
+- requiredPracticeMechanics: multiple_answer; sequence; matching; analysis; experiment
+- currentConcepts: обязательные понятия, механизм, связь строения и функции, межсистемная связь, экзаменационная ловушка
+- missingConcepts: none
+- weakConcepts: none
+- statusBefore: MISSING
+- statusAfter: FULL
+- pedagogicalCompleteness: true
+- mechanismExplained: true
+- structureFunctionExplained: true
+- causalReasoningPresent: true
+- standaloneLearnability: true
+- comparisonPresent: true
+- diagramIntegrated: true
+- examApplicationPresent: true
+- manualContentReview: approved
+- BEFORE: урок отсутствовал. AFTER: связный текст объясняет предмет, устройство, механизм, функциональное следствие, регуляцию и связь систем; ученик может пройти тему автономно и применить алгоритм к первой и второй части.
+- trapReview: ЧСС и дыхание растут не «ради нагрузки», а чтобы согласовать доставку и удаление с обменом мышц.
+
+## Обязательный ручной просмотр и межурочная сверка
+
+Повторный обязательный review выполнен чтением целых lessons, а не поиском терминов: `bio-human-homeostasis`, `bio-human-immunity`, `bio-human-heart`, `bio-human-cardiac-cycle`, `bio-human-alveoli`, `bio-human-ventilation`, `bio-human-small-intestine`, `bio-human-nephron`, `bio-human-urine`, `bio-human-neuron-synapse`, `bio-human-reflex`, `bio-human-brain`, `bio-human-glucose`, `bio-human-eye`, `bio-human-male`, `bio-human-female-cycle`, `bio-human-fertilization`, `bio-human-implantation`, `bio-human-exercise`. Для каждого подтверждены автономное введение, объяснение механизма, связь строения с функцией, причинная цепь и применение к сложному ЕГЭ. Дополнительно расширены 25 lessons с анатомическими схемами абзацами чтения изображения; иных пробелов, требующих изменения theory blocks, не обнаружено.
+
+Полностью перечитаны тематические связки: ткани; гомеостаз; кость и сустав; мышца и работа мышц; кровь; иммунитет; сердце; сердечный цикл; круги; альвеолы и газообмен; вентиляция; тонкий кишечник; печень; нефрон и мочеобразование; терморегуляция; нейрон и синапс; рефлекторная дуга; головной мозг; автономная система; инсулин/глюкагон; глаз; ухо; размножение; оплодотворение, имплантация и плацента; нагрузка. Сверены кровь ↔ кровообращение ↔ дыхание; пищеварение ↔ обмен ↔ печень; почка ↔ гомеостаз; кожа ↔ терморегуляция; нервная ↔ эндокринная ↔ размножение; анализаторы ↔ ЦНС; нагрузка ↔ дыхание ↔ кровоток ↔ клеточный обмен. Противоречий после правки не выявлено.
+
+Эволюция, антропогенез, экология и биосфера в PHASE 3 не включались.
