@@ -17,6 +17,7 @@ function validateCourse(course, publicRoot=resolve(__dirname,'../public')) {
   const allowedStatuses=new Set(['draft','review','verified','legacy']);
   const normalizedPrompts=new Map();
   for (const section of course.sections||[]) for (const topic of section.topics||[]) {
+    if (topic.parentSlug && !slugs.has(topic.parentSlug)) errors.push(`unknown or unordered parent topic: ${topic.parentSlug}`);
     if (slugs.has(topic.slug)) errors.push(`duplicate topic slug: ${topic.slug}`); slugs.add(topic.slug);
     if (course.subject.slug==='biology' && !topic.codifierCode) errors.push(`missing codifierCode: ${topic.slug}`);
     if (course.subject.slug==='biology' && topic.codifierCode && !codifier.has(topic.codifierCode)) errors.push(`unknown codifierCode: ${topic.codifierCode}`);
@@ -69,11 +70,16 @@ async function importCourse(db, course) {
     await db.run(`INSERT INTO sections(subject_id,slug,title,description,position,published,exam_year,source_version) VALUES(?,?,?,?,?,TRUE,?,?) ON CONFLICT(subject_id,slug) DO UPDATE SET title=excluded.title,description=excluded.description,position=excluded.position,published=TRUE,exam_year=excluded.exam_year,source_version=excluded.source_version,updated_at=CURRENT_TIMESTAMP`,subject.id,section.slug,section.title,section.description||'',si,year,source);
     const sectionId=(await db.row('SELECT id FROM sections WHERE subject_id=? AND slug=?',subject.id,section.slug)).id;
     for (const [ti,topic] of (section.topics||[]).entries()) {
-      await db.run(`INSERT INTO topics(subject_id,section_id,parent_id,slug,title,description,theory,position,kind,published,exam_year,source_version) VALUES(?,?,NULL,?,?,?,?,?,'topic',TRUE,?,?) ON CONFLICT(subject_id,slug) DO UPDATE SET section_id=excluded.section_id,title=excluded.title,description=excluded.description,position=excluded.position,published=TRUE,exam_year=excluded.exam_year,source_version=excluded.source_version,updated_at=CURRENT_TIMESTAMP`,subject.id,sectionId,topic.slug,topic.title,topic.description||'','',ti,year,source);
+      const parent=topic.parentSlug?await db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,topic.parentSlug):null;
+      if (topic.parentSlug && !parent) throw new Error(`Unknown parent topic: ${topic.parentSlug}`);
+      await db.run(`INSERT INTO topics(subject_id,section_id,parent_id,slug,title,description,theory,position,kind,published,exam_year,source_version) VALUES(?,?,?,?,?,?,?,?,'topic',TRUE,?,?) ON CONFLICT(subject_id,slug) DO UPDATE SET section_id=excluded.section_id,parent_id=excluded.parent_id,title=excluded.title,description=excluded.description,position=excluded.position,published=TRUE,exam_year=excluded.exam_year,source_version=excluded.source_version,updated_at=CURRENT_TIMESTAMP`,subject.id,sectionId,parent?.id||null,topic.slug,topic.title,topic.description||'','',ti,year,source);
       const topicId=(await db.row('SELECT id FROM topics WHERE subject_id=? AND slug=?',subject.id,topic.slug)).id;
       const spec=topic.codifierCode?await db.row('SELECT id FROM exam_spec_items WHERE subject_id=? AND exam_year=? AND codifier_code=?',subject.id,year,topic.codifierCode):null;
       if (spec) await db.run(`INSERT INTO content_coverage(spec_item_id,entity_type,entity_id,coverage_kind) VALUES(?,'topic',?,'theory') ON CONFLICT(spec_item_id,entity_type,entity_id,coverage_kind) DO NOTHING`,spec.id,topicId);
-      if (!topic.lesson) continue;
+      if (!topic.lesson) {
+        if (topic.containerOnly) await db.run('UPDATE lessons SET published=FALSE WHERE topic_id=?',topicId);
+        continue;
+      }
       const l=topic.lesson;
       await db.run(`INSERT INTO lessons(topic_id,slug,title,summary,estimated_minutes,difficulty,position,published,exam_year,source_version,codifier_code,exam_lines_json,skills_json,content_status,is_ege_required,is_beyond_ege) VALUES(?,?,?,?,?,?,0,TRUE,?,?,?,?,?,?,?,?) ON CONFLICT(topic_id,slug) DO UPDATE SET title=excluded.title,summary=excluded.summary,estimated_minutes=excluded.estimated_minutes,difficulty=excluded.difficulty,published=TRUE,exam_year=excluded.exam_year,source_version=excluded.source_version,codifier_code=excluded.codifier_code,exam_lines_json=excluded.exam_lines_json,skills_json=excluded.skills_json,content_status=excluded.content_status,is_ege_required=excluded.is_ege_required,is_beyond_ege=excluded.is_beyond_ege,updated_at=CURRENT_TIMESTAMP`,topicId,l.slug,l.title,l.summary||'',l.minutes||15,l.difficulty||'base',year,source,topic.codifierCode||null,JSON.stringify(topic.examLines||[]),JSON.stringify(topic.skills||[]),l.contentStatus||'draft',l.isEgeRequired!==false,Boolean(l.isBeyondEge));
       const lessonId=(await db.row('SELECT id FROM lessons WHERE topic_id=? AND slug=?',topicId,l.slug)).id;
