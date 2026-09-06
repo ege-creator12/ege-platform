@@ -32,8 +32,15 @@ test('hard mock supplement is original, difficult and has teaching help',()=>{
   for(const line of [2,3,4,21,22,23,24,25,26,27,28])assert.ok(hardBank.questions.some(q=>q.line===line),`missing hard line ${line}`);
 });
 
+test('mock generator excludes legacy/draft bank rows and keeps difficulty above hash jitter',()=>{
+  const source=readFileSync(join(__dirname,'../src/mock-exams.js'),'utf8');
+  assert.ok(source.includes("q.content_status IN ('review','verified')"));
+  assert.ok(source.includes("%1e9"));
+  assert.ok(source.includes("makeSnapshot(q,line,tx)"));
+});
+
 test('browser biology upgrade script parses and contains required controls',()=>{
   const source=readFileSync(join(__dirname,'../public/biology-upgrades.js'),'utf8');
   assert.doesNotThrow(()=>new Function(source));
-  for(const phrase of ['Проверить ответ','Подсказка','Не знаю — показать разбор','Следующее задание →','Поиск по биологии','Без таймера'])assert.ok(source.includes(phrase),phrase);
+  for(const phrase of ['Проверить ответ','Подсказка','Не знаю — показать разбор','Следующее задание →','Поиск по биологии','Без таймера','mock-ordered'])assert.ok(source.includes(phrase),phrase);
 });
