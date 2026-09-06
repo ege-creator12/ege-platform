@@ -7,7 +7,7 @@ process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), 'ege-')), 'test.sqli
 process.env.PORT = '32117';
 const db = require('../src/db');
 const { coverageReport, getTheoryForExamLine } = require('../src/coverage');
-const { validateCourse } = require('../src/bootstrap');
+const { validateCourse, importCourse } = require('../src/bootstrap');
 const { phase2Report } = require('../scripts/audit-phase2');
 const { start } = require('../server');
 let server;
@@ -128,12 +128,12 @@ test('content import is idempotent and coverage links question, lesson, topic an
   assert.ok(linked.lesson_id); assert.ok(linked.topic_id); assert.equal(linked.exam_line,27);
 });
 
-test('coverage reports gaps and counts only reviewed content',async()=>{
+test('coverage counts only reviewed content, including completed human theory',async()=>{
   const report=await coverageReport(db,'biology',2027);
   const sample=report.find(item=>item.title==='Нуклеиновые кислоты и реализация генетической информации');
-  const draft=report.find(item=>item.title==='Ткани и опорно-двигательная система');
+  const human=report.find(item=>item.title==='Ткани и опорно-двигательная система');
   assert.equal(sample.theory_covered,true); assert.ok(sample.question_count>=2);
-  assert.equal(draft.theory_covered,false); assert.equal(draft.needs_content,true);
+  assert.equal(human.theory_covered,true); assert.ok(human.question_count>=2); assert.equal(human.needs_content,false);
 });
 
 test('missing image is rejected and nullable question images remain safe',async()=>{
@@ -237,6 +237,34 @@ test('biology navigation exposes seven hierarchy levels without root duplicates'
   assert.deepEqual(childPage.body.breadcrumbs.map(x=>x.id),[plants.id,child.id]);
   const lesson=await request('/api/lessons/'+childPage.body.lessons[0].id);
   assert.equal(lesson.status,200); assert.deepEqual(lesson.body.breadcrumbs.map(x=>x.id),[plants.id,child.id]);
+});
+
+test('all 13 human topics lead through the API to exactly 63 reachable lessons',async()=>{
+  const expected=['Ткани и организм человека','Опорно-двигательная система','Кровь, иммунитет и лимфа','Сердце и кровообращение','Дыхательная система','Пищеварительная система','Обмен веществ и витамины','Выделительная система','Кожа и терморегуляция','Нервная система','Эндокринная система','Органы чувств и высшая нервная деятельность','Размножение и развитие человека'];
+  const sectionRow=await db.row("SELECT id FROM sections WHERE slug='biology-human'");
+  const section=await request(`/api/sections/${sectionRow.id}`);
+  assert.equal(section.status,200);assert.deepEqual(section.body.topics.map(topic=>topic.title),expected);
+  const reachable=new Map();
+  for(const topic of section.body.topics){
+    const page=await request(`/api/topics/${topic.id}`);assert.equal(page.status,200);
+    assert.equal(page.body.children.length,0);assert.ok(page.body.lessons.length>0,`${topic.title} renders an empty page`);
+    for(const lesson of page.body.lessons){assert.equal(reachable.has(lesson.id),false,`duplicate lesson route ${lesson.slug}`);reachable.set(lesson.id,{topicId:topic.id,slug:lesson.slug});const opened=await request(`/api/lessons/${lesson.id}`);assert.equal(opened.status,200);assert.ok(opened.body.blocks.length>0);}
+  }
+  assert.equal(reachable.size,63);
+  const questions=await db.rows("SELECT q.id,q.topic_id,q.lesson_id FROM questions q JOIN topics t ON t.id=q.topic_id JOIN sections s ON s.id=t.section_id WHERE s.slug='biology-human' AND q.active=1");
+  assert.equal(questions.length,315);assert.ok(questions.every(q=>reachable.has(q.lesson_id)&&reachable.get(q.lesson_id).topicId===q.topic_id));
+});
+
+test('content reimport hides stale visible topics and preserves moved human lesson ids',async()=>{
+  const course=require('../content/biology/course.json'),subject=await db.row("SELECT id FROM subjects WHERE slug='biology'"),section=await db.row("SELECT id FROM sections WHERE slug='biology-human'");
+  const before=Object.fromEntries((await db.rows("SELECT l.slug,l.id FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id WHERE s.slug='biology-human'")).map(row=>[row.slug,row.id]));
+  await db.run("INSERT INTO topics(subject_id,section_id,slug,title,description,theory,position,kind,published,exam_year,source_version) VALUES(?,?,?,?,?,'',99,'topic',TRUE,2027,?)",subject.id,section.id,'bio-human-stale-container','Устаревшая пустая вкладка','stale','FIPI EGE 2027 project');
+  const stale=await db.row("SELECT id FROM topics WHERE slug='bio-human-stale-container'"),movedSlug=Object.keys(before)[0];
+  await db.run('UPDATE lessons SET topic_id=? WHERE id=?',stale.id,before[movedSlug]);
+  await importCourse(db,course);
+  assert.equal((await db.row("SELECT published FROM topics WHERE slug='bio-human-stale-container'")).published,0);
+  const after=Object.fromEntries((await db.rows("SELECT l.slug,l.id FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id WHERE s.slug='biology-human' AND t.published=1")).map(row=>[row.slug,row.id]));
+  assert.deepEqual(after,before);assert.equal(Object.keys(after).length,63);
 });
 
 test('content validator rejects incomplete solutions, invalid metadata and duplicate prompts',()=>{

@@ -83,6 +83,10 @@ async function importCourse(db, course) {
       }
       const lessonIds=new Map();
       for (const [lessonPosition,l] of topicLessons.entries()) {
+        // A lesson slug is globally unique in a course. Move the existing row when
+        // editorial navigation changes its topic, preserving progress and attempts.
+        const existingLesson=await db.row(`SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=?`,subject.id,l.slug);
+        if(existingLesson&&Number(existingLesson.topic_id)!==Number(topicId))await db.run('UPDATE lessons SET topic_id=? WHERE id=?',topicId,existingLesson.id);
         await db.run(`INSERT INTO lessons(topic_id,slug,title,summary,estimated_minutes,difficulty,position,published,exam_year,source_version,codifier_code,exam_lines_json,skills_json,content_status,is_ege_required,is_beyond_ege) VALUES(?,?,?,?,?,?,?,TRUE,?,?,?,?,?,?,?,?) ON CONFLICT(topic_id,slug) DO UPDATE SET title=excluded.title,summary=excluded.summary,estimated_minutes=excluded.estimated_minutes,difficulty=excluded.difficulty,position=excluded.position,published=TRUE,exam_year=excluded.exam_year,source_version=excluded.source_version,codifier_code=excluded.codifier_code,exam_lines_json=excluded.exam_lines_json,skills_json=excluded.skills_json,content_status=excluded.content_status,is_ege_required=excluded.is_ege_required,is_beyond_ege=excluded.is_beyond_ege,updated_at=CURRENT_TIMESTAMP`,topicId,l.slug,l.title,l.summary||'',l.minutes||12,l.difficulty||'base',lessonPosition,year,source,topic.codifierCode||null,JSON.stringify(topic.examLines||[]),JSON.stringify(topic.skills||[]),l.contentStatus||'draft',l.isEgeRequired!==false,Boolean(l.isBeyondEge));
         const lessonId=(await db.row('SELECT id FROM lessons WHERE topic_id=? AND slug=?',topicId,l.slug)).id; lessonIds.set(l.slug,lessonId);
         await db.run('DELETE FROM lesson_blocks WHERE lesson_id=?',lessonId);
@@ -100,6 +104,8 @@ async function importCourse(db, course) {
         for (const slug of assigned) { const skill=await db.row('SELECT id FROM skills WHERE subject_id=? AND slug=?',subject.id,slug); if(skill) await db.run('INSERT INTO question_skills(question_id,skill_id,weight) VALUES(?,?,1) ON CONFLICT(question_id,skill_id) DO NOTHING',questionId,skill.id); }
       }
     }
+    const currentTopicSlugs=(section.topics||[]).map(topic=>topic.slug);
+    if(currentTopicSlugs.length)await db.run(`UPDATE topics SET published=FALSE WHERE section_id=? AND slug NOT IN (${currentTopicSlugs.map(()=>'?').join(',')})`,sectionId,...currentTopicSlugs);
   }
 }
 
