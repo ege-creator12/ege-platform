@@ -24,11 +24,11 @@ after(async()=>{ await new Promise(resolve=>server.close(resolve)); await db.clo
 
 test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
-  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets'];
+  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,5);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,6);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,5);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,6);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -116,7 +116,7 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,5);
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,6);
 });
 
 test('content import is idempotent and coverage links question, lesson, topic and exam line',async()=>{
@@ -338,4 +338,27 @@ test('database transaction rolls back all writes',async()=>{
   const before=(await db.row('SELECT COUNT(*) n FROM users')).n;
   await assert.rejects(db.transaction(async tx=>{await tx.run('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)','Rollback','rollback@test.local','not-a-real-password');throw Error('rollback')}));
   assert.equal((await db.row('SELECT COUNT(*) n FROM users')).n,before);
+});
+
+test('biology mock exam is fixed, leak-free, autosaved, immutable and self-scored safely',async()=>{
+ let result=await request('/api/subjects/biology/mock-exams',{method:'POST',body:JSON.stringify({mode:'untimed'})});
+ assert.equal(result.status,201);const attempt=result.body.attempt,id=attempt.id;
+ assert.equal(attempt.items.length,28);assert.deepEqual(attempt.items.map(x=>x.line),Array.from({length:28},(_,i)=>i+1));
+ assert.equal(new Set(attempt.items.map(x=>x.question.prompt)).size,28);
+ for(const item of attempt.items){assert.equal(Object.hasOwn(item.question,'answer'),false);assert.equal(Object.hasOwn(item,'review'),false)}
+ const fixed=(await request(`/api/subjects/biology/mock-exams/${id}`)).body.attempt;assert.deepEqual(fixed.items.map(x=>x.id),attempt.items.map(x=>x.id));
+ const first=attempt.items[0];result=await request(`/api/subjects/biology/mock-exams/${id}/answers`,{method:'PATCH',body:JSON.stringify({itemId:first.id,answer:['wrong'],flagged:true})});assert.equal(result.status,200);
+ result=await request(`/api/subjects/biology/mock-exams/${id}/answers`,{method:'PATCH',body:JSON.stringify({itemId:first.id,answer:['changed'],flagged:false})});assert.equal(result.status,200);
+ result=await request(`/api/subjects/biology/mock-exams/${id}/submit`,{method:'POST'});assert.equal(result.status,200);assert.ok(result.body.attempt.items[0].review);
+ const again=await request(`/api/subjects/biology/mock-exams/${id}/submit`,{method:'POST'});assert.equal(again.status,200);assert.equal(again.body.attempt.submittedAt,result.body.attempt.submittedAt);
+ result=await request(`/api/subjects/biology/mock-exams/${id}/answers`,{method:'PATCH',body:JSON.stringify({itemId:first.id,answer:['late']})});assert.equal(result.status,409);
+ const ext=again.body.attempt.items.find(x=>x.review.extended);assert.ok(ext);
+ result=await request(`/api/subjects/biology/mock-exams/${id}/self-score`,{method:'PATCH',body:JSON.stringify({itemId:ext.id,score:ext.maxScore+1})});assert.equal(result.status,400);
+ result=await request(`/api/subjects/biology/mock-exams/${id}/self-score`,{method:'PATCH',body:JSON.stringify({itemId:ext.id,score:ext.maxScore})});assert.equal(result.status,200);
+ const history=await request('/api/subjects/biology/mock-exams');assert.ok(history.body.attempts.some(x=>Number(x.id)===id));
+ result=await request('/api/subjects/biology/mock-exams',{method:'POST',body:JSON.stringify({mode:'timed'})});assert.equal(result.status,201);const timedId=result.body.attempt.id;
+ await db.run("UPDATE biology_mock_exam_attempts SET started_at='2000-01-01 00:00:00',duration_seconds=1 WHERE id=?",timedId);
+ result=await request(`/api/subjects/biology/mock-exams/${timedId}`);assert.equal(result.status,200);assert.equal(result.body.attempt.status,'expired');
+ let otherCookie;const saved=cookie;cookie='';await request('/api/register',{method:'POST',body:JSON.stringify({name:'Другой',email:'other@test.local',password:'StrongPass123!'})});otherCookie=cookie;
+ result=await request(`/api/subjects/biology/mock-exams/${id}`);assert.equal(result.status,404);cookie=saved;void otherCookie;
 });

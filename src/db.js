@@ -34,7 +34,7 @@ async function row(sql, ...params) {
 }
 async function run(sql, ...params) {
   if (postgres) {
-    const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|topics|questions|question_options|attempts|skills|training_sessions|mock_exams|mock_exam_attempts)\b/i.test(sql);
+    const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|topics|questions|question_options|attempts|skills|training_sessions|mock_exams|mock_exam_attempts|biology_mock_exam_attempts|biology_mock_exam_items)\b/i.test(sql);
     const result = await pool.query(`${pgSql(sql)}${returnsId && !/\bRETURNING\b/i.test(sql) ? ' RETURNING id' : ''}`, params);
     return { changes: result.rowCount, lastInsertRowid: result.rows[0]?.id };
   }
@@ -48,7 +48,7 @@ async function transaction(callback) {
       rows: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows,
       row: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows[0],
       run: async (sql, ...params) => {
-        const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|sections|topics|lessons|lesson_blocks|questions|question_options|attempts|skills|training_sessions)\b/i.test(sql);
+        const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|sections|topics|lessons|lesson_blocks|questions|question_options|attempts|skills|training_sessions|biology_mock_exam_attempts|biology_mock_exam_items)\b/i.test(sql);
         const result = await client.query(`${pgSql(sql)}${returnsId && !/\bRETURNING\b/i.test(sql) ? ' RETURNING id' : ''}`, params);
         return { changes: result.rowCount, lastInsertRowid: result.rows[0]?.id };
       }
