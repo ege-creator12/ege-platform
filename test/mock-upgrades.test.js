@@ -35,5 +35,5 @@ test('hard mock supplement is original, difficult and has teaching help',()=>{
 test('browser biology upgrade script parses and contains required controls',()=>{
   const source=readFileSync(join(__dirname,'../public/biology-upgrades.js'),'utf8');
   assert.doesNotThrow(()=>new Function(source));
-  for(const phrase of ['Проверить ответ','Подсказка','Не знаю — показать разбор','Следующее задание →','Поиск по биологии','Без таймера'])assert.match(source,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  for(const phrase of ['Проверить ответ','Подсказка','Не знаю — показать разбор','Следующее задание →','Поиск по биологии','Без таймера'])assert.ok(source.includes(phrase),phrase);
 });
