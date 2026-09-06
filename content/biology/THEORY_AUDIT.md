@@ -4408,3 +4408,551 @@
 Полностью перечитаны тематические связки: ткани; гомеостаз; кость и сустав; мышца и работа мышц; кровь; иммунитет; сердце; сердечный цикл; круги; альвеолы и газообмен; вентиляция; тонкий кишечник; печень; нефрон и мочеобразование; терморегуляция; нейрон и синапс; рефлекторная дуга; головной мозг; автономная система; инсулин/глюкагон; глаз; ухо; размножение; оплодотворение, имплантация и плацента; нагрузка. Сверены кровь ↔ кровообращение ↔ дыхание; пищеварение ↔ обмен ↔ печень; почка ↔ гомеостаз; кожа ↔ терморегуляция; нервная ↔ эндокринная ↔ размножение; анализаторы ↔ ЦНС; нагрузка ↔ дыхание ↔ кровоток ↔ клеточный обмен. Противоречий после правки не выявлено.
 
 Эволюция, антропогенез, экология и биосфера в PHASE 3 не включались.
+
+# PHASE 4 — эволюция, развитие жизни и антропогенез
+
+Метаданные сверки: `exam_year = 2027`, `source_version = FIPI EGE 2027 project`. Проектные материалы ФИПИ не представлены как окончательно утверждённая версия. BEFORE зафиксирован до изменения исходного раздела; AFTER основан на последовательном чтении каждого урока, а автоматический аудит используется только как проверка целостности.
+
+## BEFORE-аудит исходного biology-evolution
+
+| topic | lesson | состояние до | реальные пробелы | FIPI coverage | media status | practice status |
+|---|---|---|---|---|---|---|
+| bio-evolution-1 | bio-evolution-1-lesson | DRAFT: заголовок и уведомление об ожидании редакции | не было Линнея, Ламарка, логики Дарвина, СТЭ и сравнений | только название узла 30.0 | отсутствовали | 0 вопросов |
+| bio-evolution-2 | bio-evolution-2-lesson | DRAFT: заголовок и placeholder-summary | не было вида, факторов, отбора, адаптаций и механизма видообразования | только название узла 31.0 | отсутствовали | 0 вопросов |
+| bio-evolution-3 | bio-evolution-3-lesson | DRAFT: заголовок и placeholder-summary | не было макроэволюции, доказательств, направлений и истории жизни | только название узла 32.0 | отсутствовали | 0 вопросов |
+| bio-evolution-4 | bio-evolution-4-lesson | DRAFT: заголовок и placeholder-summary | не было систематики человека, ветвящегося антропогенеза, факторов и популяционного разнообразия | только название узла 33.0 | отсутствовали | 0 вопросов |
+
+Вывод BEFORE: 4 видимых черновых контейнера, 4 достижимых, но содержательно пустых урока, 0 вопросов, 0 media; обязательное покрытие отсутствовало. Стабильные lesson ID сохранены и перенесены в уточнённую структуру без дубликатов.
+
+## AFTER-аудит и ручная содержательная проверка
+
+### От Линнея и Ламарка к Дарвину и СТЭ
+
+- section: biology-evolution
+- topic: bio-evolution-1
+- lesson: bio-evolution-1-lesson
+- codifierCode: 30.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Эволюционная теория объясняет не стремление отдельного организма измениться, а наследственные различия и неодинаковый вклад вариантов в потомство.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-selection-logic; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; graph.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: DRAFT
+- statusAfter: FULL
+
+### Вид, критерии вида и популяция
+
+- section: biology-evolution
+- topic: bio-evolution-species-topic
+- lesson: bio-evolution-species
+- codifierCode: 31.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Вид устанавливают по совокупности критериев; популяция — относительно обособленная размножающаяся часть вида и элементарная единица эволюции.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-species-criteria; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; experiment.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Генофонд и элементарные факторы эволюции
+
+- section: biology-evolution
+- topic: bio-evolution-factors-topic
+- lesson: bio-evolution-factors
+- codifierCode: 31.0
+- examLines: 17, 21, 22, 23, 26
+- mandatoryConcepts: Мутации и рекомбинации создают варианты, а отбор, дрейф, поток генов и изоляция по-разному меняют генофонд.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-population-factors; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 21, 22, 23, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; table.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Борьба за существование и формы отбора
+
+- section: biology-evolution
+- topic: bio-evolution-selection-topic
+- lesson: bio-evolution-selection
+- codifierCode: 31.0
+- examLines: 17, 21, 22, 23, 26
+- mandatoryConcepts: Борьба описывает отношения и ограничения, а отбор — их наследственный результат в распределении потомства.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-selection-forms; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 21, 22, 23, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; image.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Адаптации и их относительность
+
+- section: biology-evolution
+- topic: bio-evolution-adaptation-topic
+- lesson: bio-evolution-adaptation
+- codifierCode: 31.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Адаптация формируется отбором поколений и полезна относительно конкретной среды, имея цену и ограничения.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-adaptation; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; biological_process_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Изоляция и видообразование
+
+- section: biology-evolution
+- topic: bio-evolution-2
+- lesson: bio-evolution-speciation
+- codifierCode: 31.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Новый вид возникает после ограничения потока генов и накопления различий, а не в момент появления преграды.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-speciation; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; short_answer.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Микроэволюция, макроэволюция и сходство органов
+
+- section: biology-evolution
+- topic: bio-evolution-3
+- lesson: bio-evolution-3-lesson
+- codifierCode: 32.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Гомология отражает общий план происхождения, аналогия — независимое приспособление к сходной функции.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-homology; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: DRAFT
+- statusAfter: FULL
+
+### Доказательства эволюции и чтение филогенетических деревьев
+
+- section: biology-evolution
+- topic: bio-evolution-evidence-topic
+- lesson: bio-evolution-evidence
+- codifierCode: 32.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Надёжная реконструкция родства объединяет независимые данные, а узел дерева обозначает общего предка.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-evidence-tree; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Направления, результаты и правила эволюции
+
+- section: biology-evolution
+- topic: bio-evolution-directions-topic
+- lesson: bio-evolution-directions
+- codifierCode: 32.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Биологический прогресс оценивают по успеху группы, а ароморфоз, идиоадаптация и дегенерация описывают разные пути к нему.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-directions; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Гипотезы происхождения жизни и мир РНК
+
+- section: biology-evolution
+- topic: bio-evolution-origin-life-topic
+- lesson: bio-evolution-origin-life
+- codifierCode: 34.0
+- examLines: 17, 19, 22, 23, 26
+- mandatoryConcepts: Химическая эволюция — проверяемая по частям научная модель; эксперименты показывают возможные этапы, но не воспроизводят всю историю жизни.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-origin-life; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 22, 23, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: true
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Первые клетки, кислород и эндосимбиоз
+
+- section: biology-evolution
+- topic: bio-evolution-endosymbiosis-topic
+- lesson: bio-evolution-endosymbiosis
+- codifierCode: 34.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Фотосинтез изменил атмосферу, а митохондрии и пластиды произошли от бактерий, включённых в устойчивый симбиоз.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-endosymbiosis; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: true
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Геохронология и развитие жизни на Земле
+
+- section: biology-evolution
+- topic: bio-evolution-history-topic
+- lesson: bio-evolution-history
+- codifierCode: 35.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: История жизни — ветвление с новшествами, вымираниями и радиациями, а не целенаправленная лестница.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-geotimeline; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: true
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Эволюционные новшества растений и позвоночных
+
+- section: biology-evolution
+- topic: bio-evolution-phylogeny-topic
+- lesson: bio-evolution-phylogeny
+- codifierCode: 35.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Ключевые новшества снимали ограничения среды и открывали адаптивные зоны, но линии продолжали ветвиться.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-life-tree; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Место человека в системе живого
+
+- section: biology-evolution
+- topic: bio-evolution-4
+- lesson: bio-evolution-human-system
+- codifierCode: 33.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Человек — примат и один вид Homo sapiens; с другими человекообразными обезьянами нас связывает общий предок.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-human-system; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Ветвящийся антропогенез и эволюция Homo
+
+- section: biology-evolution
+- topic: bio-evolution-anthropogenesis
+- lesson: bio-evolution-4-lesson
+- codifierCode: 33.0
+- examLines: 17, 19, 24, 26
+- mandatoryConcepts: Эволюция гоминин — куст сосуществовавших линий; Homo sapiens возник в Африке и расселился, частично смешиваясь с другими людьми.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-hominin-tree; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 24, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: DRAFT
+- statusAfter: FULL
+
+### Биологические и социальные факторы антропогенеза
+
+- section: biology-evolution
+- topic: bio-evolution-human-factors-topic
+- lesson: bio-evolution-human-factors
+- codifierCode: 33.0
+- examLines: 17, 19, 26
+- mandatoryConcepts: Биологическая наследственность и культурная передача взаимодействовали, не отменяя друг друга.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-human-factors; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+### Современные популяции человека и единство вида
+
+- section: biology-evolution
+- topic: bio-evolution-human-diversity-topic
+- lesson: bio-evolution-human-diversity
+- codifierCode: 33.0
+- examLines: 17, 19, 21, 23, 26
+- mandatoryConcepts: Все современные люди относятся к одному виду; различия популяций перекрываются и не образуют биологической иерархии.
+- currentConcepts: определения даны с нуля; механизмы прослежены от причины к изменению популяции или линии; ограничения вывода указаны.
+- missingConcepts: нет в рамках PHASE 4 после ручной сверки со спецификацией.
+- weakConcepts: нет по ручному чтению; категорические исторические реконструкции и телеология устранены.
+- requiredComparisons: блок «Различайте понятия по механизму» прочитан и сверен с основным объяснением.
+- requiredDiagrams: evo-human-populations; подписи, причинное направление и инструкция чтения проверены.
+- requiredAlgorithms: уровень → факт/вариация → фактор → механизм → следствие → предел вывода.
+- requiredEgeSkills: линии 17, 19, 21, 23, 26; распознавание, причинное объяснение, анализ схемы/данных и развёрнутый ответ.
+- requiredPracticeMechanics: multiple answer; matching; sequence; extended answer; multiple_answer; matching; sequence; extended_answer; text_analysis.
+- termsDefinedFromZero: true
+- mechanismsExplained: true
+- causalLinksReviewed: true
+- comparisonsReviewed: true
+- trapsReviewed: true
+- secondPartDepthReviewed: true
+- scientificAccuracyReviewed: true
+- hypothesisFactSeparationReviewed: reviewed-not-required
+- duplicateProseReviewed: true
+- technicalLanguageReviewed: true
+- mediaReviewed: true
+- manualContentReview: approved
+- statusBefore: MISSING
+- statusAfter: FULL
+
+## Итог ручной редакции
+
+Все 17 уроков прочитаны последовательно в порядке навигации. Отдельно глубокая проверка выполнена для Дарвина; форм отбора; факторов эволюции; адаптаций; видообразования; доказательств и филогенетики; ароморфоза/идиоадаптации/дегенерации; происхождения жизни; эндосимбиоза; истории жизни; систематики человека; ветвящегося антропогенеза; биологических и социальных факторов; современных человеческих популяций. Исправлены исходные placeholder-тексты, смешение борьбы и отбора, телеология, линейная «лестница» антропогенеза, выдача гипотез за факт и устаревшее дискретное описание человеческих групп. FULL поставлен по ответам на 12 содержательных вопросов раздела 12 спецификации, а не по объёму.
