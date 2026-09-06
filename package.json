@@ -9,7 +9,7 @@
     "seed": "node scripts/seed.js",
     "import-content": "node scripts/import-content.js",
     "audit:phase2": "node scripts/audit-phase2.js",
-    "check": "node --check server.js && node --check src/db.js && node --check src/bootstrap.js && node --check src/coverage.js && node --check src/answer-review.js && node --check scripts/import-content.js && node --check public/app.js",
+    "check": "node --check server.js && node --check src/db.js && node --check src/bootstrap.js && node --check src/coverage.js && node --check src/answer-review.js && node --check src/mock-exams.js && node --check scripts/import-content.js && node --check public/app.js && node --check public/biology-upgrades.js",
     "test": "node --test",
     "audit:biology-theory": "node scripts/audit-biology-theory.js",
     "audit:biology-questions": "node scripts/audit-biology-question-bank.js",
