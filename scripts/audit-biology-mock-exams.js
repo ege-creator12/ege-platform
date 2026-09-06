@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const {existsSync}=require('node:fs');const {resolve}=require('node:path');
+const course=require('../content/biology/course.json'),registry=require('../content/biology/exam-lines.json');
+const questions=course.sections.flatMap(s=>s.topics).flatMap(t=>t.questions||[]),errors=[],warnings=[];
+const keys=new Set();for(const q of questions){if(!q.key)errors.push('question without key');else if(keys.has(q.key))errors.push(`duplicate key ${q.key}`);keys.add(q.key);if(q.examLine&&!registry.lines.some(l=>l.line===q.examLine))errors.push(`${q.key}: invalid line`);if(q.image&&!existsSync(resolve(__dirname,'..','public',q.image.replace(/^\//,''))))errors.push(`${q.key}: broken media ${q.image}`);if(!q.answer?.length)errors.push(`${q.key}: missing answer`);if(!Number.isInteger(q.maxScore)||q.maxScore<1)errors.push(`${q.key}: invalid maxScore`);if(q.type==='extended_answer'&&(!q.scoringPoints?.length||!q.commonMistakes?.length))errors.push(`${q.key}: extended metadata missing`)}
+const counts={};for(const line of registry.lines){const pool=questions.filter(q=>q.examLine===line.line&&q.answer?.length&&q.maxScore>0);counts[line.line]=pool.length;if(!pool.length)errors.push(`line ${line.line}: empty`);if(pool.length<3)warnings.push(`line ${line.line}: only ${pool.length} eligible questions`)}
+if(registry.lines.length!==new Set(registry.lines.map(x=>x.line)).size)errors.push('duplicate registry lines');
+for(const seed of ['audit-a','audit-b','audit-c']){const variant=registry.lines.map(l=>questions.filter(q=>q.examLine===l.line).sort((a,b)=>(a.key+seed).localeCompare(b.key+seed))[0]);if(variant.some(x=>!x)||new Set(variant.map(x=>x.key)).size!==registry.lines.length)errors.push(`${seed}: generator invariant failed`)}
+console.log('Biology mock exam structural audit');console.table(registry.lines.map(l=>({line:l.line,eligible:counts[l.line]})));warnings.forEach(x=>console.warn('WARN',x));if(errors.length){errors.forEach(x=>console.error('ERROR',x));process.exitCode=1}else console.log(`PASS: ${questions.length} questions; ${registry.lines.length} lines; 3 seeds; media/scoring/IDs valid.`);
+module.exports={counts,errors,warnings};

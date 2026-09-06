@@ -13,7 +13,8 @@
     "test": "node --test",
     "audit:biology-theory": "node scripts/audit-biology-theory.js",
     "audit:biology-questions": "node scripts/audit-biology-question-bank.js",
-    "audit:biology-exam-lines": "node scripts/audit-biology-exam-lines.js"
+    "audit:biology-exam-lines": "node scripts/audit-biology-exam-lines.js",
+    "audit:biology-mocks": "node scripts/audit-biology-mock-exams.js"
   },
   "engines": {
     "node": ">=22.5"
