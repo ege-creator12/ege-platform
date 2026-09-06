@@ -55,7 +55,7 @@ function createMockExamService(db,registry){
   }
 
   async function dbCandidates(subjectId,line){
-    return db.rows("SELECT q.*,t.title topic,l.slug lesson_slug FROM questions q JOIN topics t ON t.id=q.topic_id LEFT JOIN lessons l ON l.id=q.lesson_id WHERE q.subject_id=? AND q.active=1 AND q.exam_line=? AND q.answer_json IS NOT NULL ORDER BY q.id",subjectId,line);
+    return db.rows("SELECT q.*,t.title topic,l.slug lesson_slug FROM questions q JOIN topics t ON t.id=q.topic_id LEFT JOIN lessons l ON l.id=q.lesson_id WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.content_status IN ('review','verified') AND q.exam_line=? AND q.answer_json IS NOT NULL ORDER BY q.id",subjectId,line);
   }
 
   function virtualCandidate(v){
@@ -85,8 +85,8 @@ function createMockExamService(db,registry){
     };
   }
 
-  async function makeSnapshot(q,line){
-    const options=q.virtual?q.options:await db.rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',q.id);
+  async function makeSnapshot(q,line,reader=db){
+    const options=q.virtual?q.options:await reader.rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',q.id);
     const explanationData=q.virtual?{}:parse(q.explanation_json,{});
     return {
       questionKey:q.external_key,
@@ -112,7 +112,7 @@ function createMockExamService(db,registry){
       lineTraps:line.commonTraps||[],
       maxScore:Number(q.max_score||q.points||1),
       extended:isExtended(q),
-      source:q.virtual?'Авторское задание ОСНОВЫ по механике ФИПИ':'Банк ОСНОВЫ'
+      source:q.virtual?'Авторское задание ОСНОВЫ по механике ФИПИ':'Проверенный банк ОСНОВЫ'
     };
   }
 
@@ -120,22 +120,27 @@ function createMockExamService(db,registry){
     if(!['timed','untimed'].includes(mode))throw Object.assign(new Error('Неизвестный режим пробника'),{status:400,code:'INVALID_MODE'});
     variant=Number(variant||1);
     if(!Number.isInteger(variant)||variant<1||variant>CONFIG.variantCount)throw Object.assign(new Error('Неизвестный вариант пробника'),{status:400,code:'INVALID_VARIANT'});
-    const seed=`variant:${variant}:biology-2027-v2`,subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
+    const seed=`variant:${variant}:biology-2027-v3`,subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
     if(!subject)throw Object.assign(new Error('Предмет биология не найден'),{status:500,code:'BIOLOGY_NOT_FOUND'});
     const selected=[];
     for(const line of registry.lines){
       const base=await dbCandidates(subject.id,line.line);
       const extras=variant===1?[]:(virtualByLine.get(Number(line.line))||[]).map(virtualCandidate);
       const pool=[...base,...extras];
-      if(!pool.length)throw Object.assign(new Error(`Нет пригодных заданий для линии ${line.line}`),{status:409,code:'INCOMPLETE_BANK'});
+      if(!pool.length)throw Object.assign(new Error(`Нет проверенных заданий для линии ${line.line}`),{status:409,code:'INCOMPLETE_BANK'});
       const targetDifficulty=variant===1?2:variant===2?2.65:3;
-      const ranked=pool.map(q=>({q,key:Math.abs(Number(q.difficulty||1)-targetDifficulty)*1e12+hashNumber(`${seed}:${q.external_key||q.id}`)})).sort((a,b)=>a.key-b.key);
+      const ranked=pool.map(q=>{
+        const difficultyPenalty=Math.abs(Number(q.difficulty||1)-targetDifficulty)*1e12;
+        const authoredPriority=q.virtual?(variant===3?-2e10:-1e10):0;
+        const jitter=hashNumber(`${seed}:${q.external_key||q.id}`)%1e9;
+        return {q,key:difficultyPenalty+authoredPriority+jitter};
+      }).sort((a,b)=>a.key-b.key);
       selected.push({line,q:ranked[0].q});
     }
     return db.transaction(async tx=>{
       const made=await tx.run('INSERT INTO biology_mock_exam_attempts(user_id,exam_year,source_version,mode,duration_seconds,variant_seed) VALUES(?,?,?,?,?,?)',userId,registry.examYear,CONFIG.sourceVersion,mode,mode==='timed'?CONFIG.durationSeconds:null,seed),id=Number(made.lastInsertRowid);let max=0;
       for(const [index,{line,q}] of selected.entries()){
-        const snapshot=await makeSnapshot(q,line);max+=snapshot.maxScore;
+        const snapshot=await makeSnapshot(q,line,tx);max+=snapshot.maxScore;
         await tx.run('INSERT INTO biology_mock_exam_items(attempt_id,question_id,position,exam_line,part,answer_format,max_score,snapshot_json) VALUES(?,?,?,?,?,?,?,?)',id,q.id==null?null:q.id,index+1,line.line,line.part,line.answerFormat,snapshot.maxScore,JSON.stringify(snapshot));
       }
       await tx.run('UPDATE biology_mock_exam_attempts SET primary_score_max=? WHERE id=?',max,id);
