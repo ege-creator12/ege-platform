@@ -5,6 +5,7 @@ const { randomBytes, scryptSync, timingSafeEqual } = require('node:crypto');
 const database = require('./src/db');
 const { coverageReport } = require('./src/coverage');
 const { formatAnswerForReview } = require('./src/answer-review');
+const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const { migrate, rows, row, run, healthcheck } = database;
 
 const PORT=Number(process.env.PORT||3000), PUBLIC=join(__dirname,'public');
@@ -46,17 +47,28 @@ async function stats(uid){
  return {solved:Number(total.n),accuracy:Number(total.accuracy),streak,activity,progress:progress.map(item=>({...item,mastery:Number(item.mastery),questions:Number(item.questions)})),recent,mastery:Math.round(progress.reduce((s,p)=>s+Number(p.mastery),0)/(progress.length||1))};
 }
 const trainingModes=new Set(['adaptive','mixed','new','review','mistakes','errors','hard','infinite','topic']);
-async function questionPool(userId,topicId,mode,limit){
+async function questionPool(userId,topicId,mode,limit,examLine=0){
  const scope=`WITH RECURSIVE tree(id) AS (SELECT CAST(? AS BIGINT) UNION ALL SELECT t.id FROM topics t JOIN tree ON t.parent_id=tree.id),
  latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?)`;
  const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=0':mode==='hard'?'q.difficulty>=2':'1=1';
  return (await rows(`${scope} SELECT q.id FROM questions q LEFT JOIN latest a ON a.question_id=q.id AND a.rn=1
-   WHERE q.active=1 AND (?=0 OR q.topic_id IN (SELECT id FROM tree)) AND ${filter}
+   WHERE q.active=1 AND (?=0 OR q.topic_id IN (SELECT id FROM tree)) AND (?=0 OR q.exam_line=?) AND ${filter}
    ORDER BY CASE
      WHEN a.id IS NOT NULL AND a.correct=0 THEN 0
      WHEN a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP THEN 1
      WHEN a.id IS NULL THEN 2 ELSE 3 END,
-     COALESCE(a.next_review_at,'1970-01-01'),q.difficulty,RANDOM() LIMIT ?`,topicId,userId,topicId,limit)).map(x=>x.id);
+     COALESCE(a.next_review_at,'1970-01-01'),q.difficulty,RANDOM() LIMIT ?`,topicId,userId,topicId,examLine,examLine,limit)).map(x=>x.id);
+}
+async function biologyExamLinePayload(line,userId){
+ const item=biologyExamRegistry.lines.find(x=>x.line===line);if(!item)return null;
+ const lessons=await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress,COALESCE(lp.status,'not_started') progress_status FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE l.slug IN (${item.lessonRefs.map(()=>'?').join(',')}) AND l.published=1`,userId,...item.lessonRefs);
+ const lessonBySlug=new Map(lessons.map(x=>[x.slug,x]));
+ const count=await row(`SELECT COUNT(*) n FROM questions q JOIN subjects s ON s.id=q.subject_id WHERE s.slug='biology' AND q.active=1 AND q.exam_line=?`,line);
+ const stat=await row(`SELECT COUNT(*) attempted,COALESCE(SUM(a.correct),0) correct,MAX(a.created_at) last_attempt_at FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.exam_line=?`,userId,line);
+ const wrong=await rows(`WITH latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.external_key FROM latest a JOIN questions q ON q.id=a.question_id WHERE a.rn=1 AND a.correct=0 AND q.exam_line=? ORDER BY a.created_at DESC`,userId,line);
+ const examples=await rows(`SELECT q.id,q.type,q.question_type,q.prompt,q.instruction,q.content_json,q.media_json,q.difficulty,q.points,q.max_score,t.title topic FROM questions q JOIN topics t ON t.id=q.topic_id WHERE q.active=1 AND q.exam_line=? ORDER BY q.difficulty,q.id LIMIT 3`,line);
+ const attempted=Number(stat.attempted),correct=Number(stat.correct);
+ return {...item,questionCount:Number(count.n),lessons:item.lessonRefs.map(x=>lessonBySlug.get(x)).filter(Boolean),examples:examples.map(publicQuestion),progress:{attempted,correct,accuracy:attempted?Math.round(correct/attempted*100):0,lastAttemptAt:stat.last_attempt_at||null,wrongQuestionRefs:wrong.map(x=>x.external_key)}};
 }
 async function sessionPayload(sessionId,userId){
  const session=await row('SELECT * FROM training_sessions WHERE id=? AND user_id=?',sessionId,userId);
@@ -100,6 +112,8 @@ async function api(req,res,path){
   if(path==='/api/me'){const u=await auth(req,res);if(u)return json(res,200,{user:safeUser(u),stats:await stats(u.id),examDate:process.env.EXAM_DATE||'2027-06-05'})}
   if(path==='/api/subjects'){const u=await auth(req,res);if(u)return json(res,200,{subjects:await rows('SELECT * FROM subjects WHERE published=1 ORDER BY position,id')})}
   if(path==='/api/subjects/biology/navigation'){const u=await auth(req,res);if(u)return json(res,200,await biologyNavigation(u.id))}
+  if(path==='/api/subjects/biology/exam-lines'){const u=await auth(req,res);if(!u)return;const lines=[];for(const item of biologyExamRegistry.lines){const payload=await biologyExamLinePayload(item.line,u.id);lines.push({line:item.line,title:item.title,part:item.part,answerFormat:item.answerFormat,shortDescription:item.shortDescription,questionCount:payload.questionCount,progress:payload.progress})}return json(res,200,{examYear:biologyExamRegistry.examYear,sourceStatus:biologyExamRegistry.sourceStatus,lines})}
+  if(path.match(/^\/api\/subjects\/biology\/exam-lines\/\d+$/)){const u=await auth(req,res);if(!u)return;const line=numericId(path.split('/').pop()),payload=await biologyExamLinePayload(line,u.id);return payload?json(res,200,{line:payload}):json(res,404,{error:'Линия задания не найдена',code:'EXAM_LINE_NOT_FOUND'})}
   if(path.match(/^\/api\/subjects\/biology\/groups\/[a-z0-9-]+$/)){const u=await auth(req,res);if(!u)return;const slug=path.split('/').pop(),navigation=await biologyNavigation(u.id),group=navigation.groups.find(x=>x.slug===slug);if(!group)return json(res,404,{error:'Раздел не найден',code:'GROUP_NOT_FOUND'});const marks=group.sectionIds.map(()=>'?').join(',');const topics=await rows(`WITH RECURSIVE tree(root,id) AS (SELECT id,id FROM topics WHERE section_id IN (${marks}) AND parent_id IS NULL AND published=1 UNION ALL SELECT tree.root,t.id FROM topics t JOIN tree ON t.parent_id=tree.id WHERE t.published=1) SELECT root.*,(SELECT COUNT(*) FROM questions q WHERE q.active=1 AND q.topic_id IN (SELECT id FROM tree x WHERE x.root=root.id)) question_count,COALESCE((SELECT ROUND(AVG(tp.mastery)) FROM topic_progress tp WHERE tp.user_id=? AND tp.topic_id IN (SELECT id FROM tree x WHERE x.root=root.id)),0) progress,(SELECT COUNT(*) FROM topics c WHERE c.parent_id=root.id AND c.published=1) child_count,(SELECT COUNT(*) FROM lessons l WHERE l.topic_id=root.id AND l.published=1) lesson_count FROM topics root WHERE root.id IN (SELECT root FROM tree) ORDER BY root.position,root.id`,...group.sectionIds,u.id);return json(res,200,{subject:navigation.subject,group,topics})}
   if(path.match(/^\/api\/subjects\/[a-z0-9-]+$/)){const u=await auth(req,res);if(!u)return;const slug=path.split('/').pop();const subject=await row('SELECT * FROM subjects WHERE slug=? AND published=1',slug);if(!subject)return json(res,404,{error:'Предмет не найден',code:'SUBJECT_NOT_FOUND'});return json(res,200,{subject,sections:await rows('SELECT * FROM sections WHERE subject_id=? AND published=1 ORDER BY position,id',subject.id)})}
   if(path.match(/^\/api\/sections\/\d+$/)){const u=await auth(req,res);if(!u)return;const id=numericId(path.split('/').pop());if(!id)return json(res,400,{error:'Некорректный идентификатор раздела',code:'INVALID_ID'});const section=await row('SELECT * FROM sections WHERE id=? AND published=1',id);if(!section)return json(res,404,{error:'Раздел не найден',code:'SECTION_NOT_FOUND'});return json(res,200,{section,topics:await rows('SELECT * FROM topics WHERE section_id=? AND parent_id IS NULL AND published=1 ORDER BY position,id',id)})}
@@ -113,8 +127,8 @@ async function api(req,res,path){
   if(path.match(/^\/api\/lesson-progress\/\d+$/)&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const lessonId=numericId(path.split('/').pop());if(!lessonId)return json(res,400,{error:'Некорректный идентификатор урока',code:'INVALID_ID'});const lesson=await row('SELECT id FROM lessons WHERE id=? AND published=1',lessonId);if(!lesson)return json(res,404,{error:'Урок не найден',code:'LESSON_NOT_FOUND'});const b=await body(req),progress=Number(b.readingProgress??(b.theoryRead?100:0));if(!Number.isFinite(progress)||progress<0||progress>100)return json(res,400,{error:'Прогресс должен быть от 0 до 100',code:'INVALID_PROGRESS'});const value=Math.round(progress),status=value>=90?'completed':'in_progress';await run(`INSERT INTO lesson_progress(user_id,lesson_id,status,theory_read,reading_progress,last_activity_at,last_opened_at,completed_at) VALUES(?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CASE WHEN ?='completed' THEN CURRENT_TIMESTAMP END)
     ON CONFLICT(user_id,lesson_id) DO UPDATE SET status=CASE WHEN lesson_progress.status='completed' THEN 'completed' ELSE excluded.status END,theory_read=CASE WHEN lesson_progress.theory_read OR excluded.theory_read THEN TRUE ELSE FALSE END,reading_progress=CASE WHEN lesson_progress.reading_progress>excluded.reading_progress THEN lesson_progress.reading_progress ELSE excluded.reading_progress END,last_activity_at=CURRENT_TIMESTAMP,last_opened_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN excluded.status='completed' THEN COALESCE(lesson_progress.completed_at,CURRENT_TIMESTAMP) ELSE lesson_progress.completed_at END`,u.id,lessonId,status,value>=90,value,status);return json(res,200,{progress:await row('SELECT * FROM lesson_progress WHERE user_id=? AND lesson_id=?',u.id,lessonId)})}
   if(path==='/api/training/sessions'&&req.method==='POST'){
-   const u=await auth(req,res);if(!u)return;const b=await body(req),mode=trainingModes.has(b.mode)?b.mode:'adaptive',topicId=b.topicId===undefined||b.topicId===null||b.topicId===0?0:numericId(b.topicId),target=Math.min(100,Math.max(1,Number(b.targetQuestions)||10));if(topicId===null)return json(res,400,{error:'Некорректный идентификатор темы'});
-   let ids=await questionPool(u.id,topicId,mode,target);if(!ids.length&&mode!=='adaptive')ids=await questionPool(u.id,topicId,'adaptive',target);
+   const u=await auth(req,res);if(!u)return;const b=await body(req),mode=trainingModes.has(b.mode)?b.mode:'adaptive',topicId=b.topicId===undefined||b.topicId===null||b.topicId===0?0:numericId(b.topicId),examLine=b.examLine===undefined||b.examLine===null||b.examLine===0?0:numericId(b.examLine),target=Math.min(100,Math.max(1,Number(b.targetQuestions)||10));if(topicId===null)return json(res,400,{error:'Некорректный идентификатор темы'});if(examLine===null||examLine>28||examLine&&!biologyExamRegistry.lines.some(x=>x.line===examLine))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});
+   let ids=await questionPool(u.id,topicId,mode,target,examLine);if(!ids.length&&mode!=='adaptive')ids=await questionPool(u.id,topicId,'adaptive',target,examLine);
    if(!ids.length)return json(res,404,{error:'Для выбранной тренировки пока нет заданий'});
    const storedMode=mode==='errors'?'mistakes':['mixed','hard','infinite'].includes(mode)?'adaptive':mode;
    const created=await run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',u.id,topicId||null,storedMode,target),sessionId=Number(created.lastInsertRowid);

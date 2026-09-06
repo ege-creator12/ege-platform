@@ -211,12 +211,30 @@ test('phase 2 subtopics import under plant and animal parents and remain visible
   assert.equal(plantChildren.n,12); assert.equal(animalChildren.n,12);
   const theory=await getTheoryForExamLine(db,23);
   assert.ok(theory.some(lesson=>lesson.slug==='bio-diversity-4-plant-root-lesson'));
-  const animalTheory=await getTheoryForExamLine(db,3);
+  // Diversity theory belongs to the dedicated zoology line, not the old
+  // catch-all cytology line 3.
+  const animalTheory=await getTheoryForExamLine(db,11);
   assert.ok(animalTheory.some(lesson=>lesson.slug==='bio-diversity-5-animal-birds-lesson'));
   const section=await db.row("SELECT id FROM sections WHERE slug='biology-diversity'");
   const response=await request(`/api/sections/${section.id}`);
   assert.equal(response.body.topics.length,5);
   assert.ok(response.body.topics.every(topic=>topic.parent_id===null));
+});
+
+test('biology exam-line mode lists every line, deep-links safely and filters practice',async()=>{
+  let result=await request('/api/subjects/biology/exam-lines');
+  assert.equal(result.status,200);assert.equal(result.body.lines.length,28);
+  assert.deepEqual(result.body.lines.map(x=>x.line),Array.from({length:28},(_,i)=>i+1));
+  assert.ok(result.body.lines.every(x=>x.questionCount>0));
+  result=await request('/api/subjects/biology/exam-lines/11');
+  assert.equal(result.status,200);assert.ok(result.body.line.lessons.length);
+  assert.ok(result.body.line.examples.length);assert.equal(Object.hasOwn(result.body.line.examples[0],'expected'),false);
+  assert.equal(Object.hasOwn(result.body.line.examples[0],'explanation'),false);
+  const created=await request('/api/training/sessions',{method:'POST',body:JSON.stringify({examLine:11,targetQuestions:5,mode:'adaptive'})});
+  assert.equal(created.status,201);assert.ok(created.body.session.questions.length<=5);
+  const ids=created.body.session.questions.map(x=>x.id),mapped=await db.rows(`SELECT DISTINCT exam_line FROM questions WHERE id IN (${ids.map(()=>'?').join(',')})`,...ids);
+  assert.deepEqual(mapped.map(x=>x.exam_line),[11]);
+  result=await request('/api/subjects/biology/exam-lines/99');assert.equal(result.status,404);assert.equal(result.body.code,'EXAM_LINE_NOT_FOUND');
 });
 
 test('biology navigation exposes seven hierarchy levels without root duplicates',async()=>{
