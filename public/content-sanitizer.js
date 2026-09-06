@@ -83,13 +83,49 @@
     const add=v=>{if(v&&!out.includes(v))out.push(v)};
     add(path);
 
-    if(/^\/images\/biology\/phase\d+-[^/]+\.svg$/i.test(path)){
-      add(path.replace(/^\/images\/biology\/(phase\d+)-(.+)\.svg$/i,'/images/biology/$1/$2.svg'));
-    }
     if(/^\/biology\//i.test(path))add('/images'+path);
     if(/^\/phase\d+\//i.test(path))add('/images/biology'+path);
     if(/^\/images\/phase\d+\//i.test(path))add(path.replace(/^\/images\//i,'/images/biology/'));
+
+    const match=path.match(/^\/images\/biology\/([^/]+)\.svg$/i);
+    if(match){
+      const key=match[1];
+      const phase=key.match(/^(phase\d+)-(.+)$/i);
+      if(phase)add(`/images/biology/${phase[1]}/${phase[2]}.svg`);
+
+      const human=key.match(/^human-(.+)$/i);
+      if(human)add(`/images/biology/phase3/${human[1]}.svg`);
+
+      const zoo=key.match(/^zoo-(.+)$/i);
+      if(zoo)add(`/images/biology/zoology/${zoo[1]}.svg`);
+
+      const botany=key.match(/^botany-(.+)$/i);
+      if(botany){
+        const rest=botany[1];
+        add(`/images/biology/task4/${key}.svg`);
+        add(`/images/biology/task4/${rest}.svg`);
+        if(rest==='ploidy')add('/images/biology/task4/plant-ploidy-cycle.svg');
+      }
+
+      // Older Phase 1/2 authored assets live in task3 and do not share one prefix.
+      // Try the canonical filename and the historical "-task3" variant.
+      add(`/images/biology/task3/${key}.svg`);
+      add(`/images/biology/task3/${key}-task3.svg`);
+    }
     return out;
+  }
+
+  function showMissing(img){
+    const figure=img.closest('figure');
+    if(!figure)return;
+    figure.classList.add('visual-missing');
+    img.style.display='none';
+    if(!figure.querySelector('.visual-missing-note')){
+      const note=document.createElement('div');
+      note.className='visual-missing-note';
+      note.textContent='Схема временно недоступна';
+      figure.prepend(note);
+    }
   }
 
   function repairImage(img){
@@ -97,32 +133,34 @@
     img.dataset.lessonRepairBound='1';
     const candidates=imageCandidates(img.getAttribute('src'));
     if(!candidates.length)return;
-    let index=0;
 
-    const apply=()=>{
-      if(index<candidates.length){
+    let index=0;
+    const current=img.getAttribute('src');
+    if(candidates[0]===current)index=1;
+    else{
+      index=1;
+      img.setAttribute('src',candidates[0]);
+    }
+
+    const tryNext=()=>{
+      while(index<candidates.length){
         const candidate=candidates[index++];
-        if(img.getAttribute('src')!==candidate)img.setAttribute('src',candidate);
-        else if(index<candidates.length)apply();
+        if(candidate===img.getAttribute('src'))continue;
+        img.setAttribute('src',candidate);
         return;
       }
-      const figure=img.closest('figure');
-      if(figure){
-        figure.classList.add('visual-missing');
-        img.style.display='none';
-        if(!figure.querySelector('.visual-missing-note')){
-          const note=document.createElement('div');
-          note.className='visual-missing-note';
-          note.textContent='Схема временно недоступна';
-          figure.prepend(note);
-        }
-      }
+      showMissing(img);
     };
 
-    img.addEventListener('error',apply);
-    const first=candidates[0];
-    if(img.getAttribute('src')!==first)img.setAttribute('src',first);
-    if(img.complete&&img.naturalWidth===0)queueMicrotask(apply);
+    img.addEventListener('error',tryNext);
+    img.addEventListener('load',()=>{
+      img.style.display='';
+      const figure=img.closest('figure');
+      figure?.classList.remove('visual-missing');
+      figure?.querySelector('.visual-missing-note')?.remove();
+    });
+
+    if(img.complete&&img.naturalWidth===0)queueMicrotask(tryNext);
   }
 
   function sanitize(){
