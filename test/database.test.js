@@ -170,8 +170,8 @@ test('phase 1 biology has complete lessons, balanced practice and key biological
   const course=require('../content/biology/course.json');
   const topics=course.sections.filter(section=>['biology-reproduction','biology-genetics'].includes(section.slug)).flatMap(section=>section.topics);
   const questions=topics.flatMap(topic=>topic.questions);
-  assert.equal(topics.length,7); assert.equal(questions.length,56);
-  assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,questions.filter(q=>q.difficulty===level).length])),{1:14,2:28,3:14});
+  assert.equal(topics.length,7); assert.equal(questions.length,64);
+  assert.deepEqual(Object.fromEntries([1,2,3].map(level=>[level,questions.filter(q=>q.difficulty===level).length])),{1:14,2:30,3:20});
   for(const topic of topics) {
     assert.ok((topic.lessons||[topic.lesson]).every(lesson=>lesson.contentStatus==='review')); assert.ok(topic.questions.length>=8,topic.slug);
     const lessons=topic.lessons||[topic.lesson];
@@ -199,7 +199,7 @@ test('phase 2 diversity has complete reviewed theory, practice and biological as
   assert.ok(report.blocks>=451);
   assert.equal(report.questions,228);
   assert.equal(report.questionsLost,0);
-  assert.deepEqual(report.byDifficulty,{1:67,2:96,3:65});
+  assert.deepEqual(report.byDifficulty,{1:68,2:97,3:63});
   assert.equal(Object.keys(report.byType).length,14);
   assert.equal(report.assets,18);
   assert.deepEqual(report.codifierCodes,['19.0','20.0','21.0','22.0','23.0']);
