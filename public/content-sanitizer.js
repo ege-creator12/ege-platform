@@ -107,6 +107,18 @@
         if(rest==='ploidy')add('/images/biology/task4/plant-ploidy-cycle.svg');
       }
 
+      // New content phases store assets in dedicated folders while asset keys may
+      // keep editorial prefixes (for example ecology-food-web -> ecology/food-web.svg).
+      // Try both the full key and common prefix-stripped filenames in every known
+      // biology media folder so future phases do not silently render broken schemes.
+      const variants=[];
+      const addVariant=v=>{if(v&&!variants.includes(v))variants.push(v)};
+      addVariant(key);
+      addVariant(key.replace(/^(?:human|ecology|eco|phase3|phase4|phase5|zoo|zoology|botany)-/i,''));
+
+      const dirs=['phase3','phase4','ecology','zoology','botany','phase2','task3','task4'];
+      dirs.forEach(dir=>variants.forEach(name=>add(`/images/biology/${dir}/${name}.svg`)));
+
       // Older Phase 1/2 authored assets live in task3 and do not share one prefix.
       // Try the canonical filename and the historical "-task3" variant.
       add(`/images/biology/task3/${key}.svg`);
