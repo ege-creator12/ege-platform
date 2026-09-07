@@ -1,5 +1,14 @@
--- Ensure the platform owner account has administrator access in local SQLite.
--- The oldest registered account is treated as the owner; existing admins are preserved.
+-- Keep the local SQLite owner recovery aligned with production.
+-- Demo accounts must never retain administrator privileges.
+UPDATE users
+SET role='student'
+WHERE lower(email) IN ('admin@ege.local','student@ege.local');
+
+-- Grant administrator access to the first real registered account.
 UPDATE users
 SET role='admin'
-WHERE id=(SELECT MIN(id) FROM users);
+WHERE id=(
+  SELECT MIN(id)
+  FROM users
+  WHERE lower(email) NOT LIKE '%@ege.local'
+);
