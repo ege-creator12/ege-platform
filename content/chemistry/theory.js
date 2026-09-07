@@ -7,7 +7,13 @@ const THEORY={
   ...require('./theory-calculations'),
   ...require('./theory-applied')
 };
-const EXTRA_REFS={29:[19],30:[6],31:[8,9],32:[16],33:[10,11,12,15],34:[23,26,28]};
+const EXTRA_REFS={
+  6:[7,8,24],7:[6,8],8:[6,7],
+  12:[14,15],14:[12],15:[12],16:[10,11,12,13,14,15],
+  23:[22],24:[6,7,8,12,13,15],
+  29:[19],30:[6],31:[6,7,8,9],
+  32:[10,11,12,13,14,15,16],33:[10,11,12,13,14,15],34:[23,26,28]
+};
 function blocksFor(line){
   const t=THEORY[line];
   if(!t)throw new Error(`Missing chemistry theory for line ${line}`);
