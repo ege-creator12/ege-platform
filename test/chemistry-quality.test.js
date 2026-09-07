@@ -83,10 +83,10 @@ test('chemistry v2 is a full six-section subject course while preserving all 34 
  assert.equal(lineTopics.length,34,'all line anchors must remain for bank compatibility');
  assert.equal(new Set(lineTopics.map(topic=>topic.slug)).size,34);
  assert.deepEqual(lineTopics.flatMap(topic=>topic.examLines).sort((a,b)=>a-b),Array.from({length:34},(_,i)=>i+1));
- assert.equal(richTopics.length,24,'full v2 must contain twenty-four subject topics');
+ assert.equal(richTopics.length,39,'mastery-complete v2 must contain thirty-nine subject topics');
  const richLessons=richTopics.flatMap(topic=>topic.lessons||[]);
- assert.equal(richLessons.length,97,'depth-complete v2 must contain ninety-seven proper subject lessons');
- assert.equal(new Set(richLessons.map(l=>l.slug)).size,97,'all rich lesson slugs must be unique');
+ assert.equal(richLessons.length,142,'mastery-complete v2 must contain one hundred forty-two proper subject lessons');
+ assert.equal(new Set(richLessons.map(l=>l.slug)).size,142,'all rich lesson slugs must be unique');
  const richLessonSlugs=new Set(richLessons.map(l=>l.slug));
  const required=['heading','definition','remember','table','algorithm','ege_example','deep_dive','summary','quiz'];
  for(const topic of richTopics){
