@@ -95,7 +95,7 @@ test('all 680 startup chemistry tasks have usable answers, controls and clean co
    assert(Number.isInteger(q.difficulty)&&q.difficulty>=1&&q.difficulty<=3,`line ${line}, item ${n}: difficulty`);
    const allText=collectText(q).join(' ');
    assert(!badText.test(allText),`line ${line}, item ${n}: broken content`);
-   if(q.type==='single'||q.type==='multiple'){
+   if(q.type==='single'||q.type==='multiple'||q.type==='sequence'){
     assert(Array.isArray(q.options)&&q.options.length>=2,`line ${line}, item ${n}: options`);
     const values=new Set(q.options.map(option=>String(option.value)));
     assert.equal(values.size,q.options.length,`line ${line}, item ${n}: duplicate option values`);
@@ -119,7 +119,7 @@ test('all 680 startup chemistry tasks have usable answers, controls and clean co
  assert.equal(count,680);
 });
 
-test('foundation lines now follow their EGE-style answer families',()=>{
+test('foundation lines follow their EGE-style answer families',()=>{
  for(let line=1;line<=4;line++)for(let n=1;n<=20;n++){
   const q=builders[line](n);
   assert.equal(q.type,'multiple',`line ${line}, item ${n}: expected positional multiple choice`);
@@ -131,5 +131,20 @@ test('foundation lines now follow their EGE-style answer families',()=>{
   assert.equal(q.type,'matching',`line 5, item ${n}: matching format`);
   assert.equal(q.content.left.length,3,`line 5, item ${n}: three formulas`);
   assert(q.content.right.length>=4,`line 5, item ${n}: answer list`);
+ }
+});
+
+test('core chemistry lines use positional and sequence controls instead of generic single-choice',()=>{
+ for(const line of [6,7,8,14,15])for(let n=1;n<=20;n++){
+  const q=builders[line](n);
+  assert.equal(q.type,'multiple',`line ${line}, item ${n}: multiple positions`);
+  assert.equal(q.answer.length,2,`line ${line}, item ${n}: exactly two correct positions`);
+  assert.equal(q.options.length,5,`line ${line}, item ${n}: five choices`);
+ }
+ for(const line of [9,16])for(let n=1;n<=20;n++){
+  const q=builders[line](n);
+  assert.equal(q.type,'sequence',`line ${line}, item ${n}: ordered sequence`);
+  assert(q.answer.length>=2,`line ${line}, item ${n}: ordered answers`);
+  assert(q.options.length>=4,`line ${line}, item ${n}: reagent bank`);
  }
 });
