@@ -5,4 +5,10 @@ database.run = (sql, ...params) => originalRun(
   sql.replace('updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP', 'updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
   ...params
 );
-require('./server-admin');
+
+(async()=>{
+  await database.migrate();
+  const {ensureExamLineBank}=require('./src/exam-line-bank');
+  await ensureExamLineBank(database,{minimum:15});
+  require('./server-admin');
+})().catch(error=>{console.error('startup',error);process.exit(1)});
