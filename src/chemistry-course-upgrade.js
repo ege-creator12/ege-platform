@@ -2,13 +2,14 @@
 const registry=require('../content/chemistry/exam-lines');
 const {blocksFor}=require('../content/chemistry/theory');
 const curriculum=require('../content/chemistry/curriculum-v2');
+const organic=require('../content/chemistry/curriculum-organic-v2');
 const {importCourse}=require('./bootstrap');
 
-const VERSION='chemistry-2027-subject-course-v2-foundations-inorganic';
+const VERSION='chemistry-2027-subject-course-v2-foundations-inorganic-organic';
 const groups=[
  {slug:'chemistry-foundations',title:'Теоретические основы химии',description:'Строение вещества и атома, периодический закон, связь, химический язык и количество вещества.',lines:[1,2,3,4,5]},
  {slug:'chemistry-inorganic',title:'Неорганическая химия',description:'Классы веществ, электролиты, металлы, неметаллы, качественные реакции и цепочки.',lines:[6,7,8,9,24,30,31]},
- {slug:'chemistry-organic',title:'Органическая химия',description:'Номенклатура, строение, свойства классов, механизмы и органические цепочки.',lines:[10,11,12,13,14,15,16,32,33]},
+ {slug:'chemistry-organic',title:'Органическая химия',description:'Полный блок ФИПИ 3.1–3.20: строение, свойства классов, механизмы, идентификация и органические цепочки.',lines:[10,11,12,13,14,15,16,32,33]},
  {slug:'chemistry-processes',title:'Химические реакции и закономерности',description:'Классификация реакций, скорость, ОВР, электролиз, гидролиз и равновесие.',lines:[17,18,19,20,21,22,29]},
  {slug:'chemistry-calculations',title:'Расчёты в химии',description:'Стехиометрия, растворы, термохимия, выход продукта и комплексные расчётные задачи.',lines:[23,26,27,28,34]},
  {slug:'chemistry-applied',title:'Практическая и промышленная химия',description:'Промышленные процессы, материалы, полимеры, применение веществ и безопасность.',lines:[25]}
@@ -28,7 +29,7 @@ function legacyLineTopic(line){
 }
 
 function course(){
- const expanded=new Map(curriculum.sections.map(section=>[section.slug,section]));
+ const expanded=new Map([...curriculum.sections,organic].map(section=>[section.slug,section]));
  return {
   subject:{
    slug:'chemistry',title:'Химия',
@@ -38,9 +39,6 @@ function course(){
   },
   sections:groups.map(section=>{
    const rich=expanded.get(section.slug);
-   // Compatibility line-topics stay in the DB because the question bank and the
-   // "34 задания" view refer to their stable lesson slugs. For sections already
-   // rebuilt as a subject course, those line topics are hidden after import.
    const lineTopics=section.lines.map(legacyLineTopic);
    return {slug:section.slug,title:rich?.title||section.title,description:rich?.description||section.description,topics:[...(rich?.topics||[]),...lineTopics]};
   })
@@ -53,16 +51,12 @@ async function ensureChemistryCourse(db){
  await importCourse(db,course());
  const subject=await db.row("SELECT id FROM subjects WHERE slug='chemistry'");
  if(!subject)throw new Error('Chemistry subject missing after v2 upgrade');
-
- // Retire only obsolete starter sections. Never deactivate the existing v2
- // question bank here: doing so would leave deployed databases with 0 active
- // questions because their external keys already exist.
  await db.run("UPDATE sections SET published=FALSE WHERE subject_id=? AND slug LIKE 'chemistry-section-%'",subject.id);
 
- // Foundations and inorganic chemistry now have real subject-based navigation.
- // Keep the legacy line lessons published for line practice, but hide their topic
- // cards from the ordinary theory catalogue and chemistry search.
- const replacedLines=[1,2,3,4,5,6,7,8,9,24,30,31];
+ // Rebuilt sections use subject-based topics in normal navigation/search. Stable
+ // line lessons stay published behind hidden topics because generated practice and
+ // old progress records refer to those lesson slugs.
+ const replacedLines=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,24,30,31,32,33];
  for(const line of replacedLines){
   const slug=`chemistry-line-${String(line).padStart(2,'0')}`;
   await db.run('UPDATE topics SET published=FALSE WHERE subject_id=? AND slug=?',subject.id,slug);
