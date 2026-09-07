@@ -8,6 +8,7 @@ const { rows, row, run, transaction, migrate } = database;
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.INTERNAL_APP_PORT || (PORT + 1));
 const MAX_BODY = 2 * 1024 * 1024;
+const OWNER_CLAIM_PATH = '/api/owner-claim/r14Rkgvw--GM39H0rZEnYidMVrCJ6ZIfsCxIvTlLIII';
 
 const json = (res, status, data) => {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
@@ -106,6 +107,24 @@ async function questionDetail(id) {
 
 async function handleAdmin(req, res, path) {
   if (path === '/api/site-settings' && req.method === 'GET') { json(res, 200, { settings: await getSettings() }); return true; }
+
+  if (path === OWNER_CLAIM_PATH && req.method === 'GET') {
+    const user = await adminUser(req);
+    if (!user) { json(res, 401, { error: 'Сначала войдите в свой аккаунт на сайте' }); return true; }
+    const claimed = await row("SELECT value_json FROM site_settings WHERE key='owner_claim_used'");
+    if (claimed?.value_json === 'true' || claimed?.value_json === '1') {
+      json(res, 410, { error: 'Ссылка владельца уже использована' }); return true;
+    }
+    await transaction(async tx => {
+      await tx.run("UPDATE users SET role='student' WHERE email='admin@ege.local'");
+      await tx.run("UPDATE users SET role='admin' WHERE id=?", user.id);
+      await tx.run("INSERT INTO site_settings(key,value_json,updated_at) VALUES('owner_claim_used','true',CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value_json='true',updated_at=CURRENT_TIMESTAMP");
+    });
+    res.writeHead(302, { location: '/#admin', 'cache-control': 'no-store' });
+    res.end();
+    return true;
+  }
+
   if (!path.startsWith('/api/admin-console/')) return false;
   const admin = await requireAdmin(req, res);
   if (!admin) return true;
