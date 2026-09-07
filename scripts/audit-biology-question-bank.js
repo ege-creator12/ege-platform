@@ -52,13 +52,13 @@ for (const section of course.sections) {
       if (!present(question.prompt)) failures.push(`${id}: empty prompt`);
       if (!present(question.answer)) failures.push(`${id}: empty answer`);
       if (!present(question.explanation)) failures.push(`${id}: empty explanation`);
-      if (!validLines.has(question.examLine)) failures.push(`${id}: invalid exam line ${question.examLine}`);
+      if (question.examLine!==null && !validLines.has(question.examLine)) failures.push(`${id}: invalid exam line ${question.examLine}`);
       if (question.lessonSlug && !lessonSlugs.has(question.lessonSlug)) failures.push(`${id}: missing lesson ${question.lessonSlug}`);
       if (question.lessonSlug && topic.lesson?.slug && question.lessonSlug !== topic.lesson.slug) failures.push(`${id}: cross-topic lesson ref`);
       if (present(question.prompt)) add(prompts, question.prompt.trim().toLowerCase().replace(/\s+/g, ' '), id);
       if (present(question.explanation)) add(explanations, question.explanation.trim().toLowerCase().replace(/\s+/g, ' '), id);
       if (question.type === 'extended_answer') {
-        if (!Array.isArray(question.scoringPoints) || question.scoringPoints.length < 2) failures.push(`${id}: extended answer lacks scoringPoints`);
+        if (!Array.isArray(question.scoringPoints) || question.scoringPoints.length < (question.manualReview && question.maxScore===1 ? 1 : 2)) failures.push(`${id}: extended answer lacks scoringPoints`);
         if (!Array.isArray(question.commonMistakes) || question.commonMistakes.length === 0) failures.push(`${id}: extended answer lacks commonMistakes`);
       }
       if (question.image) {

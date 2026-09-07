@@ -1,34 +1,54 @@
-const { createHash } = require('node:crypto');
-const hardBank = require('../content/biology/mock-hard-questions.json');
+const {variantQuestions,SOURCE} = require('../content/biology/mock-variants');
+const { isCorrectAnswer } = require('./question-answer');
+const { formatAnswerForReview } = require('./answer-review');
 
 const CONFIG={
-  durationSeconds:Number(process.env.BIOLOGY_MOCK_DURATION_SECONDS)||12600,
+  durationSeconds:Number(process.env.BIOLOGY_MOCK_DURATION_SECONDS)||14100,
   sourceVersion:'Проект ФИПИ ЕГЭ-2027 / конфигурация платформы',
   variantCount:3,
   defaultMode:'untimed'
 };
 const parse=(value,fallback=[])=>{try{return value==null?fallback:typeof value==='string'?JSON.parse(value):value}catch{return fallback}};
 const normalize=value=>String(value??'').trim().toLocaleLowerCase('ru-RU').replace(/\s+/g,' ');
-const hashNumber=text=>Number.parseInt(createHash('sha256').update(text).digest('hex').slice(0,12),16);
 const isExtended=q=>(q.question_type||q.questionType)==='extended_answer';
 const variantFromSeed=seed=>Math.min(CONFIG.variantCount,Math.max(1,Number(String(seed||'').match(/^variant:(\d+)/)?.[1])||1));
 
 function scoreAnswer(snapshot,answer){
   const expected=parse(snapshot.answerJson),given=Array.isArray(answer)?answer:[answer];
-  const a=given.map(normalize).filter(Boolean),e=(Array.isArray(expected)?expected:[expected]).map(normalize);
-  if(!a.length)return 0;
+  const a=given.map(normalize),e=(Array.isArray(expected)?expected:[expected]).map(normalize);
+  if(!a.some(Boolean))return 0;
+  if(snapshot.scoringMode){
+    if(snapshot.scoringMode==='manual')return null;
+    if(snapshot.scoringMode==='position'){
+      if(a.length!==e.length)return 0;
+      const errors=e.filter((v,i)=>v!==a[i]).length;
+      return errors===0?2:errors===1?1:0;
+    }
+    if(snapshot.scoringMode==='sequence'){
+      const errors=e.filter((v,i)=>v!==a[i]).length;
+      const base=errors===0?2:errors<=2?1:0;
+      return Math.max(0,base-(a.length>e.length?1:0));
+    }
+    if(snapshot.scoringMode==='selection'){
+      // Count occurrences, so a repeated symbol cannot earn full marks.
+      const rest=[...e];let extra=0;
+      for(const v of a){const i=rest.indexOf(v);if(i<0)extra++;else rest.splice(i,1)}
+      const errors=Math.max(extra,rest.length);
+      return errors===0?2:errors===1?1:0;
+    }
+    return isCorrectAnswer(snapshot,answer)?snapshot.maxScore:0;
+  }
   if(snapshot.type==='matching'||snapshot.type==='sequence'){
+    if(a.length>e.length)return 0;
     let hits=0;for(let i=0;i<e.length;i++)if(a[i]===e[i])hits++;
     return Math.min(snapshot.maxScore,Math.floor(hits/Math.max(1,e.length)*snapshot.maxScore));
   }
-  const exact=snapshot.type==='multiple'?[...a].sort().join('|')===[...e].sort().join('|'):a.join('|')===e.join('|');
+  const exact=isCorrectAnswer(snapshot,answer);
   return exact?snapshot.maxScore:0;
 }
 
 function createMockExamService(db,registry){
   const lineByNumber=new Map(registry.lines.map(line=>[Number(line.line),line]));
-  const virtualByLine=new Map();
-  for(const q of hardBank.questions||[]){const line=Number(q.line);if(!virtualByLine.has(line))virtualByLine.set(line,[]);virtualByLine.get(line).push(q)}
 
   async function expire(attempt){
     if(attempt.status==='in_progress'&&attempt.mode==='timed'&&Date.now()>=new Date(attempt.started_at).getTime()+attempt.duration_seconds*1000){
@@ -54,10 +74,6 @@ function createMockExamService(db,registry){
     return a?expire(a):null;
   }
 
-  async function dbCandidates(subjectId,line){
-    return db.rows("SELECT q.*,t.title topic,l.slug lesson_slug FROM questions q JOIN topics t ON t.id=q.topic_id LEFT JOIN lessons l ON l.id=q.lesson_id WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.content_status IN ('review','verified') AND q.exam_line=? AND q.answer_json IS NOT NULL ORDER BY q.id",subjectId,line);
-  }
-
   function virtualCandidate(v){
     return {
       id:null,
@@ -66,11 +82,13 @@ function createMockExamService(db,registry){
       question_type:v.questionType||v.type||'text',
       prompt:v.prompt,
       instruction:v.instruction||'',
-      content_json:null,
-      media_json:null,
-      image_url:null,
+      content_json:JSON.stringify(v.content||{}),
+      media_json:v.image?JSON.stringify({path:v.image,alt:"Схема к заданию"}):null,
+      image_url:v.image||null,
+      scoringMode:v.scoringMode,
+      acceptedVariants:v.acceptedVariants||[],
       difficulty:Number(v.difficulty||3),
-      topic:'Сложный авторский вариант',
+      topic:'Авторский учебный вариант',
       lesson_slug:null,
       answer_json:v.answer,
       explanation:v.explanation||'',
@@ -90,6 +108,7 @@ function createMockExamService(db,registry){
     const explanationData=q.virtual?{}:parse(q.explanation_json,{});
     return {
       questionKey:q.external_key,
+      scoringMode:q.scoringMode,
       questionId:q.id==null?null:Number(q.id),
       type:q.type,
       questionType:q.question_type||q.type,
@@ -103,6 +122,7 @@ function createMockExamService(db,registry){
       topic:q.topic,
       lessonSlug:q.lesson_slug,
       answerJson:q.answer_json,
+      acceptedVariants:parse(q.answer_data_json,{}).acceptedVariants||q.acceptedVariants||[],
       explanation:q.explanation||'',
       solutionSteps:parse(q.solution_steps_json,[]),
       scoringPoints:q.scoringPoints||explanationData.scoringPoints||[],
@@ -120,23 +140,8 @@ function createMockExamService(db,registry){
     if(!['timed','untimed'].includes(mode))throw Object.assign(new Error('Неизвестный режим пробника'),{status:400,code:'INVALID_MODE'});
     variant=Number(variant||1);
     if(!Number.isInteger(variant)||variant<1||variant>CONFIG.variantCount)throw Object.assign(new Error('Неизвестный вариант пробника'),{status:400,code:'INVALID_VARIANT'});
-    const seed=`variant:${variant}:biology-2027-v3`,subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
-    if(!subject)throw Object.assign(new Error('Предмет биология не найден'),{status:500,code:'BIOLOGY_NOT_FOUND'});
-    const selected=[];
-    for(const line of registry.lines){
-      const base=await dbCandidates(subject.id,line.line);
-      const extras=variant===1?[]:(virtualByLine.get(Number(line.line))||[]).map(virtualCandidate);
-      const pool=[...base,...extras];
-      if(!pool.length)throw Object.assign(new Error(`Нет проверенных заданий для линии ${line.line}`),{status:409,code:'INCOMPLETE_BANK'});
-      const targetDifficulty=variant===1?2:variant===2?2.65:3;
-      const ranked=pool.map(q=>{
-        const difficultyPenalty=Math.abs(Number(q.difficulty||1)-targetDifficulty)*1e12;
-        const authoredPriority=q.virtual?(variant===3?-2e10:-1e10):0;
-        const jitter=hashNumber(`${seed}:${q.external_key||q.id}`)%1e9;
-        return {q,key:difficultyPenalty+authoredPriority+jitter};
-      }).sort((a,b)=>a.key-b.key);
-      selected.push({line,q:ranked[0].q});
-    }
+    const seed=`variant:${variant}:biology-2027-reviewed-v4`;
+    const selected=variantQuestions(variant).map(v=>({line:lineByNumber.get(v.line),q:virtualCandidate(v)}));
     return db.transaction(async tx=>{
       const made=await tx.run('INSERT INTO biology_mock_exam_attempts(user_id,exam_year,source_version,mode,duration_seconds,variant_seed) VALUES(?,?,?,?,?,?)',userId,registry.examYear,CONFIG.sourceVersion,mode,mode==='timed'?CONFIG.durationSeconds:null,seed),id=Number(made.lastInsertRowid);let max=0;
       for(const [index,{line,q}] of selected.entries()){
@@ -149,7 +154,7 @@ function createMockExamService(db,registry){
   }
 
   function remaining(a){return a.mode==='timed'?Math.max(0,a.duration_seconds-Math.floor((Date.now()-new Date(a.started_at).getTime())/1000)):null}
-  const reviewOf=s=>({answer:parse(s.answerJson),explanation:s.explanation,solutionSteps:s.solutionSteps||[],scoringPoints:s.scoringPoints||[],commonMistakes:s.commonMistakes||[],lessonSlug:s.lessonSlug,extended:Boolean(s.extended)});
+  const reviewOf=s=>({answer:parse(s.answerJson),reviewAnswer:formatAnswerForReview({type:s.type,question_type:s.questionType,answer_json:s.answerJson,content_json:s.contentJson},s.options||[]),explanation:s.explanation,solutionSteps:s.solutionSteps||[],scoringPoints:s.scoringPoints||[],commonMistakes:s.commonMistakes||[],lessonSlug:s.lessonSlug,extended:Boolean(s.extended)});
 
   async function payload(a,reveal=false){
     const items=await db.rows('SELECT * FROM biology_mock_exam_items WHERE attempt_id=? ORDER BY position',a.id);
@@ -157,7 +162,7 @@ function createMockExamService(db,registry){
       id:Number(a.id),variant:variantFromSeed(a.variant_seed),mode:a.mode,status:a.status,examYear:a.exam_year,sourceVersion:a.source_version,startedAt:a.started_at,submittedAt:a.submitted_at,durationSeconds:a.duration_seconds,remainingSeconds:remaining(a),primaryScoreMax:Number(a.primary_score_max),
       items:items.map(i=>{
         const s=parse(i.snapshot_json,{}),base={id:Number(i.id),position:i.position,line:i.exam_line,part:i.part,answerFormat:i.answer_format,maxScore:i.max_score,answer:parse(i.answer_json,[]),flagged:Boolean(i.flagged),autoScore:i.auto_score,selfScore:i.self_score,question:{type:s.type,questionType:s.questionType,prompt:s.prompt,instruction:s.instruction,contentJson:s.contentJson,mediaJson:s.mediaJson,imageUrl:s.imageUrl,options:s.options,topic:s.topic,difficulty:s.difficulty,source:s.source}};
-        if(reveal)return {...base,review:reviewOf(s)};
+        if(reveal)return {...base,review:{...reviewOf(s),givenAnswer:formatAnswerForReview({type:s.type,question_type:s.questionType,answer_json:i.answer_json,content_json:s.contentJson},s.options||[])}};
         return base;
       })
     };
@@ -198,7 +203,7 @@ function createMockExamService(db,registry){
       const tail=path.slice(base.length),parts=tail.split('/').filter(Boolean),id=parts[0]&&Number(parts[0]);
       if(!parts.length&&req.method==='GET'){
         const attempts=await history(user.id),active=attempts.find(a=>a.status==='in_progress');
-        return send(200,{config:{examYear:registry.examYear,sourceVersion:CONFIG.sourceVersion,durationSeconds:CONFIG.durationSeconds,lineCount:registry.lines.length,variantCount:CONFIG.variantCount,defaultMode:CONFIG.defaultMode,sourceLabel:hardBank.source},activeAttempt:active?await payload(active):null,attempts});
+        return send(200,{config:{examYear:registry.examYear,sourceVersion:CONFIG.sourceVersion,durationSeconds:CONFIG.durationSeconds,lineCount:registry.lines.length,variantCount:CONFIG.variantCount,defaultMode:CONFIG.defaultMode,sourceLabel:SOURCE},activeAttempt:active?await payload(active):null,attempts});
       }
       if(!parts.length&&req.method==='POST'){
         const b=await body(req),active=await db.row("SELECT id FROM biology_mock_exam_attempts WHERE user_id=? AND status='in_progress' ORDER BY id DESC LIMIT 1",user.id);

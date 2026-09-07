@@ -1,1873 +1,879 @@
 {
   "examYear": 2027,
-  "sourceStatus": "Проект ФИПИ ЕГЭ-2027",
+  "sourceStatus": "Проект ФИПИ ЕГЭ-2027; проверено 7 сентября 2026",
   "lines": [
     {
       "line": 1,
-      "title": "Термины и биологические закономерности",
+      "title": "Биологические науки и термины",
       "part": 1,
       "answerFormat": "краткий ответ",
-      "shortDescription": "Восстановление пропуска в схеме или формулировке по биологическому смыслу.",
+      "shortDescription": "Биологические науки и термины. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-science-2-lesson",
-        "bio-science-1-lesson",
-        "bio-science-3-lesson"
+        "bio-science-1-lesson"
       ],
       "questionRefs": [
-        "bio-exp-multiple-001",
-        "bio-final-science-levels-001",
-        "bio-final-science-life-001"
+        "biology-2027-reviewed-v1-line1",
+        "biology-2027-reviewed-v2-line1",
+        "biology-2027-reviewed-v3-line1"
       ],
       "strategy": [
-        "Найдите отношение между соседними элементами схемы и восстановите пропуск термином того же уровня.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "В пропуск вписывают пример вместо понятия того же логического уровня.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 2,
-      "title": "Эксперимент: прогноз результата",
+      "title": "Методология и прогноз эксперимента",
       "part": 1,
-      "answerFormat": "краткий ответ",
-      "shortDescription": "Прогноз изменения величины по условиям эксперимента.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Методология и прогноз эксперимента. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-science-1-lesson",
-        "bio-science-2-lesson",
-        "bio-science-3-lesson"
+        "bio-science-2-lesson"
       ],
       "questionRefs": [
-        "bio-final-science-levels-002",
-        "bio-final-science-model-001"
+        "biology-2027-reviewed-v1-line2",
+        "biology-2027-reviewed-v2-line2",
+        "biology-2027-reviewed-v3-line2"
       ],
       "strategy": [
-        "Назовите независимую и зависимую переменные, затем спрогнозируйте направление изменения только при заданном воздействии.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Изменяют сразу несколько факторов и теряют смысл контрольной группы.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 3,
-      "title": "Цитологическая задача",
+      "title": "Биологический расчёт",
       "part": 1,
       "answerFormat": "краткий ответ",
-      "shortDescription": "Расчёты по ДНК, хромосомам, клеточному циклу и обмену веществ.",
+      "shortDescription": "Биологический расчёт. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-molecular-1-lesson",
-        "bio-molecular-2-lesson",
         "bio-molecular-3-lesson",
-        "bio-molecular-3-lesson-2",
-        "bio-molecular-3-lesson-3"
+        "bio-cell-3-lesson",
+        "bio-ecology-pyramids-lesson"
       ],
       "questionRefs": [
-        "bio-50-001",
-        "bio-50-004",
-        "bio-50-007",
-        "bio-50-010",
-        "bio-50-013",
-        "bio-60-001",
-        "bio-60-010",
-        "bio-dna-sequence-001",
-        "bio-70-003",
-        "bio-70-007",
-        "bio-70-011",
-        "bio-70-015",
-        "bio-80-001",
-        "bio-80-010",
-        "bio-90-001",
-        "bio-90-004",
-        "bio-90-007",
-        "bio-90-010",
-        "bio-90-013",
-        "bio-100-001",
-        "bio-100-010",
-        "bio-110-001",
-        "bio-110-004",
-        "bio-110-007",
-        "bio-110-010",
-        "bio-110-013"
+        "biology-2027-reviewed-v1-line3",
+        "biology-2027-reviewed-v2-line3",
+        "biology-2027-reviewed-v3-line3"
       ],
       "strategy": [
-        "Выпишите исходные числа для ДНК или клетки, примените комплементарность и отдельно пересчитайте хромосомы и молекулы ДНК.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Число хромосом ошибочно приравнивают к числу молекул ДНК.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 4,
-      "title": "Генетическая задача",
+      "title": "Расчёт по генетике",
       "part": 1,
       "answerFormat": "краткий ответ",
-      "shortDescription": "Расчёт вероятностей и соотношений при наследовании признаков.",
+      "shortDescription": "Расчёт по генетике. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-reproduction-1-lesson",
-        "bio-reproduction-2-lesson",
-        "bio-reproduction-2-lesson-2",
-        "bio-reproduction-3-lesson",
-        "bio-reproduction-3-lesson-2"
+        "bio-genetics-1-lesson-2"
       ],
       "questionRefs": [
-        "phase1-bio-reproduction-1-01",
-        "phase1-bio-reproduction-1-05",
-        "phase1-bio-reproduction-1-08",
-        "phase1-bio-reproduction-2-01",
-        "phase1-bio-reproduction-3-01",
-        "phase1-bio-reproduction-3-04",
-        "phase1-bio-reproduction-3-08",
-        "phase1-bio-genetics-1-02",
-        "phase1-bio-genetics-2-01",
-        "phase1-bio-genetics-3-01",
-        "phase1-bio-genetics-3-04",
-        "phase1-bio-genetics-3-08",
-        "phase1-bio-genetics-4-01"
+        "biology-2027-reviewed-v1-line4",
+        "biology-2027-reviewed-v2-line4",
+        "biology-2027-reviewed-v3-line4"
       ],
       "strategy": [
-        "Запишите генотипы родителей и гаметы, постройте решётку скрещивания и только затем считайте вероятность.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Складывают вероятности независимых событий там, где их нужно перемножать.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 5,
-      "title": "Клетка: соответствие",
+      "title": "Клетка: распознавание на рисунке",
       "part": 1,
-      "answerFormat": "установление соответствия",
-      "shortDescription": "Связь строения клетки, органоидов и выполняемых функций.",
+      "answerFormat": "краткий ответ",
+      "shortDescription": "Клетка: распознавание на рисунке. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-molecular-1-lesson",
-        "bio-molecular-2-lesson",
-        "bio-molecular-3-lesson",
-        "bio-molecular-3-lesson-2",
-        "bio-molecular-3-lesson-3"
+        "bio-cell-1-lesson"
       ],
       "questionRefs": [
-        "bio-50-002",
-        "bio-50-005",
-        "bio-50-008",
-        "bio-50-011",
-        "bio-50-014",
-        "bio-60-004",
-        "bio-60-013",
-        "bio-70-001",
-        "bio-70-005",
-        "bio-70-009",
-        "bio-70-013",
-        "bio-80-004",
-        "bio-80-013",
-        "bio-90-002",
-        "bio-90-005",
-        "bio-90-008",
-        "bio-90-011",
-        "bio-90-014",
-        "bio-100-004",
-        "bio-100-013",
-        "bio-110-002",
-        "bio-110-005",
-        "bio-110-008",
-        "bio-110-011",
-        "bio-110-014"
+        "biology-2027-reviewed-v1-line5",
+        "biology-2027-reviewed-v2-line5",
+        "biology-2027-reviewed-v3-line5"
       ],
       "strategy": [
-        "Для каждого органоида сначала назовите мембранность и строение, затем сопоставьте функцию.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Функцию органоида выбирают по месту на рисунке, а не по его строению.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 6,
-      "title": "Клетка: работа с изображением",
+      "title": "Клетка: соответствие по рисунку",
       "part": 1,
-      "answerFormat": "краткий ответ",
-      "shortDescription": "Распознавание клеточных структур и процессов по схеме.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Клетка: соответствие по рисунку. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-molecular-1-lesson",
-        "bio-molecular-2-lesson",
-        "bio-molecular-3-lesson",
-        "bio-molecular-3-lesson-2",
-        "bio-molecular-3-lesson-3"
+        "bio-cell-1-lesson"
       ],
       "questionRefs": [
-        "bio-50-003",
-        "bio-50-006",
-        "bio-50-009",
-        "bio-50-012",
-        "bio-50-015",
-        "bio-60-007",
-        "bio-70-002",
-        "bio-70-006",
-        "bio-70-010",
-        "bio-70-014",
-        "bio-80-007",
-        "bio-90-003",
-        "bio-90-006",
-        "bio-90-009",
-        "bio-90-012",
-        "bio-90-015",
-        "bio-100-007",
-        "bio-110-003",
-        "bio-110-006",
-        "bio-110-009",
-        "bio-110-012",
-        "bio-110-015"
+        "biology-2027-reviewed-v1-line6",
+        "biology-2027-reviewed-v2-line6",
+        "biology-2027-reviewed-v3-line6"
       ],
       "strategy": [
-        "Определите тип клетки и ориентацию рисунка по диагностическим деталям, после чего подпишите номера структур.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Номер указателя принимают за часть структуры и неверно определяют ориентацию схемы.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 7,
-      "title": "Организм: множественный выбор",
+      "title": "Клетка и организм: выбор признаков",
       "part": 1,
       "answerFormat": "множественный выбор",
-      "shortDescription": "Признаки размножения, развития, наследственности и изменчивости.",
+      "shortDescription": "Клетка и организм: выбор признаков. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-reproduction-1-lesson",
-        "bio-reproduction-2-lesson",
-        "bio-reproduction-2-lesson-2",
-        "bio-reproduction-3-lesson",
-        "bio-reproduction-3-lesson-2"
+        "bio-molecular-2-lesson",
+        "bio-cell-3-lesson-2",
+        "bio-genetics-4-lesson-5"
       ],
       "questionRefs": [
-        "phase1-bio-reproduction-1-02",
-        "phase1-bio-reproduction-1-06",
-        "phase1-bio-reproduction-2-04",
-        "phase1-bio-reproduction-3-02",
-        "phase1-bio-reproduction-3-05",
-        "phase1-bio-genetics-1-04",
-        "phase1-bio-genetics-2-04",
-        "phase1-bio-genetics-3-02",
-        "phase1-bio-genetics-3-05",
-        "phase1-bio-genetics-4-04"
+        "biology-2027-reviewed-v2-line7",
+        "biology-2027-reviewed-v1-line7",
+        "biology-2027-reviewed-v3-line7"
       ],
       "strategy": [
-        "Установите, о каком этапе размножения или развития идёт речь, и проверяйте каждый выбранный признак по определению.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Признак отдельной стадии переносят на весь жизненный цикл.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 8,
-      "title": "Организм: соответствие",
+      "title": "Клеточные процессы: последовательность",
       "part": 1,
-      "answerFormat": "установление соответствия",
-      "shortDescription": "Сопоставление процессов и закономерностей организма.",
+      "answerFormat": "последовательность",
+      "shortDescription": "Клеточные процессы: последовательность. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-reproduction-1-lesson",
-        "bio-reproduction-2-lesson",
-        "bio-reproduction-2-lesson-2",
-        "bio-reproduction-3-lesson",
-        "bio-reproduction-3-lesson-2"
+        "bio-cell-1-lesson",
+        "bio-cell-3-lesson-2",
+        "bio-genetics-4-lesson-5"
       ],
       "questionRefs": [
-        "phase1-bio-reproduction-1-03",
-        "phase1-bio-reproduction-1-07",
-        "phase1-bio-reproduction-2-07",
-        "phase1-bio-reproduction-3-03",
-        "phase1-bio-reproduction-3-06",
-        "phase1-bio-genetics-1-07",
-        "phase1-bio-genetics-2-07",
-        "phase1-bio-genetics-3-03",
-        "phase1-bio-genetics-3-06",
-        "phase1-bio-genetics-4-07"
+        "biology-2027-reviewed-v2-line8",
+        "biology-2027-reviewed-v1-line8",
+        "biology-2027-reviewed-v3-line8"
       ],
       "strategy": [
-        "Разделите характеристики наследственности, изменчивости и онтогенеза по механизму, а не по похожим словам.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Найдите первый этап, затем восстановите направление процесса. Запишите номера, показанные перед пунктами.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Сходные термины сопоставляют без проверки механизма процесса.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 9,
-      "title": "Растения и грибы",
+      "title": "Многообразие: распознавание на рисунке",
       "part": 1,
-      "answerFormat": "множественный выбор",
-      "shortDescription": "Признаки, строение и жизнедеятельность растений и грибов.",
+      "answerFormat": "краткий ответ",
+      "shortDescription": "Многообразие: распознавание на рисунке. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-diversity-1-lesson",
-        "bio-diversity-1-lesson-2",
-        "bio-diversity-2-lesson",
-        "bio-diversity-2-lesson-2",
-        "bio-diversity-3-lesson"
+        "bio-diversity-4-plant-root-lesson",
+        "bio-diversity-4-plant-leaf-lesson",
+        "bio-diversity-4-plant-flower-pollination-lesson"
       ],
       "questionRefs": [
-        "phase2-bio-diversity-1-001",
-        "phase2-bio-diversity-1-005",
-        "phase2-bio-diversity-1-009",
-        "phase2-bio-diversity-2-001",
-        "phase2-bio-diversity-2-013",
-        "phase2-bio-diversity-3-001",
-        "phase2-bio-diversity-3-005",
-        "phase2-bio-diversity-3-009",
-        "phase2-bio-diversity-3-013",
-        "phase2-bio-diversity-4-001",
-        "phase2-bio-diversity-4-076",
-        "phase2-bio-diversity-4-010",
-        "phase2-bio-diversity-4-013",
-        "phase2-bio-diversity-4-079",
-        "phase2-bio-diversity-4-028",
-        "phase2-bio-diversity-4-031",
-        "phase2-bio-diversity-4-025",
-        "phase2-bio-diversity-4-067",
-        "phase2-bio-diversity-4-022",
-        "phase2-bio-diversity-4-040",
-        "phase2-bio-diversity-4-037",
-        "phase2-bio-diversity-4-007",
-        "phase2-bio-diversity-5-001",
-        "phase2-bio-diversity-5-005",
-        "phase2-bio-diversity-5-009",
-        "phase2-bio-diversity-5-012",
-        "phase2-bio-diversity-5-015",
-        "phase2-bio-diversity-5-017",
-        "phase2-bio-diversity-5-023",
-        "phase2-bio-diversity-5-029",
-        "phase2-bio-diversity-5-038",
-        "phase2-bio-diversity-5-046",
-        "phase2-bio-diversity-5-045",
-        "phase2-bio-diversity-5-051",
-        "phase2-bio-diversity-5-053",
-        "phase2-bio-diversity-5-057",
-        "phase2-bio-diversity-5-059",
-        "phase2-bio-diversity-5-060",
-        "phase2-bio-diversity-5-062",
-        "phase2-bio-diversity-5-066",
-        "phase2-bio-diversity-5-035",
-        "phase2-bio-diversity-5-073",
-        "phase2-bio-diversity-5-076",
-        "zoo-2027-091",
-        "zoo-2027-095",
-        "zoo-2027-100",
-        "zoo-2027-105"
+        "biology-2027-reviewed-v1-line9",
+        "biology-2027-reviewed-v2-line9",
+        "biology-2027-reviewed-v3-line9"
       ],
       "strategy": [
-        "Определите систематическую группу растения или гриба по диагностическому признаку и исключите признаки других царств.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Признак растения переносят на гриб или наоборот.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 10,
-      "title": "Растения: соответствие",
+      "title": "Многообразие: соответствие",
       "part": 1,
-      "answerFormat": "установление соответствия",
-      "shortDescription": "Сопоставление структур, процессов и циклов развития растений.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Многообразие: соответствие. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-diversity-1-lesson",
-        "bio-diversity-1-lesson-2",
-        "bio-diversity-2-lesson",
-        "bio-diversity-2-lesson-2",
-        "bio-diversity-3-lesson"
+        "bio-diversity-4-plant-algae-mosses-lesson-2",
+        "bio-diversity-4-plant-seed-groups-lesson",
+        "bio-zoo-insects"
       ],
       "questionRefs": [
-        "phase2-bio-diversity-1-002",
-        "phase2-bio-diversity-1-006",
-        "phase2-bio-diversity-1-010",
-        "phase2-bio-diversity-2-004",
-        "phase2-bio-diversity-3-002",
-        "phase2-bio-diversity-3-006",
-        "phase2-bio-diversity-3-010",
-        "phase2-bio-diversity-3-014",
-        "phase2-bio-diversity-4-004",
-        "phase2-bio-diversity-4-019",
-        "phase2-bio-diversity-4-052",
-        "phase2-bio-diversity-4-034",
-        "phase2-bio-diversity-4-046",
-        "phase2-bio-diversity-4-043",
-        "phase2-bio-diversity-5-002",
-        "phase2-bio-diversity-5-089",
-        "phase2-bio-diversity-5-010",
-        "phase2-bio-diversity-5-090",
-        "phase2-bio-diversity-5-018",
-        "phase2-bio-diversity-5-024",
-        "phase2-bio-diversity-5-030",
-        "phase2-bio-diversity-5-039",
-        "phase2-bio-diversity-5-085",
-        "phase2-bio-diversity-5-047",
-        "phase2-bio-diversity-5-052",
-        "phase2-bio-diversity-5-054",
-        "phase2-bio-diversity-5-070",
-        "phase2-bio-diversity-5-063",
-        "phase2-bio-diversity-5-069",
-        "phase2-bio-diversity-5-036",
-        "phase2-bio-diversity-5-074",
-        "phase2-bio-diversity-5-077",
-        "zoo-2027-092",
-        "zoo-2027-097",
-        "zoo-2027-101",
-        "zoo-2027-106"
+        "biology-2027-reviewed-v1-line10",
+        "biology-2027-reviewed-v3-line10",
+        "biology-2027-reviewed-v2-line10"
       ],
       "strategy": [
-        "Проследите, где образуются споры и гаметы и какая фаза имеет указанную плоидность, затем составляйте пары.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Путают спорофит с гаметофитом и диплоидную стадию с гаплоидной.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 11,
-      "title": "Животные",
+      "title": "Многообразие: выбор признаков",
       "part": 1,
       "answerFormat": "множественный выбор",
-      "shortDescription": "Систематика, строение и жизнедеятельность животных.",
+      "shortDescription": "Многообразие: выбор признаков. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-diversity-1-lesson",
-        "bio-diversity-1-lesson-2",
-        "bio-diversity-2-lesson",
-        "bio-diversity-2-lesson-2",
-        "bio-diversity-3-lesson"
+        "bio-diversity-3-lesson",
+        "bio-diversity-5-animal-birds-lesson",
+        "bio-zoo-mammals"
       ],
       "questionRefs": [
-        "phase2-bio-diversity-1-003",
-        "phase2-bio-diversity-1-007",
-        "phase2-bio-diversity-1-011",
-        "phase2-bio-diversity-2-007",
-        "phase2-bio-diversity-3-003",
-        "phase2-bio-diversity-3-007",
-        "phase2-bio-diversity-3-011",
-        "phase2-bio-diversity-4-016",
-        "phase2-bio-diversity-4-070",
-        "phase2-bio-diversity-4-058",
-        "phase2-bio-diversity-4-049",
-        "phase2-bio-diversity-5-003",
-        "phase2-bio-diversity-5-007",
-        "phase2-bio-diversity-5-013",
-        "phase2-bio-diversity-5-020",
-        "phase2-bio-diversity-5-026",
-        "phase2-bio-diversity-5-032",
-        "phase2-bio-diversity-5-041",
-        "phase2-bio-diversity-5-043",
-        "phase2-bio-diversity-5-049",
-        "phase2-bio-diversity-5-067",
-        "phase2-bio-diversity-5-055",
-        "phase2-bio-diversity-5-083",
-        "phase2-bio-diversity-5-064",
-        "phase2-bio-diversity-5-084",
-        "phase2-bio-diversity-5-040",
-        "phase2-bio-diversity-5-079",
-        "zoo-2027-093",
-        "zoo-2027-098",
-        "zoo-2027-103",
-        "zoo-2027-107"
+        "biology-2027-reviewed-v2-line11",
+        "biology-2027-reviewed-v1-line11",
+        "biology-2027-reviewed-v3-line11"
       ],
       "strategy": [
-        "Сначала определите тип или класс животного по плану строения, затем проверяйте системы органов.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Судят о классе животного по среде обитания вместо плана строения.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 12,
-      "title": "Многообразие: последовательность",
+      "title": "Систематика: последовательность",
       "part": 1,
-      "answerFormat": "установление последовательности",
-      "shortDescription": "Порядок стадий циклов и систематических таксонов.",
+      "answerFormat": "последовательность",
+      "shortDescription": "Систематика: последовательность. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-diversity-1-lesson",
-        "bio-diversity-1-lesson-2",
-        "bio-diversity-2-lesson",
-        "bio-diversity-2-lesson-2",
-        "bio-diversity-3-lesson"
+        "bio-zoo-foundations"
       ],
       "questionRefs": [
-        "phase2-bio-diversity-1-004",
-        "phase2-bio-diversity-1-008",
-        "phase2-bio-diversity-1-012",
-        "phase2-bio-diversity-2-010",
-        "phase2-bio-diversity-3-004",
-        "phase2-bio-diversity-3-008",
-        "phase2-bio-diversity-3-012",
-        "phase2-bio-diversity-4-064",
-        "phase2-bio-diversity-4-073",
-        "phase2-bio-diversity-4-061",
-        "phase2-bio-diversity-4-055",
-        "phase2-bio-diversity-5-004",
-        "phase2-bio-diversity-5-008",
-        "phase2-bio-diversity-5-014",
-        "phase2-bio-diversity-5-021",
-        "phase2-bio-diversity-5-027",
-        "phase2-bio-diversity-5-033",
-        "phase2-bio-diversity-5-042",
-        "phase2-bio-diversity-5-044",
-        "phase2-bio-diversity-5-050",
-        "phase2-bio-diversity-5-056",
-        "phase2-bio-diversity-5-086",
-        "phase2-bio-diversity-5-065",
-        "phase2-bio-diversity-5-071",
-        "phase2-bio-diversity-5-080",
-        "zoo-2027-094",
-        "zoo-2027-099",
-        "zoo-2027-104"
+        "biology-2027-reviewed-v1-line12",
+        "biology-2027-reviewed-v2-line12",
+        "biology-2027-reviewed-v3-line12"
       ],
       "strategy": [
-        "Выберите единый процесс — жизненный цикл, развитие или систематику — и расположите стадии от заданной точки.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Найдите первый этап, затем восстановите направление процесса. Запишите номера, показанные перед пунктами.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Пропускают неподвижную или малозаметную стадию жизненного цикла.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 13,
-      "title": "Организм человека",
+      "title": "Человек: распознавание на рисунке",
       "part": 1,
-      "answerFormat": "множественный выбор",
-      "shortDescription": "Строение, функции и регуляция систем органов человека.",
+      "answerFormat": "краткий ответ",
+      "shortDescription": "Человек: распознавание на рисунке. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-human-integration",
-        "bio-human-epithelial",
-        "bio-human-connective",
-        "bio-human-muscle-tissue",
-        "bio-human-nervous-tissue"
+        "bio-human-nephron"
       ],
       "questionRefs": [
-        "phase3-human-001-a",
-        "phase3-human-002-b",
-        "phase3-human-003-c",
-        "phase3-human-005-a",
-        "phase3-human-006-b",
-        "phase3-human-007-a",
-        "phase3-human-008-b",
-        "phase3-human-009-c",
-        "phase3-human-011-a",
-        "phase3-human-012-b",
-        "phase3-human-013-a",
-        "phase3-human-014-b",
-        "phase3-human-015-c",
-        "phase3-human-017-a",
-        "phase3-human-018-a",
-        "phase3-human-019-b",
-        "phase3-human-020-c",
-        "phase3-human-022-a",
-        "phase3-human-023-a",
-        "phase3-human-024-b",
-        "phase3-human-025-c",
-        "phase3-human-027-a",
-        "phase3-human-028-a",
-        "phase3-human-029-b",
-        "phase3-human-030-c",
-        "phase3-human-032-a",
-        "phase3-human-033-b",
-        "phase3-human-034-a",
-        "phase3-human-035-b",
-        "phase3-human-036-c",
-        "phase3-human-038-a",
-        "phase3-human-039-b",
-        "phase3-human-040-a",
-        "phase3-human-041-b",
-        "phase3-human-042-c",
-        "phase3-human-044-a",
-        "phase3-human-045-a",
-        "phase3-human-046-b",
-        "phase3-human-047-c",
-        "phase3-human-048-a",
-        "phase3-human-049-b",
-        "phase3-human-050-c",
-        "phase3-human-052-a",
-        "phase3-human-053-a",
-        "phase3-human-054-b",
-        "phase3-human-055-c",
-        "phase3-human-056-a",
-        "phase3-human-057-b",
-        "phase3-human-058-c",
-        "phase3-human-060-a",
-        "phase3-human-061-a",
-        "phase3-human-062-b",
-        "phase3-human-063-c"
+        "biology-2027-reviewed-v1-line13",
+        "biology-2027-reviewed-v2-line13",
+        "biology-2027-reviewed-v3-line13"
       ],
       "strategy": [
-        "Определите систему органов и уровень регуляции, затем выбирайте только физиологически совместимые признаки.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Смешивают нервную и гуморальную регуляцию одного процесса.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 14,
       "title": "Человек: соответствие",
       "part": 1,
-      "answerFormat": "установление соответствия",
-      "shortDescription": "Связь органов, процессов, функций и механизмов регуляции.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Человек: соответствие. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-human-integration",
-        "bio-human-epithelial",
-        "bio-human-connective",
-        "bio-human-muscle-tissue",
-        "bio-human-nervous-tissue"
+        "bio-human-vessels",
+        "bio-human-spinal",
+        "bio-human-glucose"
       ],
       "questionRefs": [
-        "phase3-human-001-b",
-        "phase3-human-002-c",
-        "phase3-human-004-a",
-        "phase3-human-005-b",
-        "phase3-human-006-c",
-        "phase3-human-007-b",
-        "phase3-human-008-c",
-        "phase3-human-010-a",
-        "phase3-human-011-b",
-        "phase3-human-012-c",
-        "phase3-human-013-b",
-        "phase3-human-014-c",
-        "phase3-human-016-a",
-        "phase3-human-017-b",
-        "phase3-human-018-b",
-        "phase3-human-019-c",
-        "phase3-human-021-a",
-        "phase3-human-022-b",
-        "phase3-human-023-b",
-        "phase3-human-024-c",
-        "phase3-human-026-a",
-        "phase3-human-027-b",
-        "phase3-human-028-b",
-        "phase3-human-029-c",
-        "phase3-human-031-a",
-        "phase3-human-032-b",
-        "phase3-human-033-c",
-        "phase3-human-034-b",
-        "phase3-human-035-c",
-        "phase3-human-037-a",
-        "phase3-human-038-b",
-        "phase3-human-039-c",
-        "phase3-human-040-b",
-        "phase3-human-041-c",
-        "phase3-human-043-a",
-        "phase3-human-044-b",
-        "phase3-human-045-b",
-        "phase3-human-046-c",
-        "phase3-human-048-b",
-        "phase3-human-049-c",
-        "phase3-human-051-a",
-        "phase3-human-052-b",
-        "phase3-human-053-b",
-        "phase3-human-054-c",
-        "phase3-human-056-b",
-        "phase3-human-057-c",
-        "phase3-human-059-a",
-        "phase3-human-060-b",
-        "phase3-human-061-b",
-        "phase3-human-062-c"
+        "biology-2027-reviewed-v2-line14",
+        "biology-2027-reviewed-v1-line14",
+        "biology-2027-reviewed-v3-line14"
       ],
       "strategy": [
-        "Для каждой структуры человека свяжите строение с конкретной функцией и не смешивайте орган с системой.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Одну функцию приписывают соседней структуре только из-за её расположения.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 15,
-      "title": "Человек: последовательность",
+      "title": "Человек: выбор признаков",
       "part": 1,
-      "answerFormat": "установление последовательности",
-      "shortDescription": "Путь веществ, импульсов и этапы физиологических процессов.",
+      "answerFormat": "множественный выбор",
+      "shortDescription": "Человек: выбор признаков. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-human-integration",
-        "bio-human-epithelial",
-        "bio-human-connective",
-        "bio-human-muscle-tissue",
-        "bio-human-nervous-tissue"
+        "bio-human-immunity",
+        "bio-human-gas-transport",
+        "bio-human-small-intestine"
       ],
       "questionRefs": [
-        "phase3-human-001-c",
-        "phase3-human-003-a",
-        "phase3-human-004-b",
-        "phase3-human-005-c",
-        "phase3-human-007-c",
-        "phase3-human-009-a",
-        "phase3-human-010-b",
-        "phase3-human-011-c",
-        "phase3-human-013-c",
-        "phase3-human-015-a",
-        "phase3-human-016-b",
-        "phase3-human-017-c",
-        "phase3-human-018-c",
-        "phase3-human-020-a",
-        "phase3-human-021-b",
-        "phase3-human-022-c",
-        "phase3-human-023-c",
-        "phase3-human-025-a",
-        "phase3-human-026-b",
-        "phase3-human-027-c",
-        "phase3-human-028-c",
-        "phase3-human-030-a",
-        "phase3-human-031-b",
-        "phase3-human-032-c",
-        "phase3-human-034-c",
-        "phase3-human-036-a",
-        "phase3-human-037-b",
-        "phase3-human-038-c",
-        "phase3-human-040-c",
-        "phase3-human-042-a",
-        "phase3-human-043-b",
-        "phase3-human-044-c",
-        "phase3-human-045-c",
-        "phase3-human-047-a",
-        "phase3-human-048-c",
-        "phase3-human-050-a",
-        "phase3-human-051-b",
-        "phase3-human-052-c",
-        "phase3-human-053-c",
-        "phase3-human-055-a",
-        "phase3-human-056-c",
-        "phase3-human-058-a",
-        "phase3-human-059-b",
-        "phase3-human-060-c",
-        "phase3-human-061-c",
-        "phase3-human-063-a"
+        "biology-2027-reviewed-v3-line15",
+        "biology-2027-reviewed-v1-line15",
+        "biology-2027-reviewed-v2-line15"
       ],
       "strategy": [
-        "Найдите начальную и конечную точки пути, затем проведите вещество или импульс через все промежуточные структуры.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Начинают последовательность не с точки, указанной в условии.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 16,
-      "title": "Здоровье человека",
+      "title": "Человек: последовательность",
       "part": 1,
-      "answerFormat": "множественный выбор",
-      "shortDescription": "Гигиена, профилактика и последствия нарушений работы организма.",
+      "answerFormat": "последовательность",
+      "shortDescription": "Человек: последовательность. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-human-integration",
-        "bio-human-epithelial",
-        "bio-human-connective",
-        "bio-human-muscle-tissue",
-        "bio-human-nervous-tissue"
+        "bio-human-circuits",
+        "bio-human-digestion-basics",
+        "bio-human-reflex"
       ],
       "questionRefs": [
-        "phase3-human-002-a",
-        "phase3-human-003-b",
-        "phase3-human-004-c",
-        "phase3-human-006-a",
-        "phase3-human-008-a",
-        "phase3-human-009-b",
-        "phase3-human-010-c",
-        "phase3-human-012-a",
-        "phase3-human-014-a",
-        "phase3-human-015-b",
-        "phase3-human-016-c",
-        "phase3-human-019-a",
-        "phase3-human-020-b",
-        "phase3-human-021-c",
-        "phase3-human-024-a",
-        "phase3-human-025-b",
-        "phase3-human-026-c",
-        "phase3-human-029-a",
-        "phase3-human-030-b",
-        "phase3-human-031-c",
-        "phase3-human-033-a",
-        "phase3-human-035-a",
-        "phase3-human-036-b",
-        "phase3-human-037-c",
-        "phase3-human-039-a",
-        "phase3-human-041-a",
-        "phase3-human-042-b",
-        "phase3-human-043-c",
-        "phase3-human-046-a",
-        "phase3-human-047-b",
-        "phase3-human-049-a",
-        "phase3-human-050-b",
-        "phase3-human-051-c",
-        "phase3-human-054-a",
-        "phase3-human-055-b",
-        "phase3-human-057-a",
-        "phase3-human-058-b",
-        "phase3-human-059-c",
-        "phase3-human-062-a",
-        "phase3-human-063-b"
+        "biology-2027-reviewed-v1-line16",
+        "biology-2027-reviewed-v3-line16",
+        "biology-2027-reviewed-v2-line16"
       ],
       "strategy": [
-        "Установите фактор риска и механизм его действия; профилактическая мера должна устранять именно этот фактор.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Найдите первый этап, затем восстановите направление процесса. Запишите номера, показанные перед пунктами.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Называют общую полезную привычку вместо меры против указанного фактора.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 17,
-      "title": "Эволюция",
+      "title": "Эволюция: выводы из текста",
       "part": 1,
       "answerFormat": "множественный выбор",
-      "shortDescription": "Факторы, результаты и доказательства эволюции.",
+      "shortDescription": "Эволюция: выводы из текста. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-1-lesson",
-        "bio-evolution-species",
-        "bio-evolution-factors",
-        "bio-evolution-selection",
-        "bio-evolution-adaptation"
+        "bio-evolution-factors"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-ideas-01",
-        "phase4-bio-evolution-species-topic-01",
-        "phase4-mechanism-07",
-        "phase4-bio-evolution-factors-topic-01",
-        "phase4-bio-evolution-selection-topic-01",
-        "phase4-bio-evolution-adaptation-topic-01",
-        "phase4-bio-evolution-speciation-topic-01",
-        "phase4-mechanism-05",
-        "phase4-bio-evolution-macro-01",
-        "phase4-bio-evolution-evidence-topic-01",
-        "phase4-bio-evolution-directions-topic-01",
-        "phase4-mechanism-12",
-        "phase4-bio-evolution-origin-life-topic-01",
-        "phase4-bio-evolution-endosymbiosis-topic-01",
-        "phase4-bio-evolution-history-topic-01",
-        "phase4-bio-evolution-phylogeny-topic-01",
-        "phase4-bio-evolution-human-system-topic-01",
-        "phase4-bio-evolution-anthropogenesis-01",
-        "phase4-bio-evolution-human-factors-topic-01",
-        "phase4-mechanism-23",
-        "phase4-bio-evolution-human-diversity-topic-01",
-        "phase5-eco-1-lesson-01",
-        "phase5-eco-2-lesson-04",
-        "phase5-eco-ecosystem-lesson-02",
-        "phase5-eco-pyramids-lesson-01",
-        "phase5-eco-nitrogen-lesson-05",
-        "phase5-eco-stability-lesson-04",
-        "phase5-eco-4-lesson-01",
-        "phase5-eco-field-experiment-lesson-04"
+        "biology-2027-reviewed-v1-line17",
+        "biology-2027-reviewed-v2-line17",
+        "biology-2027-reviewed-v3-line17"
       ],
       "strategy": [
-        "Определите единицу эволюции и действующий фактор, затем отделите причину изменения частот от результата отбора.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Приспособленность объясняют потребностью отдельного организма.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 18,
-      "title": "Экология",
+      "title": "Экология: выбор признаков",
       "part": 1,
       "answerFormat": "множественный выбор",
-      "shortDescription": "Закономерности популяций, экосистем и биосферы.",
+      "shortDescription": "Экология: выбор признаков. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-1-lesson",
-        "bio-evolution-species",
-        "bio-evolution-factors",
-        "bio-evolution-adaptation",
-        "bio-evolution-speciation"
+        "bio-ecology-ecosystem-lesson"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-ideas-02",
-        "phase4-bio-evolution-species-topic-02",
-        "phase4-mechanism-04",
-        "phase4-bio-evolution-adaptation-topic-02",
-        "phase4-bio-evolution-speciation-topic-02",
-        "phase4-bio-evolution-macro-02",
-        "phase4-bio-evolution-evidence-topic-02",
-        "phase4-bio-evolution-directions-topic-02",
-        "phase4-bio-evolution-origin-life-topic-02",
-        "phase4-bio-evolution-endosymbiosis-topic-02",
-        "phase4-bio-evolution-history-topic-02",
-        "phase4-bio-evolution-phylogeny-topic-02",
-        "phase4-bio-evolution-human-system-topic-02",
-        "phase4-bio-evolution-anthropogenesis-02",
-        "phase4-bio-evolution-human-factors-topic-02",
-        "phase4-bio-evolution-human-diversity-topic-02",
-        "phase5-eco-1-lesson-02",
-        "phase5-eco-2-lesson-05",
-        "phase5-eco-ecosystem-lesson-03",
-        "phase5-eco-succession-lesson-04",
-        "phase5-eco-agro-lesson-02",
-        "phase5-eco-4-lesson-02",
-        "phase5-eco-field-experiment-lesson-05"
+        "biology-2027-reviewed-v1-line18",
+        "biology-2027-reviewed-v2-line18",
+        "biology-2027-reviewed-v3-line18"
       ],
       "strategy": [
-        "Определите уровень экологической системы, выпишите ресурс или фактор и примените закон потока энергии либо динамики численности.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Проценты биомассы механически принимают за число организмов.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 19,
-      "title": "Общебиологические закономерности",
+      "title": "Эволюция и экология: соответствие",
       "part": 1,
-      "answerFormat": "установление соответствия",
-      "shortDescription": "Сопоставление понятий и процессов эволюции и экологии.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Эволюция и экология: соответствие. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-1-lesson",
-        "bio-evolution-species",
-        "bio-evolution-adaptation",
-        "bio-evolution-speciation",
-        "bio-evolution-3-lesson"
+        "bio-evolution-selection",
+        "bio-evolution-3-lesson",
+        "bio-ecology-nitrogen-lesson"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-ideas-04",
-        "phase4-bio-evolution-species-topic-04",
-        "phase4-bio-evolution-adaptation-topic-04",
-        "phase4-bio-evolution-speciation-topic-04",
-        "phase4-bio-evolution-macro-05",
-        "phase4-bio-evolution-evidence-topic-05",
-        "phase4-bio-evolution-directions-topic-04",
-        "phase4-bio-evolution-endosymbiosis-topic-05",
-        "phase4-bio-evolution-history-topic-05",
-        "phase4-bio-evolution-phylogeny-topic-05",
-        "phase4-bio-evolution-human-system-topic-05",
-        "phase4-bio-evolution-anthropogenesis-05",
-        "phase4-bio-evolution-human-factors-topic-04",
-        "phase5-eco-factors-lesson-01",
-        "phase5-eco-community-lesson-03",
-        "phase5-eco-food-web-lesson-01",
-        "phase5-eco-succession-lesson-05",
-        "phase5-eco-agro-lesson-03",
-        "phase5-eco-impact-lesson-01",
-        "phase5-eco-integration-lesson-03"
+        "biology-2027-reviewed-v2-line19",
+        "biology-2027-reviewed-v1-line19",
+        "biology-2027-reviewed-v3-line19"
       ],
       "strategy": [
-        "Для каждого примера установите уровень организации и механизм, прежде чем переносить номер в таблицу.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Сопоставляют по одному общему слову, игнорируя уровень организации.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 20,
-      "title": "Эволюция и экология: последовательность",
+      "title": "Заполнение биологической таблицы",
       "part": 1,
-      "answerFormat": "установление последовательности",
-      "shortDescription": "Порядок эволюционных и экологических событий.",
+      "answerFormat": "соответствие",
+      "shortDescription": "Заполнение биологической таблицы. Максимум: 2 балла.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-1-lesson",
-        "bio-evolution-species",
-        "bio-evolution-adaptation",
-        "bio-evolution-speciation",
-        "bio-evolution-3-lesson"
+        "bio-cell-1-lesson",
+        "bio-diversity-4-plant-physiology-lesson-2",
+        "bio-human-blood"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-ideas-05",
-        "phase4-bio-evolution-species-topic-05",
-        "phase4-bio-evolution-adaptation-topic-05",
-        "phase4-bio-evolution-speciation-topic-05",
-        "phase4-mechanism-09",
-        "phase4-mechanism-11",
-        "phase4-bio-evolution-directions-topic-05",
-        "phase4-mechanism-17",
-        "phase4-mechanism-20",
-        "phase4-bio-evolution-human-factors-topic-05",
-        "phase5-eco-population-data-lesson-05",
-        "phase5-eco-community-lesson-04",
-        "phase5-eco-food-web-lesson-02",
-        "phase5-eco-stability-lesson-03",
-        "phase5-eco-conservation-lesson-05",
-        "phase5-eco-integration-lesson-04"
+        "biology-2027-reviewed-v1-line20",
+        "biology-2027-reviewed-v3-line20",
+        "biology-2027-reviewed-v2-line20"
       ],
       "strategy": [
-        "Зафиксируйте исходное событие и располагайте следующие только по причинной или временной зависимости.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Рассмотрите каждый пункт отдельно. Один вариант справа может соответствовать нескольким пунктам.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Располагают события по масштабу, хотя требуется причинный или временной порядок.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 2
     },
     {
       "line": 21,
-      "title": "Анализ биологических данных",
+      "title": "Анализ экспериментальных данных",
       "part": 1,
-      "answerFormat": "работа с таблицей или графиком",
-      "shortDescription": "Извлечение вывода из таблицы, графика или результатов наблюдения.",
+      "answerFormat": "множественный выбор",
+      "shortDescription": "Анализ экспериментальных данных. Максимум: 1 балл.",
       "skills": [
         "распознать механику",
         "выбрать проверяемые признаки",
         "проверить формат ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-factors",
-        "bio-evolution-selection",
-        "bio-evolution-human-diversity",
-        "bio-science-2-lesson",
-        "bio-science-1-lesson",
-        "bio-science-3-lesson",
-        "bio-evolution-1-lesson",
-        "bio-evolution-species"
+        "bio-science-3-lesson"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-factors-topic-02",
-        "phase4-mechanism-02",
-        "phase4-bio-evolution-selection-topic-02",
-        "phase4-mechanism-01",
-        "phase4-bio-evolution-human-diversity-topic-03",
-        "phase4-mechanism-24"
+        "biology-2027-reviewed-v1-line21",
+        "biology-2027-reviewed-v2-line21",
+        "biology-2027-reviewed-v3-line21"
       ],
       "strategy": [
-        "Прочитайте подписи осей, единицы и легенду; сравнивайте значения при одинаковом условии и формулируйте только поддерживаемый данными вывод.",
-        "Сопоставьте каждый элемент условия с конкретным биологическим признаком; исключайте варианты только с объяснимым противоречием.",
-        "Запишите ответ строго в требуемом формате и перепроверьте порядок, число элементов и единицы."
+        "Выделите данные условия и проверяемую закономерность. Не добавляйте предположений, которых нет в условии.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Сравнивают точки с разными значениями независимой переменной или игнорируют единицы оси.",
-        "Потеря элемента или нарушение порядка при переносе ответа.",
-        "Выбор правдоподобного варианта без проверки по условию."
+        "Пропустить часть условия.",
+        "Перепутать порядковый номер и название объекта."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 1
     },
     {
       "line": 22,
-      "title": "Планирование эксперимента",
+      "title": "Эксперимент: постановка",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Гипотеза, переменные, контроль и вывод биологического эксперимента.",
+      "shortDescription": "Эксперимент: постановка. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-zoo-roundworms",
-        "bio-zoo-annelids",
-        "bio-diversity-5-animal-birds-lesson",
-        "bio-zoo-bird-respiration",
-        "bio-zoo-bird-reproduction",
-        "bio-evolution-factors",
-        "bio-evolution-selection",
-        "bio-evolution-origin-life"
+        "bio-exam-practice-1-lesson"
       ],
       "questionRefs": [
-        "phase2-bio-diversity-5-019",
-        "phase2-bio-diversity-5-087",
-        "phase4-bio-evolution-factors-topic-03",
-        "phase4-bio-evolution-selection-topic-03",
-        "phase4-mechanism-14",
-        "phase4-bio-evolution-origin-life-topic-03",
-        "phase5-eco-1-lesson-03",
-        "phase5-eco-factors-lesson-02",
-        "phase5-eco-population-structure-lesson-01",
-        "phase5-eco-community-lesson-05",
-        "phase5-eco-ecosystem-lesson-04",
-        "phase5-eco-food-web-lesson-03",
-        "phase5-eco-pyramids-lesson-02",
-        "phase5-eco-3-lesson-01",
-        "phase5-eco-stability-lesson-05",
-        "phase5-eco-agro-lesson-04",
-        "phase5-eco-4-lesson-03",
-        "phase5-eco-impact-lesson-02",
-        "phase5-eco-eutrophication-lesson-01",
-        "phase5-eco-integration-lesson-05",
-        "phase5-audit-bio-exam-practice-1-1",
-        "phase5-audit-bio-exam-practice-2-1",
-        "phase5-audit-bio-exam-practice-3-1",
-        "phase5-audit-bio-exam-practice-4-1"
+        "biology-2027-reviewed-v1-line22",
+        "biology-2027-reviewed-v2-line22",
+        "biology-2027-reviewed-v3-line22"
       ],
       "strategy": [
-        "Сформулируйте гипотезу, задайте независимую, зависимую и контролируемые переменные, укажите контроль и ожидаемый результат.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Не указывают, что прочие условия должны оставаться одинаковыми.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     },
     {
       "line": 23,
-      "title": "Работа с биологическим объектом",
+      "title": "Эксперимент: объяснение результатов",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Распознавание объекта или схемы и объяснение его признаков.",
+      "shortDescription": "Эксперимент: объяснение результатов. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-science-2-lesson",
-        "bio-science-3-lesson",
-        "bio-molecular-2-lesson",
-        "bio-molecular-4-lesson",
-        "bio-molecular-4-lesson-2",
-        "bio-molecular-4-lesson-3",
-        "bio-cell-2-lesson",
-        "bio-cell-2-lesson-2"
+        "bio-exam-practice-1-lesson"
       ],
       "questionRefs": [
-        "bio-exp-table-001",
-        "bio-final-experiment-catalase-001",
-        "bio-final-experiment-catalase-002",
-        "bio-final-experiment-osmosis-001",
-        "bio-final-data-table-001",
-        "bio-final-data-graph-001",
-        "bio-final-data-prediction-001",
-        "bio-60-002",
-        "bio-60-005",
-        "bio-60-008",
-        "bio-60-011",
-        "bio-60-014",
-        "bio-80-002",
-        "bio-80-005",
-        "bio-80-008",
-        "bio-80-011",
-        "bio-80-014",
-        "bio-100-002",
-        "bio-100-005",
-        "bio-100-008",
-        "bio-100-011",
-        "bio-100-014",
-        "phase1-bio-reproduction-2-02",
-        "phase1-bio-reproduction-2-05",
-        "phase1-bio-genetics-4-02",
-        "phase1-bio-genetics-4-05",
-        "phase1-bio-genetics-4-08",
-        "phase2-bio-diversity-2-002",
-        "phase2-bio-diversity-2-005",
-        "phase2-bio-diversity-2-008",
-        "phase2-bio-diversity-2-011",
-        "phase2-bio-diversity-2-014",
-        "phase2-bio-diversity-4-005",
-        "phase2-bio-diversity-4-017",
-        "phase2-bio-diversity-4-074",
-        "phase2-bio-diversity-4-077",
-        "phase2-bio-diversity-4-008",
-        "phase2-bio-diversity-4-011",
-        "phase2-bio-diversity-4-014",
-        "phase2-bio-diversity-4-071",
-        "phase2-bio-diversity-4-002",
-        "phase2-bio-diversity-4-080",
-        "phase2-bio-diversity-4-023",
-        "phase2-bio-diversity-4-026",
-        "phase2-bio-diversity-4-029",
-        "phase2-bio-diversity-4-059",
-        "phase2-bio-diversity-4-062",
-        "phase2-bio-diversity-4-065",
-        "phase2-bio-diversity-4-032",
-        "phase2-bio-diversity-4-050",
-        "phase2-bio-diversity-4-053",
-        "phase2-bio-diversity-4-035",
-        "phase2-bio-diversity-4-056",
-        "phase2-bio-diversity-4-068",
-        "phase2-bio-diversity-4-020",
-        "phase2-bio-diversity-4-038",
-        "phase2-bio-diversity-4-041",
-        "phase2-bio-diversity-4-047",
-        "phase2-bio-diversity-4-044",
-        "phase2-bio-diversity-5-025",
-        "phase2-bio-diversity-5-072",
-        "phase3-human-001-d",
-        "phase3-human-002-d",
-        "phase3-human-003-d",
-        "phase3-human-004-d",
-        "phase3-human-005-d",
-        "phase3-human-006-d",
-        "phase3-human-007-d",
-        "phase3-human-008-d",
-        "phase3-human-009-d",
-        "phase3-human-010-d",
-        "phase3-human-011-d",
-        "phase3-human-012-d",
-        "phase3-human-013-d",
-        "phase3-human-014-d",
-        "phase3-human-015-d",
-        "phase3-human-016-d",
-        "phase3-human-017-d",
-        "phase3-human-018-d",
-        "phase3-human-019-d",
-        "phase3-human-020-d",
-        "phase3-human-021-d",
-        "phase3-human-022-d",
-        "phase3-human-023-d",
-        "phase3-human-024-d",
-        "phase3-human-025-d",
-        "phase3-human-026-d",
-        "phase3-human-027-d",
-        "phase3-human-028-d",
-        "phase3-human-029-d",
-        "phase3-human-030-d",
-        "phase3-human-031-d",
-        "phase3-human-032-d",
-        "phase3-human-033-d",
-        "phase3-human-034-d",
-        "phase3-human-035-d",
-        "phase3-human-036-d",
-        "phase3-human-037-d",
-        "phase3-human-038-d",
-        "phase3-human-039-d",
-        "phase3-human-040-d",
-        "phase3-human-041-d",
-        "phase3-human-042-d",
-        "phase3-human-043-d",
-        "phase3-human-044-d",
-        "phase3-human-045-d",
-        "phase3-human-046-d",
-        "phase3-human-047-d",
-        "phase3-human-048-d",
-        "phase3-human-049-d",
-        "phase3-human-050-d",
-        "phase3-human-051-d",
-        "phase3-human-052-d",
-        "phase3-human-053-d",
-        "phase3-human-054-d",
-        "phase3-human-055-d",
-        "phase3-human-056-d",
-        "phase3-human-057-d",
-        "phase3-human-058-d",
-        "phase3-human-059-d",
-        "phase3-human-060-d",
-        "phase3-human-061-d",
-        "phase3-human-062-d",
-        "phase3-human-063-d",
-        "phase4-bio-evolution-factors-topic-04",
-        "phase4-mechanism-03",
-        "phase4-bio-evolution-selection-topic-04",
-        "phase4-bio-evolution-origin-life-topic-04",
-        "phase4-mechanism-15",
-        "phase4-bio-evolution-human-diversity-topic-04",
-        "phase5-eco-1-lesson-04",
-        "phase5-eco-factors-lesson-03",
-        "phase5-eco-population-structure-lesson-02",
-        "phase5-eco-population-data-lesson-01",
-        "phase5-eco-ecosystem-lesson-05",
-        "phase5-eco-food-web-lesson-04",
-        "phase5-eco-pyramids-lesson-03",
-        "phase5-eco-3-lesson-02",
-        "phase5-eco-nitrogen-lesson-01",
-        "phase5-eco-agro-lesson-05",
-        "phase5-eco-4-lesson-04",
-        "phase5-eco-impact-lesson-03",
-        "phase5-eco-eutrophication-lesson-02",
-        "phase5-eco-conservation-lesson-01",
-        "phase5-audit-bio-exam-practice-1-2",
-        "phase5-audit-bio-exam-practice-2-2",
-        "phase5-audit-bio-exam-practice-3-2",
-        "phase5-audit-bio-exam-practice-4-2"
+        "biology-2027-reviewed-v1-line23",
+        "biology-2027-reviewed-v2-line23",
+        "biology-2027-reviewed-v3-line23"
       ],
       "strategy": [
-        "Назовите объект по диагностическим деталям изображения, подпишите элементы и объясните связь строения с функцией.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Называют объект, но не объясняют функцию отмеченной детали.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     },
     {
       "line": 24,
-      "title": "Анализ биологического текста",
+      "title": "Объяснение объекта на рисунке",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Поиск ошибок или пропусков и их биологическое исправление.",
+      "shortDescription": "Объяснение объекта на рисунке. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-science-2-lesson",
-        "bio-science-3-lesson",
-        "bio-molecular-2-lesson",
-        "bio-molecular-4-lesson",
-        "bio-molecular-4-lesson-2",
-        "bio-molecular-4-lesson-3",
-        "bio-cell-2-lesson",
-        "bio-cell-2-lesson-2"
+        "bio-cell-1-lesson",
+        "bio-diversity-4-plant-root-lesson-3",
+        "bio-human-nephron"
       ],
       "questionRefs": [
-        "bio-final-experiment-correlation-001",
-        "bio-final-data-graph-002",
-        "bio-final-data-method-error-001",
-        "bio-60-003",
-        "bio-60-006",
-        "bio-60-009",
-        "bio-60-012",
-        "bio-60-015",
-        "bio-80-003",
-        "bio-80-006",
-        "bio-80-009",
-        "bio-80-012",
-        "bio-80-015",
-        "bio-100-003",
-        "bio-100-006",
-        "bio-100-009",
-        "bio-100-012",
-        "bio-100-015",
-        "phase1-bio-reproduction-2-03",
-        "phase1-bio-reproduction-2-06",
-        "phase1-bio-genetics-2-03",
-        "phase1-bio-genetics-2-06",
-        "phase1-bio-genetics-4-03",
-        "phase2-bio-diversity-2-003",
-        "phase2-bio-diversity-2-006",
-        "phase2-bio-diversity-2-009",
-        "phase2-bio-diversity-2-012",
-        "phase2-bio-diversity-4-003",
-        "phase2-bio-diversity-4-009",
-        "phase2-bio-diversity-4-063",
-        "phase2-bio-diversity-4-075",
-        "phase2-bio-diversity-4-078",
-        "phase2-bio-diversity-4-072",
-        "phase2-bio-diversity-4-012",
-        "phase2-bio-diversity-4-015",
-        "phase2-bio-diversity-4-048",
-        "phase2-bio-diversity-4-018",
-        "phase2-bio-diversity-4-027",
-        "phase2-bio-diversity-4-066",
-        "phase2-bio-diversity-4-030",
-        "phase2-bio-diversity-4-024",
-        "phase2-bio-diversity-4-033",
-        "phase2-bio-diversity-4-045",
-        "phase2-bio-diversity-4-051",
-        "phase2-bio-diversity-4-054",
-        "phase2-bio-diversity-4-057",
-        "phase2-bio-diversity-4-060",
-        "phase2-bio-diversity-4-021",
-        "phase2-bio-diversity-4-039",
-        "phase2-bio-diversity-4-042",
-        "phase2-bio-diversity-4-036",
-        "phase2-bio-diversity-4-069",
-        "phase2-bio-diversity-4-006",
-        "phase3-human-036-e",
-        "phase3-human-037-e",
-        "phase3-human-038-e",
-        "phase3-human-039-e",
-        "phase3-human-040-e",
-        "phase3-human-041-e",
-        "phase3-human-042-e",
-        "phase3-human-043-e",
-        "phase3-human-044-e",
-        "phase3-human-045-e",
-        "phase3-human-046-e",
-        "phase3-human-047-e",
-        "phase3-human-048-e",
-        "phase3-human-049-e",
-        "phase3-human-050-e",
-        "phase3-human-051-e",
-        "phase3-human-052-e",
-        "phase3-human-053-e",
-        "phase3-human-054-e",
-        "phase3-human-055-e",
-        "phase3-human-056-e",
-        "phase3-human-057-e",
-        "phase3-human-058-e",
-        "phase3-human-059-e",
-        "phase3-human-060-e",
-        "phase3-human-061-e",
-        "phase3-human-062-e",
-        "phase3-human-063-e",
-        "phase4-bio-evolution-macro-03",
-        "phase4-bio-evolution-evidence-topic-03",
-        "phase4-mechanism-13",
-        "phase4-bio-evolution-endosymbiosis-topic-03",
-        "phase4-bio-evolution-history-topic-03",
-        "phase4-bio-evolution-phylogeny-topic-03",
-        "phase4-bio-evolution-human-system-topic-03",
-        "phase4-bio-evolution-anthropogenesis-03",
-        "phase4-mechanism-22",
-        "phase5-eco-1-lesson-05",
-        "phase5-eco-factors-lesson-04",
-        "phase5-eco-population-structure-lesson-03",
-        "phase5-eco-population-data-lesson-02",
-        "phase5-eco-2-lesson-01",
-        "phase5-eco-food-web-lesson-05",
-        "phase5-eco-pyramids-lesson-04",
-        "phase5-eco-3-lesson-03",
-        "phase5-eco-nitrogen-lesson-02",
-        "phase5-eco-succession-lesson-01",
-        "phase5-eco-4-lesson-05",
-        "phase5-eco-impact-lesson-04",
-        "phase5-eco-eutrophication-lesson-03",
-        "phase5-eco-conservation-lesson-02",
-        "phase5-eco-field-experiment-lesson-01",
-        "phase5-audit-bio-exam-practice-1-3",
-        "phase5-audit-bio-exam-practice-2-3",
-        "phase5-audit-bio-exam-practice-3-3",
-        "phase5-audit-bio-exam-practice-4-3"
+        "biology-2027-reviewed-v1-line24",
+        "biology-2027-reviewed-v2-line24",
+        "biology-2027-reviewed-v3-line24"
       ],
       "strategy": [
-        "Проверяйте каждое предложение текста отдельно: найдите биологически неверный элемент, исправьте его и обоснуйте замену.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Исправляют стиль фразы вместо биологической ошибки.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     },
     {
       "line": 25,
-      "title": "Обобщение и применение знаний",
+      "title": "Человек и многообразие: применение",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Объяснение механизма процесса с причинно-следственными связями.",
+      "shortDescription": "Человек и многообразие: применение. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-genetics-3-lesson",
-        "bio-genetics-4-lesson",
-        "bio-genetics-4-lesson-2",
-        "bio-genetics-4-lesson-3",
-        "bio-genetics-4-lesson-4",
-        "bio-genetics-4-lesson-5",
-        "bio-genetics-4-lesson-6",
-        "bio-zoo-foundations"
+        "bio-zoo-bird-respiration",
+        "bio-human-heart",
+        "bio-human-absorption"
       ],
       "questionRefs": [
-        "bio-final-genetics-norm-001",
-        "bio-final-genetics-polyploidy-001",
-        "phase2-bio-diversity-5-006",
-        "phase2-bio-diversity-5-011",
-        "phase2-bio-diversity-5-016",
-        "phase2-bio-diversity-5-022",
-        "phase2-bio-diversity-5-028",
-        "phase2-bio-diversity-5-034",
-        "phase2-bio-diversity-5-081",
-        "phase2-bio-diversity-5-048",
-        "phase2-bio-diversity-5-082",
-        "phase2-bio-diversity-5-058",
-        "phase2-bio-diversity-5-061",
-        "phase2-bio-diversity-5-068",
-        "phase2-bio-diversity-5-037",
-        "phase2-bio-diversity-5-075",
-        "phase2-bio-diversity-5-088",
-        "zoo-2027-096",
-        "zoo-2027-102",
-        "zoo-2027-108",
-        "phase3-human-001-e",
-        "phase3-human-002-e",
-        "phase3-human-003-e",
-        "phase3-human-004-e",
-        "phase3-human-005-e",
-        "phase3-human-006-e",
-        "phase3-human-007-e",
-        "phase3-human-008-e",
-        "phase3-human-009-e",
-        "phase3-human-010-e",
-        "phase3-human-011-e",
-        "phase3-human-012-e",
-        "phase3-human-013-e",
-        "phase3-human-014-e",
-        "phase3-human-015-e",
-        "phase3-human-016-e",
-        "phase3-human-017-e",
-        "phase3-human-018-e",
-        "phase3-human-019-e",
-        "phase3-human-020-e",
-        "phase3-human-021-e",
-        "phase3-human-022-e",
-        "phase3-human-023-e",
-        "phase3-human-024-e",
-        "phase3-human-025-e",
-        "phase3-human-026-e",
-        "phase3-human-027-e",
-        "phase3-human-028-e",
-        "phase3-human-029-e",
-        "phase3-human-030-e",
-        "phase3-human-031-e",
-        "phase3-human-032-e",
-        "phase3-human-033-e",
-        "phase3-human-034-e",
-        "phase3-human-035-e",
-        "phase5-eco-factors-lesson-05",
-        "phase5-eco-population-structure-lesson-04",
-        "phase5-eco-population-data-lesson-03",
-        "phase5-eco-2-lesson-02",
-        "phase5-eco-community-lesson-01",
-        "phase5-eco-pyramids-lesson-05",
-        "phase5-eco-3-lesson-04",
-        "phase5-eco-nitrogen-lesson-03",
-        "phase5-eco-succession-lesson-02",
-        "phase5-eco-stability-lesson-01",
-        "phase5-eco-impact-lesson-05",
-        "phase5-eco-eutrophication-lesson-04",
-        "phase5-eco-conservation-lesson-03",
-        "phase5-eco-field-experiment-lesson-02",
-        "phase5-eco-integration-lesson-01"
+        "biology-2027-reviewed-v3-line25",
+        "biology-2027-reviewed-v1-line25",
+        "biology-2027-reviewed-v2-line25"
       ],
       "strategy": [
-        "Разделите вопрос на требования и для каждого постройте цепочку от условия через механизм к наблюдаемому следствию.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Перечисляют верные факты без связи с данными конкретного условия.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     },
     {
       "line": 26,
-      "title": "Эволюционная и экологическая задача",
+      "title": "Общая биология: причинное объяснение",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Применение закономерностей эволюции и экологии в новой ситуации.",
+      "shortDescription": "Общая биология: причинное объяснение. Максимум: 4 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-evolution-1-lesson",
-        "bio-evolution-species",
         "bio-evolution-factors",
         "bio-evolution-selection",
-        "bio-evolution-adaptation",
-        "bio-evolution-speciation",
-        "bio-evolution-3-lesson",
-        "bio-evolution-evidence"
+        "bio-ecology-eutrophication-lesson"
       ],
       "questionRefs": [
-        "phase4-bio-evolution-ideas-03",
-        "phase4-bio-evolution-species-topic-03",
-        "phase4-bio-evolution-factors-topic-05",
-        "phase4-bio-evolution-selection-topic-05",
-        "phase4-bio-evolution-adaptation-topic-03",
-        "phase4-mechanism-06",
-        "phase4-mechanism-08",
-        "phase4-bio-evolution-speciation-topic-03",
-        "phase4-bio-evolution-macro-04",
-        "phase4-mechanism-10",
-        "phase4-bio-evolution-evidence-topic-04",
-        "phase4-bio-evolution-directions-topic-03",
-        "phase4-bio-evolution-origin-life-topic-05",
-        "phase4-bio-evolution-endosymbiosis-topic-04",
-        "phase4-mechanism-16",
-        "phase4-bio-evolution-history-topic-04",
-        "phase4-mechanism-19",
-        "phase4-bio-evolution-phylogeny-topic-04",
-        "phase4-mechanism-18",
-        "phase4-bio-evolution-human-system-topic-04",
-        "phase4-mechanism-21",
-        "phase4-bio-evolution-anthropogenesis-04",
-        "phase4-bio-evolution-human-factors-topic-03",
-        "phase4-bio-evolution-human-diversity-topic-05",
-        "phase4-mechanism-25",
-        "phase5-eco-population-structure-lesson-05",
-        "phase5-eco-population-data-lesson-04",
-        "phase5-eco-2-lesson-03",
-        "phase5-eco-community-lesson-02",
-        "phase5-eco-ecosystem-lesson-01",
-        "phase5-eco-3-lesson-05",
-        "phase5-eco-nitrogen-lesson-04",
-        "phase5-eco-succession-lesson-03",
-        "phase5-eco-stability-lesson-02",
-        "phase5-eco-agro-lesson-01",
-        "phase5-eco-eutrophication-lesson-05",
-        "phase5-eco-conservation-lesson-04",
-        "phase5-eco-field-experiment-lesson-03",
-        "phase5-eco-integration-lesson-02"
+        "biology-2027-reviewed-v3-line26",
+        "biology-2027-reviewed-v2-line26",
+        "biology-2027-reviewed-v1-line26"
       ],
       "strategy": [
-        "Назовите эволюционный или экологический фактор, покажите изменение на уровне популяции и доведите цепочку до результата.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Описывают изменение особи вместо изменения генофонда или экосистемы.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 4
     },
     {
       "line": 27,
-      "title": "Цитология: расчёт и объяснение",
+      "title": "Цитология и эволюция: задача",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Расчёт по молекулярным и клеточным процессам с обоснованием.",
+      "shortDescription": "Цитология и эволюция: задача. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-molecular-3-lesson",
-        "bio-molecular-3-lesson-2",
         "bio-molecular-3-lesson-3",
-        "bio-zoo-arthropod-plan",
-        "bio-zoo-crustaceans",
-        "bio-zoo-arachnids",
-        "bio-zoo-insects",
-        "bio-zoo-insect-development"
+        "bio-cell-3-lesson-2",
+        "bio-evolution-factors"
       ],
       "questionRefs": [
-        "bio-dna-calc-001",
-        "bio-70-004",
-        "bio-70-008",
-        "bio-70-012",
-        "phase2-bio-diversity-5-031",
-        "phase2-bio-diversity-5-078"
+        "biology-2027-reviewed-v2-line27",
+        "biology-2027-reviewed-v1-line27",
+        "biology-2027-reviewed-v3-line27"
       ],
       "strategy": [
-        "Запишите комплементарные цепи и направления 5′/3′ либо фазы цикла; каждую арифметическую операцию сопровождайте биологическим основанием.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Теряют направление цепи или применяют правило комплементарности к процентам без проверки суммы.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     },
     {
       "line": 28,
       "title": "Генетика: развёрнутая задача",
       "part": 2,
       "answerFormat": "развёрнутый ответ",
-      "shortDescription": "Запись схемы скрещивания, расчёт потомства и вывод.",
+      "shortDescription": "Генетика: развёрнутая задача. Максимум: 3 балла.",
       "skills": [
         "выделить смысловые элементы",
         "построить причинно-следственную цепочку",
         "проверить полноту ответа"
       ],
       "lessonRefs": [
-        "bio-reproduction-1-lesson",
-        "bio-reproduction-2-lesson",
-        "bio-reproduction-2-lesson-2",
-        "bio-reproduction-3-lesson",
-        "bio-reproduction-3-lesson-2",
-        "bio-genetics-1-lesson",
         "bio-genetics-1-lesson-2",
-        "bio-genetics-1-lesson-3"
+        "bio-genetics-2-lesson",
+        "bio-genetics-2-lesson-2"
       ],
       "questionRefs": [
-        "phase1-bio-reproduction-1-04",
-        "phase1-bio-reproduction-2-08",
-        "phase1-bio-reproduction-3-07",
-        "phase1-bio-genetics-1-01",
-        "phase1-bio-genetics-1-03",
-        "phase1-bio-genetics-1-05",
-        "phase1-bio-genetics-1-06",
-        "phase1-bio-genetics-1-08",
-        "bio-final-genetics-codominance-001",
-        "bio-final-genetics-testcross-001",
-        "bio-final-genetics-dihybrid-001",
-        "phase1-bio-genetics-2-02",
-        "phase1-bio-genetics-2-05",
-        "phase1-bio-genetics-2-08",
-        "bio-final-genetics-xlinked-001",
-        "bio-final-genetics-linkage-001",
-        "bio-final-genetics-pedigree-001",
-        "phase1-bio-genetics-3-07",
-        "phase1-bio-genetics-4-06"
+        "biology-2027-reviewed-v1-line28",
+        "biology-2027-reviewed-v2-line28",
+        "biology-2027-reviewed-v3-line28"
       ],
       "strategy": [
-        "Введите обозначения аллелей, определите тип наследования, запишите P, G и F и объясните полученное расщепление.",
-        "Для каждого вывода запишите цепочку «причина → биологический механизм → следствие», используя данные условия.",
-        "Проверьте термины, полноту смысловых элементов и отсутствие взаимоисключающих утверждений."
+        "Выделите каждый вопрос условия и ответьте на него отдельным смысловым элементом.",
+        "Выполните все требования условия и проверьте обозначения, порядок и единицы."
       ],
       "commonTraps": [
-        "Записывают только численное расщепление без генотипов, гамет и объяснения.",
-        "Причина и следствие названы в обратном порядке.",
-        "Одна часть вопроса оставлена без отдельного смыслового элемента."
+        "Ответить только на часть вопросов условия.",
+        "Заменить причинное объяснение перечнем терминов."
       ],
-      "status": "verified"
+      "status": "review",
+      "maxScore": 3
     }
-  ]
+  ],
+  "sourceUrl": "https://fipi.ru/ege/demoversii-specifikacii-kodifikatory"
 }
