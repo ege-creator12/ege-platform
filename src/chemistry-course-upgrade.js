@@ -4,9 +4,10 @@ const {blocksFor}=require('../content/chemistry/theory');
 const curriculum=require('../content/chemistry/curriculum-v2');
 const organic=require('../content/chemistry/curriculum-organic-v2');
 const tail=require('../content/chemistry/curriculum-processes-calcs-v2');
+const depth=require('../content/chemistry/curriculum-depth-v2');
 const {importCourse}=require('./bootstrap');
 
-const VERSION='chemistry-2027-subject-course-v2-full-structure';
+const VERSION='chemistry-2027-subject-course-v2-depth-complete';
 const groups=[
  {slug:'chemistry-foundations',title:'Теоретические основы химии',description:'Строение вещества и атома, периодический закон, связь, химический язык и количество вещества.',lines:[1,2,3,4,5]},
  {slug:'chemistry-inorganic',title:'Неорганическая химия',description:'Классы веществ, электролиты, металлы, неметаллы, качественные реакции и цепочки.',lines:[6,7,8,9,24,30,31]},
@@ -29,15 +30,26 @@ function legacyLineTopic(line){
  };
 }
 
+function deepenSection(section){
+ return {
+  ...section,
+  topics:(section.topics||[]).map(topic=>({
+   ...topic,
+   lessons:[...(topic.lessons||[]),...(depth[topic.slug]||[])]
+  }))
+ };
+}
+
 function course(){
- const richSections=[...curriculum.sections,organic,...tail];
+ const rawSections=[...curriculum.sections,organic,...tail];
+ const richSections=rawSections.map(deepenSection);
  const expanded=new Map(richSections.map(section=>[section.slug,section]));
  return {
   subject:{
    slug:'chemistry',title:'Химия',
    description:'Полный курс химии для ЕГЭ: теория по предмету с нуля, все содержательные блоки ФИПИ, связи с 34 линиями, тренировки и пробники.',
    icon:'flask',examYear:2027,
-   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2'
+   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2 depth-complete'
   },
   sections:groups.map(section=>{
    const rich=expanded.get(section.slug);
