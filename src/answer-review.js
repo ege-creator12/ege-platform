@@ -20,7 +20,7 @@ function formatAnswerForReview(question, optionRows=[]) {
   const values=Array.isArray(expected)?expected:[expected];
   const type=question.question_type||question.type||'short_answer';
   const answerData=json(question.answer_data_json,{});
-  const content=answerData.content||json(question.content_json,{})||{};
+  const content=Object.keys(answerData.content||{}).length?answerData.content:json(question.content_json,{});
   const options=optionRows.length?optionRows:(Array.isArray(content.options)?content.options.map((label,index)=>({value:String(index),label})):[]);
   const textValues=values.map(String);
   let examAnswer=textValues.join(', '),items=[];
@@ -28,8 +28,9 @@ function formatAnswerForReview(question, optionRows=[]) {
   if (type==='matching') {
     const left=content.left, right=content.right;
     if (Array.isArray(left)&&Array.isArray(right)) {
-      items=left.map((leftLabel,index)=>`${leftLabel} → ${right[Number(textValues[index])]??textValues[index]}`);
-      examAnswer=numberedAnswer(textValues);
+      const indexes=textValues.map(value=>/^\d+-\d+$/.test(value)?value.split('-')[1]:value);
+      items=left.map((leftLabel,index)=>`${leftLabel} → ${right[Number(indexes[index])]??indexes[index]}`);
+      examAnswer=numberedAnswer(indexes);
     } else if (textValues.every(value=>/^\d+-\d+$/.test(value))) {
       items=textValues.map(value=>{
         const [leftIndex,rightIndex]=value.split('-').map(Number),combined=label(options,leftIndex);

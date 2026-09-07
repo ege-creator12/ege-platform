@@ -1,0 +1,50 @@
+/* Reading and touch controls share the same scale across course and practice. */
+html{scroll-padding-top:1.5rem}body{overflow-wrap:break-word}main{min-width:0}
+button,input,textarea,select{font:inherit}button,a,input,textarea,select{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.search-shortcut{margin-right:auto;border:0;border-radius:10px;background:var(--accent2);color:var(--accent);padding:10px 14px;min-height:44px}
+.mobile-nav button.active{color:var(--accent);background:var(--accent2);border-radius:10px;font-weight:800}
+.lesson-prose,.lesson-block{font-size:1rem;line-height:1.75}.lesson-block h3{font-size:1.1rem;margin:0 0 10px}
+.lesson-block li+li{margin-top:8px}.lesson-block p:last-child{margin-bottom:0}
+.lesson-answer{border-top:1px solid var(--line);margin-top:14px;padding-top:6px}.lesson-answer summary{cursor:pointer;font-weight:700;color:var(--accent);padding:12px 2px;min-height:44px}
+.lesson-toc{margin:20px 0;border:1px solid var(--line);border-radius:12px;padding:4px 14px}.lesson-toc summary{padding:12px 0;cursor:pointer;font-weight:700}
+.lesson-toc nav{display:grid;gap:5px;padding-bottom:10px}.lesson-toc button{border:0;background:none;color:var(--accent);text-align:left;min-height:44px;padding:10px 0;line-height:1.4}
+.lesson-content h2{scroll-margin-top:24px}.lesson-comparison{min-width:0;margin-block:8px}.lesson-comparison h3{font-size:1.1rem;margin:6px 0 12px}
+.lesson-table table{font-size:1rem;line-height:1.6}.lesson-table th{font-weight:700}.lesson-table th[scope=row]{min-width:8rem}.lesson-table td{min-width:11rem}
+.lesson-table:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.question-visual{margin:18px 0}.question-visual img{display:block;width:100%;max-height:480px;object-fit:contain}.question-visual figcaption{font-size:.875rem;color:var(--muted);margin-top:8px}
+.matching-controls{padding:0;margin:20px 0;border:0;min-width:0;display:grid;gap:12px}.matching-controls legend,.options legend{font-size:.875rem;color:var(--muted);padding:0 0 12px}
+.matching-controls label{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px}
+.matching-controls select{min-width:0;width:100%;min-height:48px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font-size:1rem}
+.options{border:0;padding:0;min-width:0}.option{min-height:48px;cursor:pointer;line-height:1.55}.option:has(input:checked){background:var(--accent2);border-color:var(--accent)}
+.option input{flex-shrink:0;accent-color:var(--accent);width:20px;height:20px}.sequence-options{padding-left:30px;line-height:1.65}.sequence-options li{padding:8px 0 8px 4px}
+.ordered-label{display:block;font-size:.9375rem;font-weight:700;margin:18px 0 8px}.answer-input{box-sizing:border-box;display:block;width:100%;min-height:52px;font-size:1rem;line-height:1.6;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px}textarea.answer-input{min-height:150px}
+.dark .lesson-block.deep_dive{background:#242036;color:var(--text)}.dark .lesson-table,.dark .lesson-block{color:var(--text)}
+.mock-help-box{overflow-wrap:anywhere}.mock-help-box p{white-space:pre-line;line-height:1.65}.return-flag{padding:10px 0;min-height:44px}.return-flag input{width:20px;height:20px;vertical-align:middle;margin-right:6px;accent-color:var(--accent)}
+.mock-review summary{gap:12px;min-height:44px}.mock-review summary span{flex-shrink:0;font-size:.875rem}.mock-review p{white-space:pre-line;line-height:1.65}
+@media(max-width:900px){
+  .app main{padding:16px 16px calc(100px + env(safe-area-inset-bottom))}.topbar{margin-bottom:20px;gap:8px}
+  .mobile-nav{padding:6px max(6px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));gap:3px}
+  .mobile-nav button{display:flex;flex-direction:column;justify-content:center;gap:0;text-align:center;flex:1;width:0;min-width:0;min-height:54px;padding:6px 2px;margin:0;font-size:12px;line-height:1.25}.mobile-nav span{margin-bottom:4px}
+  .grid3>section[style]{grid-column:auto!important}.icon-btn{min-width:44px;min-height:44px}.auth-box{padding:24px 18px}.auth-form{width:100%;max-width:420px}
+  input,textarea,select{font-size:16px}.btn,.back,.view-switch button{min-height:46px}.btn{white-space:normal;line-height:1.4}
+  #toast{left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:560px;margin:auto;font-size:14px;pointer-events:none}
+}
+@media(max-width:600px){
+  h1{font-size:1.75rem;line-height:1.25}.subtitle{font-size:.9375rem;line-height:1.65}.card{padding:18px}
+  .lesson{padding:18px 14px}.lesson-content{margin-top:24px;gap:12px}.lesson-prose{font-size:1rem}.lesson-block{padding:14px}.lesson-content table{display:table}.lesson-table{margin-inline:0;max-width:100%}
+  .section-card{min-height:0;padding:20px}.section-card h3{margin-top:20px}.section-action{padding-top:18px}.section-stats,.progress-label{font-size:.875rem}
+  .lesson-meta span{font-size:.8125rem;white-space:normal;line-height:1.5}.breadcrumbs{white-space:normal;align-items:flex-start;line-height:1.5}.breadcrumbs button,.breadcrumbs>span{font-size:.875rem}
+  .breadcrumbs>*:not(:last-child):not(:first-child){display:none}.breadcrumbs>*:nth-last-child(2){display:block}.breadcrumbs>*:last-child{overflow:visible}
+  .matching-controls label{grid-template-columns:1fr}.question-card{padding:18px 14px}.question-card h2{font-size:1.2rem;line-height:1.5}
+  .mock-head{flex-wrap:wrap;font-size:.875rem;gap:6px 12px}.mock-head .back{margin-right:auto}.mock-head b{width:100%;white-space:normal}.mock-head #save-state{font-size:.875rem}
+  .mock-palette{gap:8px;padding:12px 8px;scroll-padding:8px}.mock-palette button{flex-basis:44px;height:44px;font-size:1rem}
+  .mock-help-actions{display:grid!important;grid-template-columns:1fr 1fr}.mock-help-actions button:last-child{grid-column:1/-1}.mock-help-actions .btn{font-size:.875rem;padding:10px}
+  .mock-exam .actions{display:grid;grid-template-columns:1fr 1fr}.mock-exam #finish-exam{grid-column:1/-1}.mock-exam .actions .btn{font-size:.875rem;padding:12px 8px}
+  .mock-row{gap:12px;text-align:left;align-items:center;flex-wrap:wrap;font-size:.875rem}.mock-review details summary{flex-wrap:wrap}.mock-review summary span{flex-shrink:1}
+  .search-shortcut{font-size:.875rem;max-width:calc(100% - 104px)}.search-shortcut span{white-space:normal}.bio-search-form input{min-width:0;width:100%;font-size:1rem!important;background:var(--panel)!important}.bio-search-hit p{font-size:1rem}
+  .lesson .actions{display:grid;grid-template-columns:1fr}.lesson .actions .btn{width:100%}.theory-ref{flex-direction:column}.view-switch button{font-size:.875rem;padding:10px 8px}
+}
+
+.preserve-lines,.exam-answer{white-space:pre-line}.lesson-table{overflow-x:auto;overscroll-behavior-x:contain}.lesson-source{font-size:.875rem}.lesson-source a{color:var(--accent)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

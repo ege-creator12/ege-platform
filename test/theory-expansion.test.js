@@ -12,7 +12,7 @@ test('foundation expansion preserves valid course structure and lesson identitie
  assert.equal(validateCourse(course),true);
  assert.equal(lessons.length,203);
  assert.equal(new Set(lessons.map(l=>l.slug)).size,203);
- assert.equal(course.sections.flatMap(s=>s.topics.flatMap(t=>t.questions||[])).length,951);
+ assert.equal(course.sections.flatMap(s=>s.topics.flatMap(t=>t.questions||[])).length,1226);
 });
 test('expansion is idempotent, with every supplement before the summary',()=>{
  assert.deepEqual(expand(structuredClone(course)),course);

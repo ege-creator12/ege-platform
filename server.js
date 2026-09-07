@@ -5,12 +5,15 @@ const { randomBytes, scryptSync, timingSafeEqual } = require('node:crypto');
 const database = require('./src/db');
 const { coverageReport } = require('./src/coverage');
 const { formatAnswerForReview } = require('./src/answer-review');
+const { isCorrectAnswer,needsManualReview } = require('./src/question-answer');
+const { search: searchBiology } = require('./src/biology-search');
 const { createMockExamService } = require('./src/mock-exams');
 const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const { migrate, rows, row, run, healthcheck } = database;
 const mockExams=createMockExamService(database,biologyExamRegistry);
 
-const PORT=Number(process.env.PORT||3000), PUBLIC=join(__dirname,'public');
+const portArgument=process.argv.indexOf('--port');
+const PORT=Number(process.env.PORT||(portArgument>=0?process.argv[portArgument+1]:3000)), PUBLIC=join(__dirname,'public');
 const json=(res,status,data)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
 class HttpError extends Error { constructor(status,code,message){super(message);this.status=status;this.code=code} }
 const body=async req=>{let data='';for await(const chunk of req){data+=chunk;if(data.length>1e6)throw new HttpError(413,'PAYLOAD_TOO_LARGE','Слишком большой запрос');}try{return JSON.parse(data||'{}')}catch{throw new HttpError(400,'INVALID_JSON','Некорректный JSON')}};
@@ -81,22 +84,25 @@ async function sessionPayload(sessionId,userId){
  return {...session,questions};
 }
 const parseJsonArray=value=>{try{const parsed=typeof value==='string'?JSON.parse(value):value;return Array.isArray(parsed)?parsed:[]}catch{return []}};
-const publicQuestion=q=>({id:q.id,type:q.type,questionType:q.question_type||q.type,prompt:q.prompt,instruction:q.instruction,contentJson:q.content_json,mediaJson:q.media_json,difficulty:q.difficulty,points:q.points,maxScore:q.max_score,estimatedSeconds:q.estimated_seconds,topic:q.topic});
+const publicQuestion=q=>({id:q.id,type:q.type,questionType:q.question_type||q.type,manualReview:needsManualReview(q),prompt:q.prompt,instruction:q.instruction,contentJson:q.content_json,mediaJson:q.media_json,imageUrl:q.image_url,difficulty:q.difficulty,points:q.points,maxScore:q.max_score,estimatedSeconds:q.estimated_seconds,topic:q.topic});
 async function recordAnswer(userId,q,b,db=database,resolutionType='answered'){
  const {row,run}=db;
  const expected=JSON.parse(q.answer_json),given=resolutionType==='revealed'?[]:Array.isArray(b.answer)?b.answer.map(String):[String(b.answer??'')],norm=a=>a.map(x=>x.trim().toLowerCase());
- const correct=resolutionType==='answered'&&(q.type==='sequence'?JSON.stringify(norm(given))===JSON.stringify(norm(expected)):norm(given).sort().join('|')===norm(expected).sort().join('|'));
+ const manual=resolutionType==='answered'&&needsManualReview(q);
+ if(manual&&!['understood','repeat'].includes(b.selfAssessment))throw new HttpError(400,'SELF_REVIEW_REQUIRED','Сначала сверьте ответ с критериями и выберите результат самопроверки');
+ if(manual)resolutionType='self_assessed';
+ const correct=manual?b.selfAssessment==='understood':resolutionType==='answered'&&isCorrectAnswer(q,given);
  const previous=await row('SELECT review_stage FROM attempts WHERE user_id=? AND question_id=? ORDER BY id DESC LIMIT 1',userId,q.id),stage=correct?Math.min(5,(previous?.review_stage||0)+1):0,interval=[1,2,4,7,14,30][stage];
  const nextReviewAt=new Date(Date.now()+interval*86400000).toISOString();
  const reviewAnswer=formatAnswerForReview(q,await db.rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',q.id));
- const xp=resolutionType==='revealed'?0:correct?20:5,result={correct,expected,reviewAnswer,explanation:q.explanation,solutionSteps:parseJsonArray(q.solution_steps_json),maxScore:q.max_score||q.points||1,resolutionType,xp,nextReviewInDays:interval};
+ const xp=resolutionType==='revealed'?0:manual?(correct?5:0):correct?20:5,result={correct,expected,reviewAnswer,explanation:q.explanation,solutionSteps:parseJsonArray(q.solution_steps_json),maxScore:q.max_score||q.points||1,resolutionType,selfAssessment:manual?b.selfAssessment:null,xp,nextReviewInDays:interval};
  const attempt=await run("INSERT INTO attempts(user_id,question_id,answer_json,correct,duration_seconds,next_review_at,interval_days,review_stage,result_json) VALUES(?,?,?,?,?,?,?,?,?)",userId,q.id,JSON.stringify(given),correct,Math.max(0,Number(b.duration)||0),nextReviewAt,interval,stage,JSON.stringify(result));
  await run("INSERT INTO activity_days(user_id,day,solved) VALUES(?,CURRENT_DATE,1) ON CONFLICT(user_id,day) DO UPDATE SET solved=activity_days.solved+1",userId);await run('UPDATE users SET xp=xp+? WHERE id=?',xp,userId);
  const topicStats=await row('SELECT COUNT(*) n,AVG(correct)*100 score FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.topic_id=?',userId,q.topic_id),attemptCount=Number(topicStats.n),mastery=Math.min(100,Math.round(Number(topicStats.score)*Math.min(1,attemptCount/5)));
  await run("INSERT INTO topic_progress(user_id,topic_id,mastery) VALUES(?,?,?) ON CONFLICT(user_id,topic_id) DO UPDATE SET mastery=excluded.mastery,updated_at=CURRENT_TIMESTAMP",userId,q.topic_id,mastery);
  if(q.lesson_id) await run(`INSERT INTO lesson_progress(user_id,lesson_id,status,questions_solved,correct_answers,last_activity_at,last_opened_at)
    VALUES(?,?,'in_progress',1,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) ON CONFLICT(user_id,lesson_id) DO UPDATE SET
-   status=CASE WHEN lesson_progress.questions_solved+1>=5 THEN 'completed' ELSE 'in_progress' END,
+   status=CASE WHEN lesson_progress.status='completed' OR lesson_progress.questions_solved+1>=5 THEN 'completed' ELSE 'in_progress' END,
    questions_solved=lesson_progress.questions_solved+1,correct_answers=lesson_progress.correct_answers+excluded.correct_answers,
    last_activity_at=CURRENT_TIMESTAMP,last_opened_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN lesson_progress.questions_solved+1>=5 THEN CURRENT_TIMESTAMP ELSE lesson_progress.completed_at END`,userId,q.lesson_id,correct?1:0);
  return {...result,attemptId:Number(attempt.lastInsertRowid)};
@@ -113,6 +119,14 @@ async function api(req,res,path){
   if(path==='/api/logout'&&req.method==='POST'){const token=(req.headers.cookie||'').match(/session=([^;]+)/)?.[1];if(token)await run('DELETE FROM sessions WHERE token=?',token);res.setHeader('set-cookie','session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');return json(res,200,{ok:true})}
   if(path==='/api/me'){const u=await auth(req,res);if(u)return json(res,200,{user:safeUser(u),stats:await stats(u.id),examDate:process.env.EXAM_DATE||'2027-06-05'})}
   if(path==='/api/subjects'){const u=await auth(req,res);if(u)return json(res,200,{subjects:await rows('SELECT * FROM subjects WHERE published=1 ORDER BY position,id')})}
+  if(path==='/api/subjects/biology/search'&&req.method==='GET'){
+    const u=await auth(req,res);if(!u)return;
+    const query=new URL(req.url,'http://x').searchParams.get('q')||'';
+    if(query.trim().length<2||query.length>240)return json(res,400,{error:'Введите от 2 до 240 символов'});
+    const lessons=await rows("SELECT l.id,l.slug FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN subjects s ON s.id=t.subject_id WHERE s.slug='biology' AND l.published=1 AND t.published=1");
+    const ids=new Map(lessons.map(l=>[l.slug,Number(l.id)]));
+    return json(res,200,{hits:searchBiology(query).filter(hit=>ids.has(hit.lessonSlug)).map(hit=>({...hit,lessonId:ids.get(hit.lessonSlug)}))});
+  }
   if(path==='/api/subjects/biology/navigation'){const u=await auth(req,res);if(u)return json(res,200,await biologyNavigation(u.id))}
   if(path==='/api/subjects/biology/exam-lines'){const u=await auth(req,res);if(!u)return;const lines=[];for(const item of biologyExamRegistry.lines){const payload=await biologyExamLinePayload(item.line,u.id);lines.push({line:item.line,title:item.title,part:item.part,answerFormat:item.answerFormat,shortDescription:item.shortDescription,questionCount:payload.questionCount,progress:payload.progress})}return json(res,200,{examYear:biologyExamRegistry.examYear,sourceStatus:biologyExamRegistry.sourceStatus,lines})}
   if(path.startsWith('/api/subjects/biology/mock-exams')){const u=await auth(req,res);if(!u)return;return mockExams.handle(req,res,path,u,json,body)}
@@ -134,7 +148,7 @@ async function api(req,res,path){
    let ids=await questionPool(u.id,topicId,mode,target,examLine);if(!ids.length&&mode!=='adaptive')ids=await questionPool(u.id,topicId,'adaptive',target,examLine);
    if(!ids.length)return json(res,404,{error:'Для выбранной тренировки пока нет заданий'});
    const storedMode=mode==='errors'?'mistakes':['mixed','hard','infinite'].includes(mode)?'adaptive':mode;
-   const created=await run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',u.id,topicId||null,storedMode,target),sessionId=Number(created.lastInsertRowid);
+   const created=await run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',u.id,topicId||null,storedMode,Math.min(target,ids.length)),sessionId=Number(created.lastInsertRowid);
    for (const [position,id] of ids.entries()) await run('INSERT INTO training_session_questions(session_id,question_id,position) VALUES(?,?,?)',sessionId,id,position);
    return json(res,201,{session:await sessionPayload(sessionId,u.id)});
   }
@@ -146,6 +160,15 @@ async function api(req,res,path){
    if(!item){await run("UPDATE training_sessions SET status='completed',finished_at=CURRENT_TIMESTAMP WHERE id=?",id);return json(res,200,{done:true,session:await sessionPayload(id,u.id)})}
    await run("UPDATE training_session_questions SET presented_at=COALESCE(presented_at,CURRENT_TIMESTAMP) WHERE session_id=? AND position=?",id,item.position);
    return json(res,200,{session:{id,mode:session.mode,answeredCount:session.answered_count,targetQuestions:session.target_questions},question:publicQuestion(item),options:await rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',item.id)})
+  }
+  if(path.match(/^\/api\/training\/sessions\/\d+\/review$/)&&req.method==='POST'){
+   const u=await auth(req,res);if(!u)return;const id=numericId(path.split('/')[4]),b=await body(req),questionId=numericId(b.questionId);
+   if(!id||!questionId)return json(res,400,{error:'Некорректный идентификатор'});
+   const q=await row("SELECT q.* FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id JOIN questions q ON q.id=tsq.question_id WHERE s.id=? AND s.user_id=? AND s.status='active' AND tsq.state='pending' AND q.id=?",id,u.id,questionId);
+   if(!q)return json(res,404,{error:'Активное задание не найдено'});
+   if(!needsManualReview(q))return json(res,400,{error:'У задания есть автоматическая проверка'});
+   const metadata=typeof q.explanation_json==='string'?JSON.parse(q.explanation_json||'{}'):(q.explanation_json||{});
+   return json(res,200,{manualReview:true,reviewAnswer:formatAnswerForReview(q,await rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',q.id)),explanation:q.explanation,solutionSteps:parseJsonArray(q.solution_steps_json),scoringPoints:metadata.scoringPoints||[]});
   }
   if(path.match(/^\/api\/training\/sessions\/\d+\/answer$/)&&req.method==='POST'){
    const u=await auth(req,res);if(!u)return;const id=numericId(path.split('/')[4]),b=await body(req),questionId=numericId(b.questionId);if(!id||!questionId)return json(res,400,{error:'Некорректный идентификатор'});
