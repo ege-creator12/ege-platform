@@ -36,3 +36,14 @@ test('chemistry line list uses bulk statistics instead of 34 detailed payloads',
  assert.match(source,/GROUP BY q\.exam_line/);
  assert.doesNotMatch(source,/for\s*\(const info of registry\.lines\)\s*\{\s*const p=await chemistryLinePayload/);
 });
+
+test('chemistry search scans only published student-facing theory',()=>{
+ const source=readFileSync(join(root,'server-chemistry.js'),'utf8');
+ const start=source.indexOf('async function searchChemistry');
+ const end=source.indexOf('async function createChemistryTraining');
+ const searchSource=source.slice(start,end);
+ assert.match(searchSource,/t\.published=1/);
+ assert.match(searchSource,/s\.published=1/);
+ assert.match(searchSource,/slice\(0,8\)/,'search terms should be bounded');
+ assert.match(searchSource,/if\(!terms\.length\)return\[\]/,'empty search must exit before loading lesson blocks');
+});
