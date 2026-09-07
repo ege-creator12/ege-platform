@@ -1,0 +1,93 @@
+(() => {
+  const chemApi=async(path,opts={})=>{
+    const r=await fetch('/api'+path,{headers:{'content-type':'application/json'},...opts});
+    const text=await r.text();let d={};
+    try{d=text?JSON.parse(text):{}}catch{throw new Error('Сервер химии временно вернул некорректный ответ')}
+    if(!r.ok)throw new Error(d.error||`Ошибка ${r.status}`);
+    return d;
+  };
+
+  const style=document.createElement('style');
+  style.textContent=`.chem-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.chem-search-page{max-width:1000px;margin:0 auto}.chem-search-form{display:flex;gap:10px;margin:22px 0}.chem-search-form input{flex:1;min-height:52px;border:1px solid var(--line,#dfe4df);border-radius:14px;padding:0 16px;background:#fff;color:#111!important;caret-color:#111;font:inherit}.chem-search-results{display:grid;gap:12px}.chem-search-hit{padding:18px}.chem-search-hit p{line-height:1.65;white-space:pre-line}.chem-search-nav{display:flex!important;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;background:transparent;border-radius:10px;cursor:pointer;color:inherit;font:inherit;text-align:left}.chem-search-nav:hover,.chem-search-nav.active{background:rgba(23,106,75,.09)}.chem-line-score{font-size:13px;opacity:.72}.chem-extended-note{padding:14px 16px;border-radius:14px;background:rgba(23,106,75,.08);margin:14px 0}.chem-home-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}@media(max-width:900px){.chem-search-form{flex-direction:column}.chem-search-nav{display:none!important}.chem-actions .btn{flex:1}}`;
+  document.head.appendChild(style);
+
+  const chemCrumbs=items=>`<nav class="breadcrumbs" aria-label="Хлебные крошки"><button data-nav="chemistry">Химия</button>${items.map(x=>`<span aria-hidden="true">›</span><span>${esc(x)}</span>`).join('')}</nav>`;
+
+  function decorateChemistryShell(){
+    const nav=document.querySelector('.sidebar nav');
+    if(nav&&!nav.querySelector('[data-chem-search-nav]')){
+      const chemistry=nav.querySelector('[data-nav="chemistry"]');
+      if(chemistry){
+        const b=document.createElement('button');
+        b.type='button';b.dataset.chemSearchNav='1';b.className='chem-search-nav';
+        b.innerHTML='<span class="nav-icon">⌕</span>Поиск по химии';
+        b.onclick=()=>go('chemistry/search');
+        chemistry.insertAdjacentElement('afterend',b);
+      }
+    }
+    const searchButton=nav?.querySelector('[data-chem-search-nav]');
+    if(searchButton)searchButton.classList.toggle('active',state.route==='chemistry/search');
+    const top=document.querySelector('.search-shortcut');
+    if(top&&state.route.startsWith('chemistry')){
+      if(top.dataset.nav!=='chemistry/search')top.dataset.nav='chemistry/search';
+      const label=top.querySelector('span');
+      if(label&&label.textContent!=='Поиск по химии')label.textContent='Поиск по химии';
+    }
+  }
+
+  const baseSubject=subject;
+  subject=async function(slug){
+    if(slug!=='chemistry')return baseSubject(slug);
+    state.currentSubject='chemistry';loading();
+    try{
+      const d=await chemApi('/subjects/chemistry');
+      const sections=Array.isArray(d.sections)?d.sections:[];
+      app.innerHTML=shell(`<div class="course-page"><header><div class="eyebrow">Предмет · ЕГЭ-2027</div><h1>${esc(d.subject?.title||'Химия')}</h1><div class="subtitle">${esc(d.subject?.description||'Подготовка к ЕГЭ по химии.')}</div><div class="chem-home-meta"><span class="pill">${sections.length} разделов</span><span class="pill">34 линии</span><span class="pill">56 первичных баллов</span></div></header><div class="view-switch" aria-label="Режим навигации"><button class="active" aria-pressed="true">По темам</button><button data-nav="chemistry/lines">По заданиям ЕГЭ</button></div><div class="chem-actions"><button class="btn ghost" data-nav="chemistry/search">⌕ Поиск по химии</button></div><div class="section-head"><h2>Разделы курса</h2><span class="pill">${sections.length}</span></div><div class="topics">${sections.map((x,i)=>`<article class="card topic" data-section="${x.id}" tabindex="0" role="link"><div class="topic-num">${String(i+1).padStart(2,'0')}</div><h3>${esc(x.title)}</h3><p>${esc(x.description)}</p></article>`).join('')}</div></div>`);
+      bindShell();decorateChemistryShell();
+      document.querySelectorAll('[data-section]').forEach(card=>{card.onclick=()=>go('section/'+card.dataset.section);card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click()}}});
+    }catch(e){console.error('chemistry-home',e);notify(e.message);errorState(()=>subject('chemistry'));}
+  };
+
+  async function chemistryLines(){
+    loading();
+    try{
+      const d=await chemApi('/subjects/chemistry/exam-lines');
+      app.innerHTML=shell(`<div class="course-page">${chemCrumbs(['По заданиям ЕГЭ'])}<header><div class="eyebrow">${esc(d.sourceStatus)}</div><h1>Все 34 задания ЕГЭ по химии</h1><p class="subtitle">Для каждой линии: теория, алгоритм, ловушки, примеры и тренировка.</p></header><div class="view-switch"><button data-nav="chemistry">По темам</button><button class="active">По заданиям ЕГЭ</button></div><div class="exam-lines">${d.lines.map(x=>`<article class="card exam-line-card"><div class="line-card-head"><span class="line-number">${x.line}</span><span class="pill">Часть ${x.part}</span></div><h2>Задание ${x.line}. ${esc(x.title)}</h2><p>${esc(x.shortDescription)}</p><div class="section-stats"><span>${esc(x.answerFormat)}</span><span>${x.questionCount} заданий</span></div><div class="progress-label"><span>${x.progress.attempted?`Решено ${x.progress.attempted}, верно ${x.progress.correct}`:'Ещё не начато'}</span><b>${x.progress.accuracy}%</b></div>${pct(x.progress.accuracy)}<button class="btn" data-chem-line="${x.line}">${x.progress.attempted?'Продолжить':'Открыть'}</button></article>`).join('')}</div></div>`);
+      bindShell();decorateChemistryShell();
+      document.querySelectorAll('[data-chem-line]').forEach(x=>x.onclick=()=>go('chemistry/line/'+x.dataset.chemLine));
+    }catch(e){console.error('chemistry-lines',e);notify(e.message);errorState(chemistryLines);}
+  }
+
+  async function chemistryLine(number){
+    loading();
+    try{
+      const {line:x}=await chemApi('/subjects/chemistry/exam-lines/'+number),p=x.progress,choices=[5,10,20].filter(n=>n<=x.questionCount);
+      app.innerHTML=shell(`<div class="course-page line-detail">${chemCrumbs(['Задания ЕГЭ','Задание '+x.line])}<header class="level-hero"><div><div class="eyebrow">Часть ${x.part} · ${esc(x.answerFormat)}</div><h1>Задание ${x.line}. ${esc(x.title)}</h1><p class="subtitle">${esc(x.shortDescription)}</p></div><div class="hero-progress"><b>${p.accuracy}%</b><span>точность</span><small>${p.attempted} решено · ${p.correct} верно</small></div></header>${x.extended?`<div class="chem-extended-note"><b>Развёрнутая часть.</b> Ответ сверяется по смысловым критериям и отдельным баллам.</div>`:''}<section><h2>Что проверяют</h2><div class="card"><ul>${x.skills.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div></section><section><h2>Полная теория</h2><div class="theory-links">${x.lessons.map(l=>`<a class="card theory-ref" href="#lesson/${l.id}"><div><b>${esc(l.title)}</b><small>${esc(l.section_title)} · ${esc(l.topic_title)}</small></div><span>${l.progress?`${l.progress}%`:'Изучить'} →</span></a>`).join('')}</div></section><div class="line-columns"><section class="card"><h2>Алгоритм</h2><ol>${x.strategy.map(v=>`<li>${esc(v)}</li>`).join('')}</ol></section><section class="card traps"><h2>Типичные ошибки</h2><ul>${x.commonTraps.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></section></div><section><h2>Примеры из банка</h2><div class="example-grid">${x.examples.map((q,i)=>`<article class="card"><span class="pill">Пример ${i+1} · сложность ${q.difficulty}/3</span><h3>${esc(q.prompt)}</h3></article>`).join('')}</div></section><section class="practice-callout"><div><h2>Тренировка задания ${x.line}</h2><span>Только химия и только эта линия.</span></div><div class="actions">${choices.map(n=>`<button class="btn" data-chem-train="${x.line}" data-count="${n}">${n} заданий</button>`).join('')}<button class="btn ghost" data-chem-errors="${x.line}">Повторить ошибки</button></div></section></div>`);
+      bindShell();decorateChemistryShell();
+      document.querySelectorAll('[data-chem-train]').forEach(b=>b.onclick=()=>startChemTraining(+b.dataset.chemTrain,+b.dataset.count));
+      document.querySelector('[data-chem-errors]')?.addEventListener('click',e=>startChemTraining(+e.currentTarget.dataset.chemErrors,20,'mistakes'));
+    }catch(e){console.error('chemistry-line',e);notify(e.message);errorState(()=>chemistryLine(number));}
+  }
+
+  async function startChemTraining(examLine,targetQuestions,mode='adaptive'){
+    try{const d=await chemApi('/subjects/chemistry/training/sessions',{method:'POST',body:JSON.stringify({examLine,targetQuestions,mode})});sessionStorage.trainingSession=d.session.id;sessionStorage.trainingSubject='chemistry';go('training')}catch(e){notify(e.message)}
+  }
+
+  async function chemistrySearchPage(){
+    loading();
+    const initial=new URLSearchParams(location.hash.split('?')[1]||'').get('q')||'';
+    app.innerHTML=shell(`<div class="chem-search-page"><header><div class="eyebrow">Химия · поиск по теории</div><h1>Найти тему или ответ</h1><p class="subtitle">Ищет по урокам химии: формулам, реакциям, алгоритмам и ловушкам ЕГЭ.</p></header><form class="chem-search-form" id="chem-search-form"><input id="chem-search-input" maxlength="240" autocomplete="off" placeholder="Например: электролиз раствора CuSO4" value="${esc(initial)}"><button class="btn">Найти</button></form><div id="chem-search-results" class="chem-search-results"><div class="card empty">Введите термин, реакцию или вопрос.</div></div></div>`);
+    bindShell();decorateChemistryShell();
+    const form=document.querySelector('#chem-search-form'),input=document.querySelector('#chem-search-input'),out=document.querySelector('#chem-search-results');
+    const run=async()=>{const q=input.value.trim();if(q.length<2)return notify('Введите вопрос или термин');out.innerHTML='<div class="card">Ищу по химии…</div>';try{const d=await chemApi('/subjects/chemistry/search?q='+encodeURIComponent(q));out.innerHTML=d.hits.length?d.hits.map((h,i)=>`<article class="card chem-search-hit"><div class="eyebrow">${i===0?'Лучшее совпадение':esc(h.section)}</div><h2>${esc(h.title)}</h2><p>${esc(h.snippet||h.topic)}</p><button class="btn ${i?'ghost':''}" data-lesson="${h.lessonId}">Открыть урок →</button></article>`).join(''):'<div class="card empty">Совпадений нет. Попробуйте ключевые слова.</div>';out.querySelectorAll('[data-lesson]').forEach(x=>x.onclick=()=>go('lesson/'+x.dataset.lesson));}catch(e){console.error('chemistry-search',e);out.innerHTML=`<div class="card empty">${esc(e.message)}</div>`}};
+    form.onsubmit=e=>{e.preventDefault();run()};if(initial)run();if(innerWidth>900)input.focus();
+  }
+
+  const baseRender=render;
+  render=async function(){
+    if(state.user&&state.route==='chemistry/lines')return chemistryLines();
+    if(state.user&&state.route.startsWith('chemistry/line/'))return chemistryLine(Number(state.route.split('/')[2]));
+    if(state.user&&state.route.startsWith('chemistry/search'))return chemistrySearchPage();
+    return baseRender();
+  };
+})();
