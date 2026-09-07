@@ -5,9 +5,10 @@ const curriculum=require('../content/chemistry/curriculum-v2');
 const organic=require('../content/chemistry/curriculum-organic-v2');
 const tail=require('../content/chemistry/curriculum-processes-calcs-v2');
 const depth=require('../content/chemistry/curriculum-depth-v2');
+const mastery=require('../content/chemistry/curriculum-mastery-v2');
 const {importCourse}=require('./bootstrap');
 
-const VERSION='chemistry-2027-subject-course-v2-depth-complete';
+const VERSION='chemistry-2027-subject-course-v2-mastery-complete';
 const groups=[
  {slug:'chemistry-foundations',title:'Теоретические основы химии',description:'Строение вещества и атома, периодический закон, связь, химический язык и количество вещества.',lines:[1,2,3,4,5]},
  {slug:'chemistry-inorganic',title:'Неорганическая химия',description:'Классы веществ, электролиты, металлы, неметаллы, качественные реакции и цепочки.',lines:[6,7,8,9,24,30,31]},
@@ -40,16 +41,23 @@ function deepenSection(section){
  };
 }
 
+function expandSection(section,masteryBySection){
+ const deepened=deepenSection(section);
+ const extra=masteryBySection.get(section.slug);
+ return {...deepened,topics:[...(deepened.topics||[]),...(extra?.topics||[])]};
+}
+
 function course(){
  const rawSections=[...curriculum.sections,organic,...tail];
- const richSections=rawSections.map(deepenSection);
+ const masteryBySection=new Map(mastery.map(section=>[section.slug,section]));
+ const richSections=rawSections.map(section=>expandSection(section,masteryBySection));
  const expanded=new Map(richSections.map(section=>[section.slug,section]));
  return {
   subject:{
    slug:'chemistry',title:'Химия',
    description:'Полный курс химии для ЕГЭ: теория по предмету с нуля, все содержательные блоки ФИПИ, связи с 34 линиями, тренировки и пробники.',
    icon:'flask',examYear:2027,
-   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2 depth-complete'
+   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2 mastery-complete'
   },
   sections:groups.map(section=>{
    const rich=expanded.get(section.slug);
@@ -67,9 +75,9 @@ async function ensureChemistryCourse(db){
  if(!subject)throw new Error('Chemistry subject missing after v2 upgrade');
  await db.run("UPDATE sections SET published=FALSE WHERE subject_id=? AND slug LIKE 'chemistry-section-%'",subject.id);
 
- // All six theory sections now use subject-based topics. Stable line lessons stay
- // published behind hidden topics solely for generated question-bank compatibility,
- // old progress records and direct exam-line training.
+ // Subject topics are the visible theory course. Legacy line topics remain hidden
+ // but their lessons stay available as stable anchors for generated questions,
+ // historic progress and direct exam-line training.
  for(let line=1;line<=34;line++){
   const slug=`chemistry-line-${String(line).padStart(2,'0')}`;
   await db.run('UPDATE topics SET published=FALSE WHERE subject_id=? AND slug=?',subject.id,slug);
