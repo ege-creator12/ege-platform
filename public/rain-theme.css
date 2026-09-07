@@ -20,5 +20,7 @@ main{position:relative;background:linear-gradient(to bottom,rgba(3,8,5,.16),rgba
 .continue{background:linear-gradient(145deg,rgba(44,95,69,.92),rgba(29,69,50,.94));color:#fff}
 .continue .btn{background:rgba(245,250,247,.94);color:#1d573e}
 .btn{box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.bio-search-form input{color:#111!important;caret-color:#111}
+.bio-search-form input::placeholder{color:#6b7280!important;opacity:1}
 @media(max-width:900px){body{background-attachment:scroll;background-position:center top}main{background:linear-gradient(to bottom,rgba(3,8,5,.2),rgba(3,8,5,.34));border-radius:0}.auth-box{background:rgba(5,11,8,.48);min-height:100vh;border-radius:0}.card,.section-card,.level-hero{background:rgba(12,21,16,.91)}}
 @media(max-width:540px){body{background-image:linear-gradient(rgba(3,9,6,.72),rgba(3,9,6,.84)),url('https://images.unsplash.com/photo-1704494941230-ddd0175eb3fd?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=78&w=1400');background-position:52% top}.card,.section-card,.level-hero,.question-card{box-shadow:0 12px 34px rgba(0,0,0,.25)}main{padding-left:14px;padding-right:14px}}
