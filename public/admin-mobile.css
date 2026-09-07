@@ -1,0 +1,1 @@
+@media(max-width:900px){.mobile-nav.admin-enabled{gap:0}.mobile-nav.admin-enabled button{flex:1 1 0;min-width:0;padding:7px 2px;font-size:10px;line-height:1.1}.mobile-nav.admin-enabled button span{font-size:17px;margin-bottom:2px}.mobile-nav.admin-enabled [data-mobile-admin].active{color:var(--accent)}}@media(max-width:390px){.mobile-nav.admin-enabled button{font-size:9px}}
