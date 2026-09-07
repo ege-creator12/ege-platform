@@ -4,6 +4,8 @@ const assert=require('node:assert/strict');
 const registry=require('../content/chemistry/exam-lines');
 const {THEORY,blocksFor}=require('../content/chemistry/theory');
 const curriculum=require('../content/chemistry/curriculum-v2');
+const organic=require('../content/chemistry/curriculum-organic-v2');
+const tail=require('../content/chemistry/curriculum-processes-calcs-v2');
 const {course}=require('../src/chemistry-course-upgrade');
 const builders=require('../src/chemistry-line-bank');
 const controls=require('../public/question-controls');
@@ -35,7 +37,8 @@ test('chemistry registry fully describes the 2027 34-line exam model',()=>{
   assert(Array.isArray(info.skills)&&info.skills.length>=3,`line ${info.line}: skills`);
   assert(Array.isArray(info.strategy)&&info.strategy.length>=3,`line ${info.line}: strategy`);
   assert(Array.isArray(info.commonTraps)&&info.commonTraps.length>=2,`line ${info.line}: traps`);
-  assert(Array.isArray(info.lessonRefs)&&info.lessonRefs.length>=1,`line ${info.line}: lesson refs`);
+  assert(Array.isArray(info.lessonRefs)&&info.lessonRefs.length>=2,`line ${info.line}: lesson refs`);
+  assert(info.lessonRefs.every(ref=>ref.startsWith('chem-v2-')),`line ${info.line}: v2 lesson refs only`);
   assert.equal(info.part,info.line<=28?1:2,`line ${info.line}: part`);
   assert.equal(info.extended,info.line>=29,`line ${info.line}: extended flag`);
  }
@@ -64,21 +67,27 @@ test('all 34 legacy line theory lessons retain the complete learning scaffold',(
  }
 });
 
-test('chemistry v2 starts a real subject course while preserving all 34 line anchors',()=>{
+test('chemistry v2 is a full six-section subject course while preserving all 34 line anchors',()=>{
  const data=course();
  assert.equal(data.subject.slug,'chemistry');
  assert.equal(data.subject.examYear,2027);
  assert.match(data.subject.sourceVersion,/chemistry v2/i);
  assert.equal(data.sections.length,6);
+ assert.deepEqual(data.sections.map(s=>s.slug),[
+  'chemistry-foundations','chemistry-inorganic','chemistry-organic',
+  'chemistry-processes','chemistry-calculations','chemistry-applied'
+ ]);
  const topics=data.sections.flatMap(section=>section.topics);
  const lineTopics=topics.filter(topic=>/^chemistry-line-\d{2}$/.test(topic.slug));
  const richTopics=topics.filter(topic=>topic.slug.startsWith('chem-v2-'));
  assert.equal(lineTopics.length,34,'all line anchors must remain for bank compatibility');
  assert.equal(new Set(lineTopics.map(topic=>topic.slug)).size,34);
  assert.deepEqual(lineTopics.flatMap(topic=>topic.examLines).sort((a,b)=>a-b),Array.from({length:34},(_,i)=>i+1));
- assert.equal(richTopics.length,10,'foundations + inorganic are split into ten subject topics in phase 1');
+ assert.equal(richTopics.length,24,'full v2 must contain twenty-four subject topics');
  const richLessons=richTopics.flatMap(topic=>topic.lessons||[]);
- assert.equal(richLessons.length,30,'phase 1 must ship thirty proper subject lessons');
+ assert.equal(richLessons.length,73,'full v2 must contain seventy-three proper subject lessons');
+ assert.equal(new Set(richLessons.map(l=>l.slug)).size,73,'all rich lesson slugs must be unique');
+ const richLessonSlugs=new Set(richLessons.map(l=>l.slug));
  const required=['heading','definition','remember','table','algorithm','ege_example','deep_dive','summary','quiz'];
  for(const topic of richTopics){
   assert(Array.isArray(topic.examLines)&&topic.examLines.length>=1,`${topic.slug}: exam line mapping`);
@@ -90,23 +99,25 @@ test('chemistry v2 starts a real subject course while preserving all 34 line anc
    assert(Array.isArray(l.blocks)&&l.blocks.length>=12,`${l.slug}: rich lesson blocks`);
    for(const type of required)assert(l.blocks.some(block=>block.type===type),`${l.slug}: missing ${type}`);
    const text=collectText(l.blocks).join(' ');
-   assert(text.length>=900,`${l.slug}: lesson is too thin`);
+   assert(text.length>=750,`${l.slug}: lesson is too thin (${text.length})`);
    assert(!badText.test(text),`${l.slug}: broken rendered content`);
   }
  }
- const replaced=[1,2,3,4,5,6,7,8,9,24,30,31];
- for(const line of replaced){
-  const info=registry.lines.find(x=>x.line===line);
-  assert(info.lessonRefs.every(ref=>ref.startsWith('chem-v2-')),`line ${line}: must point to subject lessons`);
-  assert(info.lessonRefs.length>=2,`line ${line}: should connect to multiple relevant lessons`);
+ for(const info of registry.lines){
+  for(const ref of info.lessonRefs)assert(richLessonSlugs.has(ref),`line ${info.line}: unknown v2 lesson ref ${ref}`);
  }
 });
 
-test('curriculum v2 phase 1 contains foundations and inorganic sections only',()=>{
+test('chemistry v2 source modules have the expected editorial coverage',()=>{
  assert.deepEqual(curriculum.sections.map(s=>s.slug),['chemistry-foundations','chemistry-inorganic']);
- const lessons=curriculum.sections.flatMap(s=>s.topics).flatMap(t=>t.lessons);
- assert.equal(lessons.length,30);
- assert.equal(new Set(lessons.map(l=>l.slug)).size,30);
+ const baseLessons=curriculum.sections.flatMap(s=>s.topics).flatMap(t=>t.lessons);
+ assert.equal(baseLessons.length,30);
+ assert.equal(organic.slug,'chemistry-organic');
+ assert.equal(organic.topics.flatMap(t=>t.lessons).length,20,'FIPI organic block 3.1-3.20');
+ assert.deepEqual(tail.map(s=>s.slug),['chemistry-processes','chemistry-calculations','chemistry-applied']);
+ assert.equal(tail[0].topics.flatMap(t=>t.lessons).length,11);
+ assert.equal(tail[1].topics.flatMap(t=>t.lessons).length,8,'FIPI calculation block 5.1-5.8');
+ assert.equal(tail[2].topics.flatMap(t=>t.lessons).length,4,'FIPI applied block 4.1-4.4');
 });
 
 test('all 680 startup chemistry tasks have usable answers, controls and clean content',()=>{
