@@ -1,5 +1,5 @@
 'use strict';
-const {THEORY,EXTRA_REFS}=require('./theory');
+const {THEORY}=require('./theory');
 const maxScores={6:2,7:2,8:2,14:2,15:2,22:2,23:2,24:2,29:2,30:2,31:4,32:5,33:3,34:4};
 const extended=new Set([29,30,31,32,33,34]);
 const answerFormats={
@@ -8,9 +8,8 @@ const answerFormats={
   29:'Развёрнутый ответ: электронный баланс',30:'Развёрнутый ответ: ионные уравнения',31:'Развёрнутый ответ: неорганическая цепочка',32:'Развёрнутый ответ: органическая цепочка',33:'Развёрнутый ответ: формула вещества',34:'Развёрнутый расчёт'
 };
 
-// Subject-course lessons for the parts already rebuilt in chemistry v2. The
-// legacy line lesson remains a compatibility fallback for sections that have not
-// yet been editorially split into full subject lessons.
+// Every exam line is a navigation layer over the subject course. A line can and
+// should point to several real lessons because ЕГЭ tasks combine adjacent topics.
 const v2LessonRefs={
   1:['chem-v2-atom-isotopes-ions','chem-v2-electron-config','chem-v2-periodic-table'],
   2:['chem-v2-periodic-table','chem-v2-periodic-trends'],
@@ -21,15 +20,38 @@ const v2LessonRefs={
   7:['chem-v2-oxides','chem-v2-bases','chem-v2-acids','chem-v2-salts','chem-v2-amphoteric','chem-v2-metals-general','chem-v2-halogens-hydrogen','chem-v2-oxygen-sulfur','chem-v2-nitrogen-phosphorus','chem-v2-carbon-silicon'],
   8:['chem-v2-metals-general','chem-v2-s-metals-aluminium','chem-v2-fe-cr-mn','chem-v2-cu-zn-ag','chem-v2-halogens-hydrogen','chem-v2-oxygen-sulfur','chem-v2-nitrogen-phosphorus','chem-v2-carbon-silicon'],
   9:['chem-v2-inorganic-chains','chem-v2-qualitative'],
-  24:['chem-v2-qualitative','chem-v2-dissociation','chem-v2-ionic-equations'],
-  30:['chem-v2-ionic-equations','chem-v2-qualitative','chem-v2-hydrolysis'],
-  31:['chem-v2-inorganic-chains','chem-v2-metals-general','chem-v2-s-metals-aluminium','chem-v2-fe-cr-mn','chem-v2-cu-zn-ag','chem-v2-halogens-hydrogen','chem-v2-oxygen-sulfur','chem-v2-nitrogen-phosphorus','chem-v2-carbon-silicon']
+ 10:['chem-v2-organic-structure','chem-v2-functional-groups','chem-v2-organic-nomenclature'],
+ 11:['chem-v2-organic-structure','chem-v2-organic-mechanisms','chem-v2-organic-nomenclature'],
+ 12:['chem-v2-alkanes','chem-v2-alkenes','chem-v2-dienes','chem-v2-alkynes','chem-v2-arenes'],
+ 13:['chem-v2-carbohydrates','chem-v2-amines','chem-v2-aminoacids-proteins','chem-v2-polymers-core'],
+ 14:['chem-v2-alcohols','chem-v2-phenol','chem-v2-carbonyls','chem-v2-carboxylic-acids','chem-v2-esters-fats'],
+ 15:['chem-v2-carbonyls','chem-v2-carboxylic-acids','chem-v2-esters-fats','chem-v2-carbohydrates','chem-v2-amines','chem-v2-aminoacids-proteins'],
+ 16:['chem-v2-organic-chains','chem-v2-organic-identification','chem-v2-organic-mechanisms'],
+ 17:['chem-v2-reaction-classification','chem-v2-thermochemistry'],
+ 18:['chem-v2-reaction-rate','chem-v2-equilibrium'],
+ 19:['chem-v2-redox-basics','chem-v2-redox-medium'],
+ 20:['chem-v2-electrolysis-melts','chem-v2-electrolysis-solutions','chem-v2-redox-basics'],
+ 21:['chem-v2-hydrolysis','chem-v2-ph-water','chem-v2-dissociation'],
+ 22:['chem-v2-equilibrium','chem-v2-reaction-rate'],
+ 23:['chem-v2-calc-51','chem-v2-mole','chem-v2-equations-basics'],
+ 24:['chem-v2-qualitative','chem-v2-dissociation','chem-v2-ionic-equations','chem-v2-organic-identification'],
+ 25:['chem-v2-life-safety','chem-v2-life-health-energy','chem-v2-life-ecology','chem-v2-industry-core','chem-v2-polymers-core'],
+ 26:['chem-v2-calc-57','chem-v2-solutions-concentration','chem-v2-calc-56'],
+ 27:['chem-v2-calc-52','chem-v2-thermochemistry'],
+ 28:['chem-v2-calc-51','chem-v2-calc-54','chem-v2-calc-55','chem-v2-calc-56'],
+ 29:['chem-v2-redox-basics','chem-v2-redox-medium','chem-v2-oxidation-state'],
+ 30:['chem-v2-ionic-equations','chem-v2-qualitative','chem-v2-hydrolysis'],
+ 31:['chem-v2-inorganic-chains','chem-v2-metals-general','chem-v2-s-metals-aluminium','chem-v2-fe-cr-mn','chem-v2-cu-zn-ag','chem-v2-halogens-hydrogen','chem-v2-oxygen-sulfur','chem-v2-nitrogen-phosphorus','chem-v2-carbon-silicon'],
+ 32:['chem-v2-organic-chains','chem-v2-alkanes','chem-v2-alkenes','chem-v2-alkynes','chem-v2-arenes','chem-v2-alcohols','chem-v2-carbonyls','chem-v2-carboxylic-acids','chem-v2-esters-fats','chem-v2-amines'],
+ 33:['chem-v2-calc-58','chem-v2-organic-structure','chem-v2-organic-nomenclature','chem-v2-functional-groups'],
+ 34:['chem-v2-calc-51','chem-v2-calc-54','chem-v2-calc-55','chem-v2-calc-56','chem-v2-calc-57']
 };
 
 const lines=Array.from({length:34},(_,i)=>i+1).map(line=>{
   const t=THEORY[line];
   if(!t)throw new Error(`Missing theory for chemistry line ${line}`);
-  const refs=[line,...(EXTRA_REFS[line]||[])];
+  const refs=v2LessonRefs[line];
+  if(!refs?.length)throw new Error(`Missing chemistry v2 lesson refs for line ${line}`);
   return {
     line,
     title:t.title,
@@ -40,7 +62,7 @@ const lines=Array.from({length:34},(_,i)=>i+1).map(line=>{
     skills:[`Знать: ${t.title}`,`Применять алгоритм линии ${line} к новым условиям`,`Проверять химическую корректность формул, коэффициентов и условий`],
     strategy:t.algorithm,
     commonTraps:t.traps,
-    lessonRefs:v2LessonRefs[line]||refs.map(n=>`chemistry-line-${String(n).padStart(2,'0')}-lesson`),
+    lessonRefs:refs,
     extended:extended.has(line)
   };
 });
