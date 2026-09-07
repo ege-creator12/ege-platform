@@ -1,0 +1,16 @@
+/* Theme-safe lesson callouts. Keep deep-dive content readable in both themes. */
+.lesson-block.deep_dive{
+  background:color-mix(in srgb,#7c3aed 10%,var(--panel));
+  color:var(--text);
+  border-color:#7c3aed;
+}
+.lesson-block.deep_dive h3,
+.lesson-block.deep_dive p,
+.lesson-block.deep_dive li,
+.lesson-block.deep_dive strong,
+.lesson-block.deep_dive b,
+.lesson-block.deep_dive span:not(.deep-label){color:var(--text)}
+.dark .lesson-block.deep_dive{
+  background:color-mix(in srgb,#7c3aed 16%,var(--panel));
+  color:var(--text);
+}
