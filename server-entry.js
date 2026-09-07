@@ -17,5 +17,5 @@ database.run = (sql, ...params) => originalRun(
   await ensureChemistryCourse(database);
   const chemistry=await ensureChemistryLineBank(database,{minimum:20});
   if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 questions on every line');
-  require('./server-admin');
+  require('./server-chemistry');
 })().catch(error=>{console.error('startup',error);process.exit(1)});
