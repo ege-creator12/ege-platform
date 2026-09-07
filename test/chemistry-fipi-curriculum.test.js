@@ -1,8 +1,6 @@
 'use strict';
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const organic=require('../content/chemistry/curriculum-organic-v2');
-const tail=require('../content/chemistry/curriculum-processes-calcs-v2');
 const base=require('../content/chemistry/curriculum-v2');
 const depth=require('../content/chemistry/curriculum-depth-v2');
 const {course}=require('../src/chemistry-course-upgrade');
@@ -14,12 +12,13 @@ const expectCodes=(section,expected,label)=>{
  for(const code of expected)assert(actual.has(code),`${label}: missing FIPI code ${code}`);
 };
 
-test('coded FIPI chemistry curriculum has no gaps in the explicit subject modules',()=>{
- const [processes,calculations,applied]=tail;
- expectCodes(processes,range(1,5,13),'reaction laws');
- expectCodes(organic,range(3,1,20),'organic chemistry');
- expectCodes(applied,range(4,1,4),'chemistry and life');
- expectCodes(calculations,range(5,1,8),'calculations');
+test('coded FIPI chemistry curriculum has no gaps in the final student-facing course',()=>{
+ const data=course();
+ const bySlug=new Map(data.sections.map(section=>[section.slug,section]));
+ expectCodes(bySlug.get('chemistry-processes'),range(1,5,13),'reaction laws');
+ expectCodes(bySlug.get('chemistry-organic'),range(3,1,20),'organic chemistry');
+ expectCodes(bySlug.get('chemistry-applied'),range(4,1,4),'chemistry and life');
+ expectCodes(bySlug.get('chemistry-calculations'),range(5,1,8),'calculations');
 });
 
 test('inorganic course explicitly contains classes, metals, nonmetals, chains and identification',()=>{
