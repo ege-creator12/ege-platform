@@ -9,6 +9,8 @@ database.run = (sql, ...params) => originalRun(
 (async()=>{
   await database.migrate();
   const {ensureExamLineBank}=require('./src/exam-line-bank');
+  const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
   await ensureExamLineBank(database,{minimum:15});
+  await ensureBiologyLineBank(database,{minimum:15});
   require('./server-admin');
 })().catch(error=>{console.error('startup',error);process.exit(1)});
