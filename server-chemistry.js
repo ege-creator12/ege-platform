@@ -18,7 +18,7 @@ async function chemistryLinePayload(line,userId){
  const info=registry.lines.find(x=>Number(x.line)===Number(line));if(!info)return null;
  const subject=await row("SELECT id FROM subjects WHERE slug='chemistry'");if(!subject)return null;
  const lessonMarks=info.lessonRefs.map(()=>'?').join(',');
- const lessons=info.lessonRefs.length?await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress,COALESCE(lp.status,'not_started') progress_status FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE t.subject_id=? AND l.slug IN (${lessonMarks}) AND l.published=1 ORDER BY l.id`,userId,subject.id,...info.lessonRefs):[];
+ const lessons=info.lessonRefs.length?await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress,COALESCE(lp.status,'not_started') progress_status FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE t.subject_id=? AND t.published=1 AND l.slug IN (${lessonMarks}) AND l.published=1 ORDER BY l.id`,userId,subject.id,...info.lessonRefs):[];
  const count=await row('SELECT COUNT(*) n FROM questions WHERE subject_id=? AND active=1 AND published=1 AND exam_line=?',subject.id,line);
  const stat=await row('SELECT COUNT(*) attempted,COALESCE(SUM(a.correct),0) correct,MAX(a.created_at) last_attempt_at FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.subject_id=? AND q.exam_line=?',userId,subject.id,line);
  const wrong=await rows(`WITH latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.external_key FROM latest a JOIN questions q ON q.id=a.question_id WHERE a.rn=1 AND a.correct=FALSE AND q.subject_id=? AND q.exam_line=? ORDER BY a.created_at DESC`,userId,subject.id,line);
@@ -45,11 +45,11 @@ async function chemistryLinesPayload(userId){
 }
 
 async function searchChemistry(query,userId){
+ const terms=String(query||'').toLocaleLowerCase('ru-RU').replace(/ё/g,'е').split(/[^a-zа-я0-9+\-]+/i).filter(x=>x.length>1).slice(0,8);if(!terms.length)return[];
  const subject=await row("SELECT id FROM subjects WHERE slug='chemistry'");if(!subject)return[];
- const lessons=await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE t.subject_id=? AND l.published=1 AND t.published=1 ORDER BY s.position,t.position,l.position`,userId,subject.id);
- const blocks=await rows(`SELECT l.id lesson_id,b.type,b.content_json FROM lesson_blocks b JOIN lessons l ON l.id=b.lesson_id JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.published=1`,subject.id);
+ const lessons=await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE t.subject_id=? AND l.published=1 AND t.published=1 AND s.published=1 ORDER BY s.position,t.position,l.position`,userId,subject.id);
+ const blocks=await rows(`SELECT l.id lesson_id,b.type,b.content_json FROM lesson_blocks b JOIN lessons l ON l.id=b.lesson_id JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id WHERE t.subject_id=? AND l.published=1 AND t.published=1 AND s.published=1`,subject.id);
  const byLesson=new Map();for(const b of blocks){const arr=byLesson.get(Number(b.lesson_id))||[];arr.push(textFrom(parse(b.content_json)));byLesson.set(Number(b.lesson_id),arr);}
- const terms=String(query||'').toLocaleLowerCase('ru-RU').replace(/ё/g,'е').split(/[^a-zа-я0-9+\-]+/i).filter(x=>x.length>1);if(!terms.length)return[];
  return lessons.map(l=>{const hay=[l.title,l.topic_title,l.section_title,...(byLesson.get(Number(l.id))||[])].join(' ').toLocaleLowerCase('ru-RU').replace(/ё/g,'е');const score=terms.reduce((s,t)=>s+(hay.includes(t)?1:0),0);const first=(byLesson.get(Number(l.id))||[]).find(x=>terms.some(t=>x.toLocaleLowerCase('ru-RU').includes(t)))||'';return{lessonId:Number(l.id),lessonSlug:l.slug,title:l.title,topic:l.topic_title,section:l.section_title,progress:Number(l.progress||0),score,snippet:first.slice(0,360)};}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.lessonId-b.lessonId).slice(0,20);
 }
 
