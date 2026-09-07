@@ -45,8 +45,8 @@ test('mastery curriculum is exposed in the actual student-facing course',()=>{
  const masteryLessons=mastery.flatMap(section=>section.topics||[]).flatMap(topic=>topic.lessons||[]);
  const visibleSlugs=new Set(richLessons.map(x=>x.slug));
  assert.equal(richTopics.length,39,'student course should expose 39 subject topics');
- assert.equal(richLessons.length,142,'student course should expose 142 proper chemistry lessons');
- assert.equal(visibleSlugs.size,142,'student-facing lesson slugs must be unique');
+ assert.equal(richLessons.length,143,'student course should expose 143 proper chemistry lessons including the final FIPI gap lesson');
+ assert.equal(visibleSlugs.size,143,'student-facing lesson slugs must be unique');
  for(const lesson of masteryLessons)assert(visibleSlugs.has(lesson.slug),`${lesson.slug}: mastery lesson not exposed`);
  console.log(`chemistry-mastery metrics: topics=${richTopics.length}; lessons=${richLessons.length}; mastery=${masteryLessons.length}`);
 });
