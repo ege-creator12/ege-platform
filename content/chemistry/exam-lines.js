@@ -47,10 +47,49 @@ const v2LessonRefs={
  34:['chem-v2-calc-51','chem-v2-calc-54','chem-v2-calc-55','chem-v2-calc-56','chem-v2-calc-57']
 };
 
+// Mastery lessons are additional deep links, not replacements for the compact
+// line map. This keeps line pages useful both for first study and final revision.
+const masteryRefs={
+  1:['chem-v2-master-orbital-diagrams','chem-v2-master-valence-vs-oxidation'],
+  2:['chem-v2-master-periodic-exceptions'],
+  3:['chem-v2-master-valence-vs-oxidation','chem-v2-master-periodic-exceptions'],
+  4:['chem-v2-master-vsepr','chem-v2-master-intermolecular','chem-v2-master-lattice-properties'],
+  5:['chem-v2-master-valence-vs-oxidation'],
+  6:['chem-v2-master-net-ionic','chem-v2-master-hydrolysis-depth','chem-v2-master-hydroxo-complexes'],
+  7:['chem-v2-master-nitric-acid','chem-v2-master-sulfuric-conc','chem-v2-master-nitrate-decomposition','chem-v2-master-carbonate-decomposition'],
+  8:['chem-v2-master-metal-water-steam','chem-v2-master-ozone-peroxide','chem-v2-master-hydrogen-halides'],
+  9:['chem-v2-master-selective-precipitation','chem-v2-master-hydroxo-complexes'],
+ 10:['chem-v2-master-structural-isomers','chem-v2-master-cis-trans','chem-v2-master-functional-isomers'],
+ 11:['chem-v2-master-radical-substitution','chem-v2-master-electrophilic-addition','chem-v2-master-substitution-elimination'],
+ 12:['chem-v2-master-radical-substitution','chem-v2-master-electrophilic-addition'],
+ 13:['chem-v2-master-carbohydrates-chemistry','chem-v2-master-amino-zwitterion','chem-v2-master-protein-levels'],
+ 14:['chem-v2-master-ethers','chem-v2-master-phenol-vs-alcohol','chem-v2-master-aldehyde-ketone'],
+ 15:['chem-v2-master-aldehyde-ketone','chem-v2-master-carbohydrates-chemistry','chem-v2-master-amino-zwitterion'],
+ 16:['chem-v2-master-substitution-elimination','chem-v2-master-functional-isomers'],
+ 17:['chem-v2-master-industrial-compromise'],
+ 18:['chem-v2-master-industrial-compromise'],
+ 19:['chem-v2-master-nitric-acid','chem-v2-master-sulfuric-conc','chem-v2-master-ozone-peroxide','chem-v2-master-halogen-oxygen'],
+ 20:['chem-v2-master-ozone-peroxide'],
+ 21:['chem-v2-master-hydrolysis-depth'],
+ 22:['chem-v2-master-industrial-compromise'],
+ 23:['chem-v2-master-mole-particles','chem-v2-master-gas-volume-ratios'],
+ 24:['chem-v2-master-selective-precipitation','chem-v2-master-experiment-sequence','chem-v2-master-phenol-vs-alcohol','chem-v2-master-aldehyde-ketone'],
+ 25:['chem-v2-master-corrosion','chem-v2-master-alloys','chem-v2-master-industrial-compromise','chem-v2-master-pollution-control'],
+ 26:['chem-v2-master-solution-mixing','chem-v2-master-solution-reaction','chem-v2-master-evaporation-crystallization','chem-v2-master-solubility-curves'],
+ 27:['chem-v2-master-mole-particles'],
+ 28:['chem-v2-master-gas-volume-ratios','chem-v2-master-average-molar-mass','chem-v2-master-gas-after-reaction'],
+ 29:['chem-v2-master-nitric-acid','chem-v2-master-sulfuric-conc','chem-v2-master-halogen-oxygen','chem-v2-master-ozone-peroxide'],
+ 30:['chem-v2-master-net-ionic','chem-v2-master-selective-precipitation','chem-v2-master-hydrolysis-depth'],
+ 31:['chem-v2-master-nitric-acid','chem-v2-master-sulfuric-conc','chem-v2-master-nitrate-decomposition','chem-v2-master-carbonate-decomposition','chem-v2-master-hydroxo-complexes','chem-v2-master-metal-water-steam'],
+ 32:['chem-v2-master-radical-substitution','chem-v2-master-electrophilic-addition','chem-v2-master-substitution-elimination','chem-v2-master-ethers','chem-v2-master-phenol-vs-alcohol','chem-v2-master-aldehyde-ketone'],
+ 33:['chem-v2-master-structural-isomers','chem-v2-master-functional-isomers','chem-v2-master-carbohydrates-chemistry'],
+ 34:['chem-v2-master-crystal-hydrates','chem-v2-master-solubility-curves','chem-v2-master-gas-after-reaction','chem-v2-master-solution-mixing','chem-v2-master-solution-reaction','chem-v2-master-evaporation-crystallization']
+};
+
 const lines=Array.from({length:34},(_,i)=>i+1).map(line=>{
   const t=THEORY[line];
   if(!t)throw new Error(`Missing theory for chemistry line ${line}`);
-  const refs=v2LessonRefs[line];
+  const refs=[...new Set([...(v2LessonRefs[line]||[]),...(masteryRefs[line]||[])])];
   if(!refs?.length)throw new Error(`Missing chemistry v2 lesson refs for line ${line}`);
   return {
     line,
