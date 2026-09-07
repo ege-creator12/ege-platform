@@ -26,9 +26,9 @@ test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
   const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,6);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,8);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,6);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,8);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -117,7 +117,7 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,6);
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,8);
 });
 
 test('content import is idempotent and coverage links question, lesson, topic and exam line',async()=>{
@@ -389,5 +389,5 @@ test('reimport refreshes options and media, keeps archival exercises unavailable
   const next=await request(`/api/training/sessions/${r.body.session.id}/next`);assert.match(next.body.question.imageUrl,/\/exam\/organelles.svg$/);assert(!JSON.stringify(next.body.question).includes('answerJson'));
   const {render}=require('../public/lesson-renderer');
   const blocks=await db.rows("SELECT b.type,b.content_json FROM lesson_blocks b JOIN lessons l ON l.id=b.lesson_id JOIN topics t ON t.id=l.topic_id JOIN subjects s ON s.id=t.subject_id WHERE s.slug='biology' AND l.published=1");
-  for(const [index,block]of blocks.entries()){const html=render(block,index);assert(html.length>0);if(['image','diagram'].includes(block.type))assert(!html.includes('src=""'));}
+  for(const [index,block]of blocks.entries()){const html=render(block,index);assert(html.length>0);if(['image','diagram'].includes(block.type))assert(!html.includes('src=\"\"'));}
 });
