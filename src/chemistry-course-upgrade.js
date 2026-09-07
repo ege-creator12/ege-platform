@@ -5,10 +5,11 @@ const curriculum=require('../content/chemistry/curriculum-v2');
 const organic=require('../content/chemistry/curriculum-organic-v2');
 const tail=require('../content/chemistry/curriculum-processes-calcs-v2');
 const depth=require('../content/chemistry/curriculum-depth-v2');
+const gaps=require('../content/chemistry/curriculum-fipi-gaps-v2');
 const mastery=require('../content/chemistry/curriculum-mastery-v2');
 const {importCourse}=require('./bootstrap');
 
-const VERSION='chemistry-2027-subject-course-v2-mastery-complete';
+const VERSION='chemistry-2027-subject-course-v2-fipi-mastery-complete';
 const groups=[
  {slug:'chemistry-foundations',title:'Теоретические основы химии',description:'Строение вещества и атома, периодический закон, связь, химический язык и количество вещества.',lines:[1,2,3,4,5]},
  {slug:'chemistry-inorganic',title:'Неорганическая химия',description:'Классы веществ, электролиты, металлы, неметаллы, качественные реакции и цепочки.',lines:[6,7,8,9,24,30,31]},
@@ -36,7 +37,7 @@ function deepenSection(section){
   ...section,
   topics:(section.topics||[]).map(topic=>({
    ...topic,
-   lessons:[...(topic.lessons||[]),...(depth[topic.slug]||[])]
+   lessons:[...(topic.lessons||[]),...(depth[topic.slug]||[]),...(gaps[topic.slug]||[])]
   }))
  };
 }
@@ -57,7 +58,7 @@ function course(){
    slug:'chemistry',title:'Химия',
    description:'Полный курс химии для ЕГЭ: теория по предмету с нуля, все содержательные блоки ФИПИ, связи с 34 линиями, тренировки и пробники.',
    icon:'flask',examYear:2027,
-   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2 mastery-complete'
+   sourceVersion:'Проект КИМ ФИПИ ЕГЭ-2027 + Навигатор самостоятельной подготовки ФИПИ-2026 / ОСНОВА chemistry v2 FIPI-mastery-complete'
   },
   sections:groups.map(section=>{
    const rich=expanded.get(section.slug);
