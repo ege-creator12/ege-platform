@@ -5,7 +5,9 @@ const {spawn}=require('node:child_process');
 const {join}=require('node:path');
 const database=require('./src/db');
 const registry=require('./content/chemistry/exam-lines');
+const {createChemistryMockExamService}=require('./src/chemistry-mock-exams');
 const {rows,row,run}=database;
+const chemistryMocks=createChemistryMockExamService(database,registry);
 const PORT=Number(process.env.PORT||3000),UPSTREAM_PORT=Number(process.env.CHEMISTRY_UPSTREAM_PORT||(PORT+1));
 const json=(res,status,data)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});res.end(JSON.stringify(data));};
 async function readJson(req){let data='';for await(const c of req){data+=c;if(data.length>1e6)throw Object.assign(new Error('Слишком большой запрос'),{status:413});}try{return JSON.parse(data||'{}')}catch{throw Object.assign(new Error('Некорректный JSON'),{status:400});}}
@@ -71,6 +73,7 @@ async function createChemistryTraining(userId,b){
 async function handleChemistry(req,res,path){
  if(!path.startsWith('/api/subjects/chemistry/'))return false;
  const u=await auth(req,res);if(!u)return true;
+ if(path.startsWith('/api/subjects/chemistry/mock-exams'))return chemistryMocks.handle(req,res,path,u,json,readJson);
  if(path==='/api/subjects/chemistry/exam-lines'&&req.method==='GET'){
    const payload=await chemistryLinesPayload(u.id);
    payload?json(res,200,payload):json(res,404,{error:'Химия не найдена'});return true;
