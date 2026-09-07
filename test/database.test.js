@@ -24,11 +24,11 @@ after(async()=>{ await new Promise(resolve=>server.close(resolve)); await db.clo
 
 test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
-  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items'];
+  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items','chemistry_mock_exam_attempts','chemistry_mock_exam_items'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,8);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,9);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,8);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,9);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -117,7 +117,7 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,8);
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,9);
 });
 
 test('content import is idempotent and coverage links question, lesson, topic and exam line',async()=>{
