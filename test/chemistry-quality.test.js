@@ -5,6 +5,7 @@ const registry=require('../content/chemistry/exam-lines');
 const {THEORY,blocksFor}=require('../content/chemistry/theory');
 const {course}=require('../src/chemistry-course-upgrade');
 const builders=require('../src/chemistry-line-bank');
+const controls=require('../public/question-controls');
 
 const nonEmptyString=value=>typeof value==='string'&&value.trim().length>0;
 const badText=/\b(?:undefined|NaN|null)\b/i;
@@ -101,6 +102,14 @@ test('all 680 startup chemistry tasks have usable answers, controls and clean co
     assert(q.options.every(option=>nonEmptyString(String(option.label))),`line ${line}, item ${n}: option labels`);
     assert(q.answer.every(answer=>values.has(String(answer))),`line ${line}, item ${n}: answer points to option`);
    }
+   if(q.type==='matching'){
+    assert(Array.isArray(q.content?.left)&&q.content.left.length>=2,`line ${line}, item ${n}: matching left`);
+    assert(Array.isArray(q.content?.right)&&q.content.right.length>=2,`line ${line}, item ${n}: matching right`);
+    assert.equal(q.answer.length,q.content.left.length,`line ${line}, item ${n}: matching answer length`);
+    assert(q.answer.every(answer=>Number.isInteger(Number(answer))&&Number(answer)>=0&&Number(answer)<q.content.right.length),`line ${line}, item ${n}: matching answer index`);
+   }
+   const html=controls.render({...q,contentJson:q.content||{},mediaJson:{}},q.answer);
+   assert(nonEmptyString(html),`line ${line}, item ${n}: rendered control`);
    if(q.questionType==='extended_answer'){
     assert.equal(q.manualReview,true,`line ${line}, item ${n}: manual review`);
     assert(Array.isArray(q.scoringPoints)&&q.scoringPoints.length===q.maxScore,`line ${line}, item ${n}: scoring criteria`);
@@ -108,4 +117,19 @@ test('all 680 startup chemistry tasks have usable answers, controls and clean co
   }
  }
  assert.equal(count,680);
+});
+
+test('foundation lines now follow their EGE-style answer families',()=>{
+ for(let line=1;line<=4;line++)for(let n=1;n<=20;n++){
+  const q=builders[line](n);
+  assert.equal(q.type,'multiple',`line ${line}, item ${n}: expected positional multiple choice`);
+  assert.equal(q.answer.length,2,`line ${line}, item ${n}: exactly two positions`);
+  assert.equal(q.options.length,5,`line ${line}, item ${n}: five-position row`);
+ }
+ for(let n=1;n<=20;n++){
+  const q=builders[5](n);
+  assert.equal(q.type,'matching',`line 5, item ${n}: matching format`);
+  assert.equal(q.content.left.length,3,`line 5, item ${n}: three formulas`);
+  assert(q.content.right.length>=4,`line 5, item ${n}: answer list`);
+ }
 });
