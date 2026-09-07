@@ -3,6 +3,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const registry=require('../content/chemistry/exam-lines');
 const {THEORY,blocksFor}=require('../content/chemistry/theory');
+const curriculum=require('../content/chemistry/curriculum-v2');
 const {course}=require('../src/chemistry-course-upgrade');
 const builders=require('../src/chemistry-line-bank');
 const controls=require('../public/question-controls');
@@ -40,7 +41,7 @@ test('chemistry registry fully describes the 2027 34-line exam model',()=>{
  }
 });
 
-test('all 34 chemistry theory lessons contain the complete learning scaffold',()=>{
+test('all 34 legacy line theory lessons retain the complete learning scaffold',()=>{
  assert.deepEqual(Object.keys(THEORY).map(Number).sort((a,b)=>a-b),Array.from({length:34},(_,i)=>i+1));
  const requiredBlockTypes=['heading','definition','remember','table','algorithm','ege_example','deep_dive','summary','quiz'];
  for(let line=1;line<=34;line++){
@@ -63,22 +64,49 @@ test('all 34 chemistry theory lessons contain the complete learning scaffold',()
  }
 });
 
-test('chemistry course maps every exam line to one verified lesson',()=>{
+test('chemistry v2 starts a real subject course while preserving all 34 line anchors',()=>{
  const data=course();
  assert.equal(data.subject.slug,'chemistry');
  assert.equal(data.subject.examYear,2027);
+ assert.match(data.subject.sourceVersion,/chemistry v2/i);
  assert.equal(data.sections.length,6);
  const topics=data.sections.flatMap(section=>section.topics);
- assert.equal(topics.length,34);
- assert.equal(new Set(topics.map(topic=>topic.slug)).size,34);
- assert.deepEqual(topics.flatMap(topic=>topic.examLines).sort((a,b)=>a-b),Array.from({length:34},(_,i)=>i+1));
- for(const topic of topics){
-  assert.equal(topic.examLines.length,1,topic.slug);
-  assert(topic.lesson&&nonEmptyString(topic.lesson.slug),`${topic.slug}: lesson`);
-  assert.equal(topic.lesson.contentStatus,'verified',`${topic.slug}: status`);
-  assert(Array.isArray(topic.lesson.blocks)&&topic.lesson.blocks.length>=10,`${topic.slug}: lesson blocks`);
-  assert.deepEqual(topic.questions,[],`${topic.slug}: embedded questions must remain empty; line bank owns practice`);
+ const lineTopics=topics.filter(topic=>/^chemistry-line-\d{2}$/.test(topic.slug));
+ const richTopics=topics.filter(topic=>topic.slug.startsWith('chem-v2-'));
+ assert.equal(lineTopics.length,34,'all line anchors must remain for bank compatibility');
+ assert.equal(new Set(lineTopics.map(topic=>topic.slug)).size,34);
+ assert.deepEqual(lineTopics.flatMap(topic=>topic.examLines).sort((a,b)=>a-b),Array.from({length:34},(_,i)=>i+1));
+ assert.equal(richTopics.length,10,'foundations + inorganic are split into ten subject topics in phase 1');
+ const richLessons=richTopics.flatMap(topic=>topic.lessons||[]);
+ assert.equal(richLessons.length,30,'phase 1 must ship thirty proper subject lessons');
+ const required=['heading','definition','remember','table','algorithm','ege_example','deep_dive','summary','quiz'];
+ for(const topic of richTopics){
+  assert(Array.isArray(topic.examLines)&&topic.examLines.length>=1,`${topic.slug}: exam line mapping`);
+  assert(Array.isArray(topic.skills)&&topic.skills.length>=1,`${topic.slug}: skills`);
+  assert.deepEqual(topic.questions,[],`${topic.slug}: line bank owns practice`);
+  for(const l of topic.lessons){
+   assert.equal(l.contentStatus,'verified',`${l.slug}: verified`);
+   assert(nonEmptyString(l.title)&&nonEmptyString(l.summary),`${l.slug}: title/summary`);
+   assert(Array.isArray(l.blocks)&&l.blocks.length>=12,`${l.slug}: rich lesson blocks`);
+   for(const type of required)assert(l.blocks.some(block=>block.type===type),`${l.slug}: missing ${type}`);
+   const text=collectText(l.blocks).join(' ');
+   assert(text.length>=900,`${l.slug}: lesson is too thin`);
+   assert(!badText.test(text),`${l.slug}: broken rendered content`);
+  }
  }
+ const replaced=[1,2,3,4,5,6,7,8,9,24,30,31];
+ for(const line of replaced){
+  const info=registry.lines.find(x=>x.line===line);
+  assert(info.lessonRefs.every(ref=>ref.startsWith('chem-v2-')),`line ${line}: must point to subject lessons`);
+  assert(info.lessonRefs.length>=2,`line ${line}: should connect to multiple relevant lessons`);
+ }
+});
+
+test('curriculum v2 phase 1 contains foundations and inorganic sections only',()=>{
+ assert.deepEqual(curriculum.sections.map(s=>s.slug),['chemistry-foundations','chemistry-inorganic']);
+ const lessons=curriculum.sections.flatMap(s=>s.topics).flatMap(t=>t.lessons);
+ assert.equal(lessons.length,30);
+ assert.equal(new Set(lessons.map(l=>l.slug)).size,30);
 });
 
 test('all 680 startup chemistry tasks have usable answers, controls and clean content',()=>{
