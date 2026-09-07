@@ -1,6 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const builders = require('../src/chemistry-line-bank');
+const { BANK_VERSION } = require('../src/chemistry-line-bank-runner');
+
+test('chemistry generated bank uses the post-rewrite v2 namespace', () => {
+  assert.equal(BANK_VERSION, 'v2');
+});
 
 test('every chemistry line can build the full startup bank', () => {
   for (let line = 1; line <= 34; line++) {
