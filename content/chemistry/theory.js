@@ -5,7 +5,8 @@ const THEORY={
   ...require('./theory-organic'),
   ...require('./theory-processes'),
   ...require('./theory-calculations'),
-  ...require('./theory-applied')
+  ...require('./theory-applied'),
+  ...require('./theory-coverage-2027')
 };
 const EXTRA_REFS={
   6:[7,8,24],7:[6,8],8:[6,7],
