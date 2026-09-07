@@ -1,5 +1,5 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.LessonRenderer=api})(typeof window==='undefined'?this:window,()=>{
-  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const clean=value=>String(value??'').replace(/\bEGE_REQUIRED\b\s*[.:—-]*\s*/gi,'').replace(/\bDEEP_DIVE\b/gi,'Глубже ЕГЭ').trim();
   const paragraphs=value=>clean(value).split(/\n\s*\n/).filter(Boolean).map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('');
   const itemText=value=>{
