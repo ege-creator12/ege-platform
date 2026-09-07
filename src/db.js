@@ -34,7 +34,7 @@ async function row(sql, ...params) {
 }
 async function run(sql, ...params) {
   if (postgres) {
-    const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|topics|questions|question_options|attempts|skills|training_sessions|mock_exams|mock_exam_attempts|biology_mock_exam_attempts|biology_mock_exam_items)\b/i.test(sql);
+    const returnsId = /^\s*INSERT\s+INTO\s+(users|subjects|sections|topics|lessons|lesson_blocks|questions|question_options|attempts|skills|training_sessions|mock_exams|mock_exam_attempts|biology_mock_exam_attempts|biology_mock_exam_items)\b/i.test(sql);
     const result = await pool.query(`${pgSql(sql)}${returnsId && !/\bRETURNING\b/i.test(sql) ? ' RETURNING id' : ''}`, params);
     return { changes: result.rowCount, lastInsertRowid: result.rows[0]?.id };
   }
@@ -91,7 +91,15 @@ async function migrate() {
       catch (error) { sqlite.exec('ROLLBACK'); throw error; }
     }
   }
-  await require('./bootstrap').bootstrapCourse({ row, rows, run, transaction });
+
+  let shouldBootstrap = true;
+  if (process.env.PRESERVE_ADMIN_CONTENT === '1') {
+    try {
+      const existing = await row('SELECT COUNT(*) n FROM subjects');
+      shouldBootstrap = Number(existing?.n || 0) === 0;
+    } catch { shouldBootstrap = true; }
+  }
+  if (shouldBootstrap) await require('./bootstrap').bootstrapCourse({ row, rows, run, transaction });
 }
 
 async function healthcheck() {
