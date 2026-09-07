@@ -6,5 +6,6 @@ module.exports={
  ...require('./chemistry-bank-processes'),
  ...require('./chemistry-bank-calculations'),
  ...require('./chemistry-bank-extended'),
- ...require('./chemistry-bank-foundations-ege')
+ ...require('./chemistry-bank-foundations-ege'),
+ ...require('./chemistry-bank-core-ege')
 };
