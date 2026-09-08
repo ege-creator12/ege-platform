@@ -35,13 +35,26 @@ async function saveDiagnosticSession(userId,ids){
  return row('SELECT * FROM training_sessions WHERE id=?',sessionId);
 }
 
+async function currentPlan(userId,subjectSlug){
+ let plan=await planner.loadPlan(database,userId,subjectSlug);
+ if(!plan)return null;
+ const analytics=await planner.collectAnalytics(database,userId,subjectSlug);
+ if(Number(plan.attempts||0)!==Number(analytics.attempts||0)){
+  plan=await planner.buildPlan(database,userId,{
+   subjectSlug,targetScore:plan.targetScore,examDate:plan.examDate,
+   daysPerWeek:plan.daysPerWeek,minutesPerDay:plan.minutesPerDay
+  });
+ }
+ return plan;
+}
+
 async function handleApi(req,res,url){
  const path=url.pathname;
  if(!path.startsWith('/api/ai-pro/'))return false;
  const user=await auth(req,res);if(!user)return true;
  if(path==='/api/ai-pro/plan'&&req.method==='GET'){
   const subjectSlug=String(url.searchParams.get('subject')||'biology');
-  const plan=await planner.loadPlan(database,user.id,subjectSlug);
+  const plan=await currentPlan(user.id,subjectSlug);
   json(res,200,{plan,openBeta:true,paidFeature:true});return true;
  }
  if(path==='/api/ai-pro/plan'&&req.method==='POST'){
