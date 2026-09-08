@@ -6,8 +6,21 @@ database.run = (sql, ...params) => originalRun(
   ...params
 );
 
+async function ensureAiUsageStorage(){
+  const userIdType=database.dialect==='postgresql'?'BIGINT':'INTEGER';
+  const dateType=database.dialect==='postgresql'?'DATE':'TEXT';
+  await database.run(`CREATE TABLE IF NOT EXISTS ai_daily_usage (
+    user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    usage_date ${dateType} NOT NULL,
+    request_count INTEGER NOT NULL DEFAULT 0 CHECK(request_count >= 0),
+    PRIMARY KEY(user_id, usage_date)
+  )`);
+  await database.run('CREATE INDEX IF NOT EXISTS idx_ai_daily_usage_date ON ai_daily_usage(usage_date)');
+}
+
 (async()=>{
   await database.migrate();
+  await ensureAiUsageStorage();
   const {ensureExamLineBank}=require('./src/exam-line-bank');
   const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
   const {ensureChemistryCourse}=require('./src/chemistry-course-upgrade');
