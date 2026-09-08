@@ -34,7 +34,7 @@
      const sessionId=Number(sessionStorage.trainingSession);if(!sessionId)return showToast('Не удалось определить тренировку');
      button.disabled=true;button.textContent='✦ ИИ разбирает…';
      let panel=$('.ai-explanation',card);if(!panel){panel=document.createElement('section');panel.className='ai-explanation';result.insertAdjacentElement('afterend',panel);}panel.innerHTML='<b>ИИ-репетитор</b><p class="ai-loading">Разбираю именно это задание…</p>';
-     try{const data=await request('/api/ai/explain',{sessionId});panel.innerHTML=`<div class="ai-panel-head"><b>✦ Разбор ИИ</b><span>${data.remaining} запросов осталось сегодня</span></div><div class="ai-answer">${esc(data.answer)}</div>`;}catch(error){panel.innerHTML=`<b>Не удалось получить разбор</b><p>${esc(error.message)}</p>`;}finally{button.disabled=false;button.textContent='✦ Объяснить с ИИ';}
+     try{const data=await request('/api/ai/explain',{sessionId});panel.innerHTML=`<div class="ai-panel-head"><b>✦ Разбор ИИ</b><span>${data.remaining} запросов осталось сегодня</span></div><div class="ai-answer">${esc(data.answer)}</div>`;}catch(error){panel.innerHTML='<b>Не удалось получить разбор</b><p>Попробуй ещё раз чуть позже.</p>';}finally{button.disabled=false;button.textContent='✦ Объяснить с ИИ';}
    };
  }
 
@@ -48,7 +48,7 @@
    const close=()=>wrap.remove();$('#ai-tutor-close',wrap).onclick=close;wrap.onclick=e=>{if(e.target===wrap)close();};
    const form=$('#ai-tutor-form',wrap),input=$('#ai-tutor-input',wrap),chat=$('#ai-tutor-chat',wrap),submit=$('button[type=submit]',form);input.focus();
    form.onsubmit=async e=>{e.preventDefault();const message=input.value.trim();if(!message)return;const user=document.createElement('div');user.className='ai-msg user';user.textContent=message;chat.appendChild(user);input.value='';submit.disabled=true;const loading=document.createElement('div');loading.className='ai-msg assistant loading';loading.textContent='Думаю…';chat.appendChild(loading);chat.scrollTop=chat.scrollHeight;
-     try{const data=await request('/api/ai/tutor',{message});loading.classList.remove('loading');loading.textContent=data.answer;const meta=document.createElement('small');meta.className='ai-msg-meta';meta.textContent=`Осталось AI-запросов сегодня: ${data.remaining}`;loading.appendChild(meta);}catch(error){loading.classList.remove('loading');loading.textContent=error.message;}finally{submit.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight;}
+     try{const data=await request('/api/ai/tutor',{message});loading.classList.remove('loading');loading.textContent=data.answer;const meta=document.createElement('small');meta.className='ai-msg-meta';meta.textContent=`Осталось AI-запросов сегодня: ${data.remaining}`;loading.appendChild(meta);}catch(error){loading.remove();showToast('Не удалось получить ответ. Попробуй ещё раз чуть позже.');}finally{submit.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight;}
    };
  }
  function cleanup(){if(!$('.app')){$('#ai-tutor-fab')?.remove();$('#ai-tutor-modal')?.remove();}}
