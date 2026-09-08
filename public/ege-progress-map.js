@@ -59,9 +59,10 @@
     const readiness = Math.round(weighted / totalPrimary * 100);
     const coverage = Math.round(attemptedLines / Math.max(1, lines.length) * 100);
     const certainty = certaintyWeight / totalPrimary;
-    const uncertainty = Math.max(5, Math.round((1 - certainty) * 18 + 4));
-    const low = Math.max(0, readiness - Math.ceil(uncertainty * 0.45));
-    const high = Math.min(100, readiness + uncertainty);
+    const forecastReady = coverage >= 40 && attemptedLines >= 8 && certainty >= 0.18;
+    const uncertainty = Math.max(6, Math.round((1 - certainty) * 16 + 4));
+    const low = forecastReady ? Math.max(0, readiness - Math.ceil(uncertainty * 0.55)) : null;
+    const high = forecastReady ? Math.min(100, readiness + uncertainty) : null;
     const counts = { mastered: 0, learning: 0, weak: 0, untouched: 0 };
     lines.forEach(line => counts[line.status]++);
     const risk = [...lines]
@@ -71,7 +72,7 @@
         const riskB = b.maxScore * (100 - (b.attempted ? b.accuracy : 20));
         return riskB - riskA || b.maxScore - a.maxScore || a.line - b.line;
       });
-    return { lines, totalPrimary, readiness, coverage, low, high, counts, risk };
+    return { lines, totalPrimary, readiness, coverage, certainty, forecastReady, low, high, counts, risk };
   }
 
   const statusText = {
@@ -83,11 +84,12 @@
   function summaryCard(slug, data) {
     const s = stats(data.lines);
     const firstRisk = s.risk[0];
+    const forecast = s.forecastReady ? `${s.low}–${s.high}` : 'Мало данных';
     return `<article class="ege-map-summary" data-map-open="${slug}">
-      <div class="ege-map-summary-top"><span>${subjectLabel(slug)}</span><b>${s.low}–${s.high}</b></div>
-      <h3>Ориентир готовности</h3>
+      <div class="ege-map-summary-top"><span>${subjectLabel(slug)}</span><b>${forecast}</b></div>
+      <h3>${s.forecastReady ? 'Модельный диапазон' : 'Сначала расширим диагностику'}</h3>
       <div class="ege-map-meter"><i style="width:${s.readiness}%"></i></div>
-      <div class="ege-map-summary-meta"><span>${s.coverage}% линий проверено</span><span>${s.counts.mastered} освоено</span></div>
+      <div class="ege-map-summary-meta"><span>${s.coverage}% линий проверено</span><span>${s.readiness}% готовность</span></div>
       <p>${firstRisk ? `Сейчас выгоднее всего подтянуть линию ${firstRisk.line}: ${esc(firstRisk.title)}.` : 'Начните диагностику, чтобы построить прогноз.'}</p>
       <button class="btn ghost" type="button">Открыть карту →</button>
     </article>`;
@@ -105,8 +107,14 @@
 
   function forecastHtml(s) {
     const confidence = s.coverage >= 75 ? 'высокая' : s.coverage >= 40 ? 'средняя' : 'низкая';
+    if (!s.forecastReady) {
+      return `<section class="ege-forecast-card">
+        <div><span class="eyebrow">Прогноз по реальным ответам</span><h2>Недостаточно данных для прогноза</h2><p>Проверено ${s.coverage}% линий. Сайт специально не показывает широкий диапазон вроде «0–24»: сначала нужно решить задания из большего числа линий.</p></div>
+        <div class="ege-forecast-stats"><div><b>${s.readiness}%</b><span>текущая готовность</span></div><div><b>${s.coverage}%</b><span>покрытие линий</span></div><div><b>${confidence}</b><span>уверенность данных</span></div></div>
+      </section>`;
+    }
     return `<section class="ege-forecast-card">
-      <div><span class="eyebrow">Прогноз по реальным ответам</span><h2>${s.low}–${s.high} из 100</h2><p>Это ориентир готовности, а не официальный перевод первичных баллов. Чем больше разных линий решено, тем уже становится диапазон.</p></div>
+      <div><span class="eyebrow">Прогноз по реальным ответам</span><h2>${s.low}–${s.high} из 100</h2><p>Это модельный ориентир готовности, а не официальный перевод первичных баллов. Чем больше разных линий решено, тем уже становится диапазон.</p></div>
       <div class="ege-forecast-stats"><div><b>${s.readiness}%</b><span>текущая готовность</span></div><div><b>${s.coverage}%</b><span>покрытие линий</span></div><div><b>${confidence}</b><span>уверенность прогноза</span></div></div>
     </section>`;
   }
@@ -206,12 +214,9 @@
     try {
       const data = await load();
       if (!host.isConnected || route() !== 'dashboard') return;
-      host.innerHTML = `<div class="section-head"><div><h2>Карта подготовки</h2><p>Прогноз и слабые линии по каждому предмету.</p></div><button class="btn ghost" data-open-map-all>Открыть карту</button></div><div class="ege-map-summary-grid">${summaryCard('biology', data.biology)}${summaryCard('chemistry', data.chemistry)}</div>`;
+      host.innerHTML = `<div class="section-head"><div><h2>Карта подготовки</h2><p>Готовность и слабые линии по каждому предмету.</p></div><button class="btn ghost" data-open-map-all>Открыть карту</button></div><div class="ege-map-summary-grid">${summaryCard('biology', data.biology)}${summaryCard('chemistry', data.chemistry)}</div>`;
       host.querySelector('[data-open-map-all]').onclick = () => go('progress-map/biology');
-      host.querySelectorAll('[data-map-open]').forEach(card => card.onclick = event => {
-        if (event.target.closest('button') || event.currentTarget === event.target) go('progress-map/' + card.dataset.mapOpen);
-        else go('progress-map/' + card.dataset.mapOpen);
-      });
+      host.querySelectorAll('[data-map-open]').forEach(card => card.onclick = () => go('progress-map/' + card.dataset.mapOpen));
     } catch (error) {
       host.remove();
     }
