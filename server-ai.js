@@ -5,7 +5,7 @@ const net = require('node:net');
 const { spawn } = require('node:child_process');
 const { join } = require('node:path');
 const database = require('./src/db');
-const { row, rows } = database;
+const { row, rows, run, transaction } = database;
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.AI_UPSTREAM_PORT || (PORT + 1));
@@ -22,7 +22,7 @@ const MODEL_CANDIDATES = [...new Set([
   'gemini-2.5-flash-lite',
 ].filter(Boolean))];
 
-const usage = new Map();
+const minuteUsage = new Map();
 let activeRequests = 0;
 
 const json = (res, status, data) => {
@@ -79,53 +79,78 @@ async function auth(req, res) {
   return user;
 }
 
-function quotaRemaining(userId) {
-  const now = Date.now();
-  const day = new Date(now).toISOString().slice(0, 10);
-  const current = usage.get(userId);
-  return !current || current.day !== day
-    ? DAILY_LIMIT
-    : Math.max(0, DAILY_LIMIT - current.count);
+const usageDay = () => new Date().toISOString().slice(0, 10);
+
+async function quotaRemaining(userId) {
+  const current = await row(
+    'SELECT request_count FROM ai_daily_usage WHERE user_id=? AND usage_date=?',
+    userId,
+    usageDay(),
+  );
+  return Math.max(0, DAILY_LIMIT - Number(current?.request_count || 0));
 }
 
-function reserveQuota(userId) {
+async function reserveQuota(userId) {
   const now = Date.now();
-  const day = new Date(now).toISOString().slice(0, 10);
-  const current = usage.get(userId) || { day, count: 0, times: [] };
+  const day = usageDay();
+  const minute = minuteUsage.get(userId) || { times: [] };
+  minute.times = minute.times.filter(ts => now - ts < 60000);
 
-  if (current.day !== day) {
-    current.day = day;
-    current.count = 0;
-    current.times = [];
-  }
-
-  current.times = current.times.filter(ts => now - ts < 60000);
-  if (current.times.length >= MINUTE_LIMIT) {
+  if (minute.times.length >= MINUTE_LIMIT) {
     throw Object.assign(
       new Error('Слишком много запросов. Подождите немного и попробуйте снова.'),
       { status: 429, code: 'AI_MINUTE_LIMIT' },
     );
   }
-  if (current.count >= DAILY_LIMIT) {
-    throw Object.assign(
-      new Error(`Лимит ИИ на сегодня исчерпан (${DAILY_LIMIT} запросов).`),
-      { status: 429, code: 'AI_DAILY_LIMIT' },
-    );
-  }
 
-  current.count += 1;
-  current.times.push(now);
-  usage.set(userId, current);
+  let count = 0;
+  await transaction(async tx => {
+    await tx.run(
+      `INSERT INTO ai_daily_usage(user_id,usage_date,request_count) VALUES(?,?,1)
+       ON CONFLICT(user_id,usage_date) DO UPDATE SET request_count=ai_daily_usage.request_count+1`,
+      userId,
+      day,
+    );
+    const state = await tx.row(
+      'SELECT request_count FROM ai_daily_usage WHERE user_id=? AND usage_date=?',
+      userId,
+      day,
+    );
+    count = Number(state?.request_count || 0);
+    if (count > DAILY_LIMIT) {
+      await tx.run(
+        'UPDATE ai_daily_usage SET request_count=request_count-1 WHERE user_id=? AND usage_date=? AND request_count>0',
+        userId,
+        day,
+      );
+      throw Object.assign(
+        new Error(`Лимит ИИ на сегодня исчерпан (${DAILY_LIMIT} запросов).`),
+        { status: 429, code: 'AI_DAILY_LIMIT' },
+      );
+    }
+  });
+
+  minute.times.push(now);
+  minuteUsage.set(userId, minute);
 
   return {
-    remaining: Math.max(0, DAILY_LIMIT - current.count),
-    rollback: () => {
-      const state = usage.get(userId);
-      if (!state || state.day !== day) return;
-      state.count = Math.max(0, state.count - 1);
-      const index = state.times.indexOf(now);
-      if (index >= 0) state.times.splice(index, 1);
-      usage.set(userId, state);
+    remaining: Math.max(0, DAILY_LIMIT - count),
+    rollback: async () => {
+      const minuteState = minuteUsage.get(userId);
+      if (minuteState) {
+        const index = minuteState.times.indexOf(now);
+        if (index >= 0) minuteState.times.splice(index, 1);
+        minuteUsage.set(userId, minuteState);
+      }
+      try {
+        await run(
+          'UPDATE ai_daily_usage SET request_count=request_count-1 WHERE user_id=? AND usage_date=? AND request_count>0',
+          userId,
+          day,
+        );
+      } catch (error) {
+        console.error('ai-quota-rollback', error?.message || error);
+      }
     },
   };
 }
@@ -365,13 +390,13 @@ async function handleAi(req, res, path) {
       json(res, 200, {
         answer: REFUSAL,
         blocked: true,
-        remaining: quotaRemaining(user.id),
+        remaining: await quotaRemaining(user.id),
       });
       return true;
     }
   }
 
-  const quota = reserveQuota(user.id);
+  const quota = await reserveQuota(user.id);
   try {
     if (path === '/api/ai/explain') {
       const sessionId = idOf(body.sessionId);
@@ -404,11 +429,11 @@ async function handleAi(req, res, path) {
       return true;
     }
 
-    quota.rollback();
+    await quota.rollback();
     json(res, 404, { error: 'AI endpoint не найден', code: 'AI_NOT_FOUND' });
     return true;
   } catch (error) {
-    quota.rollback();
+    await quota.rollback();
     throw error;
   }
 }
