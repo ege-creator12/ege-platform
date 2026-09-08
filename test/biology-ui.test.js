@@ -19,12 +19,17 @@ test('exam-style sequence input converts displayed numbers to actual stored valu
   assert.deepEqual(controls.orderedValues('3142',options),['2','0','3','1']);
   assert.deepEqual(controls.orderedValues('3, 1, 4, 2',options),['2','0','3','1']);
   assert.deepEqual(controls.orderedValues('0',options),['invalid']);
-  assert.match(controls.render({type:'sequence',options},['2','0','3','1'],'mock'),/value="3142"/);
-  assert.doesNotMatch(controls.render({type:'sequence',options}),/type="radio"/);
+  const question={id:314,type:'sequence',options,prompt:'Последовательность'};
+  const saved=['2','0','3','1'];
+  const shown=controls.presentedOptions(question);
+  const visible=saved.map(value=>shown.findIndex(option=>String(option.value)===String(value))+1).join('');
+  assert.match(controls.render(question,saved,'mock'),new RegExp(`value="${visible}"`));
+  assert.notEqual(visible,'3142');
+  assert.doesNotMatch(controls.render(question),/type="radio"/);
 });
 
 test('matching controls present separate labels without revealing the correct pairs',()=>{
-  const html=controls.render({type:'matching',contentJson:{left:['Гемоглобин','Инсулин'],right:['Перенос газов','Регуляция'],answerEncoding:'pairs'}},['0-0','1-1']);
+  const html=controls.render({id:315,type:'matching',prompt:'Белки и функции',contentJson:{left:['Гемоглобин','Инсулин'],right:['Перенос газов','Регуляция'],answerEncoding:'pairs'}},['0-0','1-1']);
   assert.equal((html.match(/<select/g)||[]).length,2);
   assert.match(html,/Гемоглобин/);assert.doesNotMatch(html,/Гемоглобин — Перенос/);
 });
