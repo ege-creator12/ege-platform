@@ -1,27 +1,21 @@
 (()=>{
  const $=(selector,root=document)=>root.querySelector(selector);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
- const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
- const friendlyError=error=>error?.code==='AI_DAILY_LIMIT'?'Лимит запросов на сегодня закончился.':error?.code==='AI_MINUTE_LIMIT'?'Слишком много запросов подряд. Подожди немного.':error?.code==='AI_AUTH_REQUIRED'?'Войди в аккаунт заново.':'Не удалось получить ответ. Попробуй ещё раз чуть позже.';
+ const friendlyError=error=>error?.code==='AI_DAILY_LIMIT'?'Лимит запросов на сегодня закончился.':error?.code==='AI_MINUTE_LIMIT'?'Слишком много запросов подряд. Подожди немного.':error?.code==='AI_AUTH_REQUIRED'?'Войди в аккаунт заново.':error?.code==='AI_OFFLINE'?'Нет подключения к интернету. Проверь сеть.':'Не удалось получить ответ. Попробуй ещё раз чуть позже.';
  const request=async(path,payload)=>{
-   let lastError;
-   for(let attempt=0;attempt<2;attempt+=1){
-     const controller=new AbortController();
-     const timeout=setTimeout(()=>controller.abort(),45000);
-     try{
-       const response=await fetch(path,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
-       let data={};try{data=await response.json();}catch{}
-       if(!response.ok)throw Object.assign(new Error(data.error||`Ошибка ИИ (${response.status})`),{httpStatus:response.status,code:data.code||''});
-       return data;
-     }catch(error){
-       lastError=error;
-       if(error?.httpStatus)throw error;
-       if(error?.name==='AbortError')throw Object.assign(new Error('timeout'),{code:'AI_TIMEOUT'});
-       if(attempt===0){await sleep(700);continue;}
-     }finally{clearTimeout(timeout);}
-   }
-   console.warn('AI request failed',lastError);
-   throw Object.assign(new Error('network'),{code:navigator.onLine?'AI_NETWORK_ERROR':'AI_OFFLINE'});
+   const controller=new AbortController();
+   const timeout=setTimeout(()=>controller.abort(),60000);
+   try{
+     const response=await fetch(path,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+     let data={};try{data=await response.json();}catch{}
+     if(!response.ok)throw Object.assign(new Error(data.error||`Ошибка ИИ (${response.status})`),{httpStatus:response.status,code:data.code||''});
+     return data;
+   }catch(error){
+     if(error?.httpStatus)throw error;
+     if(error?.name==='AbortError')throw Object.assign(new Error('timeout'),{code:'AI_TIMEOUT'});
+     console.warn('AI request failed',error);
+     throw Object.assign(new Error('network'),{code:navigator.onLine?'AI_NETWORK_ERROR':'AI_OFFLINE'});
+   }finally{clearTimeout(timeout);}
  };
  const showToast=message=>{const toast=$('#toast');if(!toast)return;toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3000);};
 
@@ -35,7 +29,7 @@
      const sessionId=Number(sessionStorage.trainingSession);if(!sessionId)return showToast('Не удалось определить тренировку');
      button.disabled=true;button.textContent='✦ ИИ разбирает…';
      let panel=$('.ai-explanation',card);if(!panel){panel=document.createElement('section');panel.className='ai-explanation';result.insertAdjacentElement('afterend',panel);}panel.innerHTML='<b>ИИ-репетитор</b><p class="ai-loading">Разбираю именно это задание…</p>';
-     try{const data=await request('/api/ai/explain',{sessionId});panel.innerHTML=`<div class="ai-panel-head"><b>✦ Разбор ИИ</b><span>${data.remaining} запросов осталось сегодня</span></div><div class="ai-answer">${esc(data.answer)}</div>`;}catch(error){panel.remove();showToast(friendlyError(error));}finally{button.disabled=false;button.textContent='✦ Объяснить с ИИ';}
+     try{const data=await request('/api/ai/explain',{sessionId});panel.innerHTML=`<div class="ai-panel-head"><b>✦ Разбор ИИ</b><span>Осталось запросов на сайте сегодня: ${data.remaining}</span></div><div class="ai-answer">${esc(data.answer)}</div>`;}catch(error){panel.remove();showToast(friendlyError(error));}finally{button.disabled=false;button.textContent='✦ Объяснить с ИИ';}
    };
  }
 
@@ -49,7 +43,7 @@
    const close=()=>wrap.remove();$('#ai-tutor-close',wrap).onclick=close;wrap.onclick=e=>{if(e.target===wrap)close();};
    const form=$('#ai-tutor-form',wrap),input=$('#ai-tutor-input',wrap),chat=$('#ai-tutor-chat',wrap),submit=$('button[type=submit]',form);input.focus();
    form.onsubmit=async e=>{e.preventDefault();const message=input.value.trim();if(!message)return;const user=document.createElement('div');user.className='ai-msg user';user.textContent=message;chat.appendChild(user);input.value='';submit.disabled=true;const loading=document.createElement('div');loading.className='ai-msg assistant loading';loading.textContent='Думаю…';chat.appendChild(loading);chat.scrollTop=chat.scrollHeight;
-     try{const data=await request('/api/ai/tutor',{message});loading.classList.remove('loading');loading.textContent=data.answer;const meta=document.createElement('small');meta.className='ai-msg-meta';meta.textContent=`Осталось запросов сегодня: ${data.remaining}`;loading.appendChild(meta);}catch(error){loading.remove();if(!input.value.trim())input.value=message;showToast(friendlyError(error));}finally{submit.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight;}
+     try{const data=await request('/api/ai/tutor',{message});loading.classList.remove('loading');loading.textContent=data.answer;const meta=document.createElement('small');meta.className='ai-msg-meta';meta.textContent=`Осталось запросов на сайте сегодня: ${data.remaining}`;loading.appendChild(meta);}catch(error){loading.remove();if(!input.value.trim())input.value=message;showToast(friendlyError(error));}finally{submit.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight;}
    };
  }
  function cleanup(){if(!$('.app')){$('#ai-tutor-fab')?.remove();$('#ai-tutor-modal')?.remove();}}
