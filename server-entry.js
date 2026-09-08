@@ -31,4 +31,7 @@ async function ensureAiUsageStorage(){
   const chemistry=await ensureChemistryLineBank(database,{minimum:20,mediumMinimum:20});
   if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 core + 20 medium questions on every line');
   require('./server-ai-pro');
+  if(process.env.RUN_SUPABASE_MIGRATION==='1'){
+    setTimeout(()=>require('./src/render-supabase-migrate')().catch(error=>console.error('[supabase-migration] failed',error)),1000);
+  }
 })().catch(error=>{console.error('startup',error);process.exit(1)});
