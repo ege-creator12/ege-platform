@@ -1,6 +1,6 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { mkdtempSync } = require('node:fs');
+const { mkdtempSync, readdirSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), 'ege-')), 'test.sqlite');
@@ -10,6 +10,7 @@ const { coverageReport, getTheoryForExamLine } = require('../src/coverage');
 const { validateCourse, importCourse } = require('../src/bootstrap');
 const { phase2Report } = require('../scripts/audit-phase2');
 const { start } = require('../server');
+const migrationCount=readdirSync(join(__dirname,'../migrations')).filter(name=>/^\d+.*\.sql$/.test(name)).length;
 let server;
 let cookie;
 const base='http://127.0.0.1:32117';
@@ -24,11 +25,11 @@ after(async()=>{ await new Promise(resolve=>server.close(resolve)); await db.clo
 
 test('migrations are repeatable and create complete schema', async()=>{
   await db.migrate();
-  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items','chemistry_mock_exam_attempts','chemistry_mock_exam_items'];
+  const required=['users','sessions','subjects','topics','questions','attempts','skills','question_skills','lesson_progress','training_sessions','training_session_questions','sections','lessons','lesson_blocks','content_sources','exam_spec_items','content_coverage','media_assets','biology_mock_exam_attempts','biology_mock_exam_items','chemistry_mock_exam_attempts','chemistry_mock_exam_items','ai_study_plans'];
   for(const name of required) assert.ok(await db.row("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name));
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,9);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,migrationCount);
   await db.migrate();
-  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,9);
+  assert.equal((await db.row('SELECT COUNT(*) count FROM schema_migrations')).count,migrationCount);
 });
 
 test('registration, login and persistent session work', async()=>{
@@ -117,7 +118,7 @@ test('bootstrap adds content without changing user data', async()=>{
 });
 
 test('health endpoint reports database without secrets',async()=>{
-  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,9);
+  const result=await request('/api/health'); assert.equal(result.body.status,'ok'); assert.equal(result.body.database,'connected'); assert.equal(result.body.migrations,migrationCount);
 });
 
 test('content import is idempotent and coverage links question, lesson, topic and exam line',async()=>{
