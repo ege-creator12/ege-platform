@@ -1,0 +1,15 @@
+CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
+CREATE INDEX IF NOT EXISTS idx_biology_mock_items_question ON biology_mock_exam_items(question_id);
+CREATE INDEX IF NOT EXISTS idx_chemistry_mock_items_question ON chemistry_mock_exam_items(question_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson ON lesson_progress(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_mock_exam_attempts_exam ON mock_exam_attempts(mock_exam_id);
+CREATE INDEX IF NOT EXISTS idx_mock_exam_attempts_user ON mock_exam_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_mock_exam_questions_question ON mock_exam_questions(question_id);
+CREATE INDEX IF NOT EXISTS idx_mock_exams_subject ON mock_exams(subject_id);
+CREATE INDEX IF NOT EXISTS idx_question_options_question ON question_options(question_id);
+CREATE INDEX IF NOT EXISTS idx_question_skills_skill ON question_skills(skill_id);
+CREATE INDEX IF NOT EXISTS idx_questions_lesson ON questions(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_topic_progress_topic ON topic_progress(topic_id);
+CREATE INDEX IF NOT EXISTS idx_training_questions_attempt ON training_session_questions(attempt_id);
+CREATE INDEX IF NOT EXISTS idx_training_questions_question ON training_session_questions(question_id);
+CREATE INDEX IF NOT EXISTS idx_training_sessions_topic ON training_sessions(topic_id);
