@@ -6,6 +6,7 @@ const { spawn } = require('node:child_process');
 const { join } = require('node:path');
 const database = require('./src/db');
 const planner = require('./src/ai-study-planner');
+const digitalTutor = require('./src/digital-tutor');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -83,7 +84,6 @@ async function currentPlan(userId, subjectSlug) {
     isoDay(plan.generatedAt) !== isoDay();
 
   if (needsRefresh) {
-    // Auto-adaptation is statistical and free: Gemini is reserved for an explicit plan rebuild.
     plan = await planner.buildPlan(database, userId, {
       subjectSlug,
       targetScore: plan.targetScore,
@@ -146,31 +146,11 @@ async function progressHistory(userId, subjectSlug) {
     const rollingAccuracy = totalSolved ? Math.round(totalCorrect / totalSolved * 100) : 0;
     const coverage = Math.round(seenLines.size / totalLines * 100);
     const readiness = totalSolved ? Math.max(0, Math.min(100, Math.round(rollingAccuracy * (0.45 + 0.55 * coverage / 100)))) : 0;
-    return {
-      week: index + 1,
-      date: week.date,
-      label: week.label,
-      solved: week.solved,
-      accuracy,
-      minutes: Math.round(week.seconds / 60),
-      coverage,
-      readiness,
-      estimatedScore: readiness,
-    };
+    return { week: index + 1, date: week.date, label: week.label, solved: week.solved, accuracy, minutes: Math.round(week.seconds / 60), coverage, readiness, estimatedScore: readiness };
   });
   const current = history.at(-1) || { solved: 0, accuracy: 0, minutes: 0, readiness: 0, estimatedScore: 0 };
   const previous = history.at(-2) || { solved: 0, accuracy: 0, minutes: 0, readiness: 0, estimatedScore: 0 };
-  return {
-    subjectSlug,
-    history,
-    current,
-    delta: {
-      solved: current.solved - previous.solved,
-      accuracy: current.accuracy - previous.accuracy,
-      score: current.readiness - previous.readiness,
-      readiness: current.readiness - previous.readiness,
-    },
-  };
+  return { subjectSlug, history, current, delta: { solved: current.solved - previous.solved, accuracy: current.accuracy - previous.accuracy, score: current.readiness - previous.readiness, readiness: current.readiness - previous.readiness } };
 }
 
 async function reviewCandidates(userId, subjectSlug, limit = 100) {
@@ -210,6 +190,13 @@ async function handleApi(req, res, url) {
     const previousPlan = body?.subjectSlug ? await planner.loadPlan(database, user.id, String(body.subjectSlug)) : null;
     const plan = await planner.buildPlan(database, user.id, body, { useAi: true, previousPlan });
     json(res, 200, { plan, openBeta: true, paidFeature: true });
+    return true;
+  }
+  if (path === '/api/ai-pro/tutor/today' && req.method === 'GET') {
+    const subjectSlug = validSubject(String(url.searchParams.get('subject') || 'biology'));
+    const plan = await currentPlan(user.id, subjectSlug);
+    const tutor = await digitalTutor.buildTutorDay(database, user.id, subjectSlug, plan);
+    json(res, 200, { tutor, plan });
     return true;
   }
   if (path === '/api/ai-pro/diagnostic' && req.method === 'POST') {
