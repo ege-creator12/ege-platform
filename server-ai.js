@@ -12,13 +12,13 @@ const UPSTREAM_PORT = Number(process.env.AI_UPSTREAM_PORT || (PORT + 1));
 const DAILY_LIMIT = Math.max(1, Number(process.env.AI_DAILY_LIMIT) || 30);
 const MINUTE_LIMIT = Math.max(1, Number(process.env.AI_MINUTE_LIMIT) || 6);
 const MAX_CONCURRENT = Math.max(1, Number(process.env.AI_MAX_CONCURRENT) || 3);
-const GEMINI_TIMEOUT_MS = Math.max(5000, Number(process.env.GEMINI_TIMEOUT_MS) || 30000);
+const GEMINI_TIMEOUT_MS = Math.max(5000, Number(process.env.GEMINI_TIMEOUT_MS) || 15000);
+const AI_TIMEZONE = process.env.AI_TIMEZONE || 'Europe/Moscow';
 const MODEL_CANDIDATES = [...new Set([
   process.env.GEMINI_MODEL,
   'gemini-3.6-flash',
   process.env.GEMINI_FALLBACK_MODEL,
   'gemini-3.1-flash-lite',
-  'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
 ].filter(Boolean))];
 
@@ -79,7 +79,16 @@ async function auth(req, res) {
   return user;
 }
 
-const usageDay = () => new Date().toISOString().slice(0, 10);
+function usageDay() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: AI_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
 
 async function quotaRemaining(userId) {
   const current = await row(
@@ -132,10 +141,13 @@ async function reserveQuota(userId) {
 
   minute.times.push(now);
   minuteUsage.set(userId, minute);
+  let rolledBack = false;
 
   return {
     remaining: Math.max(0, DAILY_LIMIT - count),
     rollback: async () => {
+      if (rolledBack) return;
+      rolledBack = true;
       const minuteState = minuteUsage.get(userId);
       if (minuteState) {
         const index = minuteState.times.indexOf(now);
@@ -187,7 +199,7 @@ async function googleRequest(url, payload) {
     } catch (error) {
       lastError = error;
       if (attempt === 0 && error?.name !== 'AbortError' && error?.name !== 'TimeoutError') {
-        await new Promise(resolve => setTimeout(resolve, 350));
+        await new Promise(resolve => setTimeout(resolve, 250));
         continue;
       }
       throw error;
@@ -197,12 +209,20 @@ async function googleRequest(url, payload) {
 }
 
 function geminiError(response, data) {
-  const apiMessage = data?.error?.message;
-  if (response.status === 401 || response.status === 403) {
+  const apiMessage = String(data?.error?.message || '').trim();
+  if (response.status === 401) {
     return Object.assign(new Error('Gemini API key rejected'), {
       status: 502,
       code: 'GEMINI_AUTH',
       retryable: false,
+    });
+  }
+  if (response.status === 403) {
+    const modelSpecific = /model|not supported|not available|location|region/i.test(apiMessage);
+    return Object.assign(new Error('Gemini access denied'), {
+      status: 502,
+      code: modelSpecific ? 'GEMINI_MODEL_ACCESS' : 'GEMINI_AUTH',
+      retryable: modelSpecific,
     });
   }
   if (response.status === 429) {
@@ -230,10 +250,7 @@ async function generateContent(model, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const { response, data } = await googleRequest(url, {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 1600,
-    },
+    generationConfig: { maxOutputTokens: 1600 },
   });
 
   if (!response.ok) throw geminiError(response, data);
@@ -309,7 +326,7 @@ async function askGemini(prompt) {
   }
 }
 
-const BIOCHEM = /(биолог|хими|егэ|клет|днк|рнк|ген|генет|митоз|мейоз|организм|орган|ткан|эволю|эколог|ботан|зоолог|анатом|физиолог|бактери|вирус|гриб|растени|животн|белок|фермент|аминокислот|фотосинт|дыхани|метабол|веществ|атом|молекул|ион|элемент|реакц|уравнен|оксид|кислот|основан|щелоч|соль|окисл|восстанов|электрон|протон|нейтрон|валент|степен.*окислен|моль|моляр|раствор|концентрац|гидролиз|электролиз|органическ|неорганическ|углеводород|спирт|альдегид|кетон|эфир|полимер|периодическ|менделеев|равновеси|катализ)/iu;
+const BIOCHEM = /(биолог|хими|егэ|клет|днк|рнк|ген|генет|митоз|мейоз|организм|орган|ткан|эволю|эколог|ботан|зоолог|анатом|физиолог|бактери|вирус|гриб|растени|животн|белок|фермент|аминокислот|фотосинт|дыхани|метабол|веществ|атф|адф|рибосом|мембран|цитоплазм|хромосом|аллел|гамет|зигот|эмбри|гормон|иммун|нейрон|рефлекс|кров|сердц|почек|нефрон|атом|молекул|ион|элемент|реакц|уравнен|оксид|кислот|основан|щелоч|соль|окисл|восстанов|электрон|протон|нейтрон|валент|степен.*окислен|моль|моляр|раствор|концентрац|гидролиз|электролиз|органическ|неорганическ|углеводород|спирт|альдегид|кетон|эфир|полимер|периодическ|менделеев|равновеси|катализ)/iu;
 const OFFTOP = /(как дела|как ты|привет|здравствуй|пока|погод|новост|футбол|ufc|игр|фильм|музык|песн|программ|код|javascript|python|сайт|бизнес|деньг|отношен|девуш|парн|политик|анекдот|шутк|рецепт|путешеств)/iu;
 const JAILBREAK = /(игнорир|забудь|отмени|наруш|обойди).{0,50}(инструк|правил|огранич|промпт)|(system prompt|developer message|jailbreak|dan\b|режим без огранич)/iu;
 const REFUSAL = 'Я отвечаю только на вопросы по биологии и химии для подготовки к ЕГЭ.';
@@ -319,7 +336,7 @@ function topicAllowed(message) {
   if (!text || JAILBREAK.test(text)) return false;
   if (BIOCHEM.test(text)) return true;
   if (OFFTOP.test(text)) return false;
-  return false;
+  return true;
 }
 
 function answerText(value) {
