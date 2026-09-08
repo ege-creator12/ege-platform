@@ -36,6 +36,13 @@
  const request=async(path,payload)=>{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),60000);try{const response=await fetch(path,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});let data={};try{data=await response.json();}catch{}if(!response.ok)throw Object.assign(new Error(data.error||`Ошибка ИИ (${response.status})`),{httpStatus:response.status,code:data.code||''});return data;}catch(error){if(error?.httpStatus)throw error;if(error?.name==='AbortError')throw Object.assign(new Error('timeout'),{code:'AI_TIMEOUT'});console.warn('AI request failed',error);throw Object.assign(new Error('network'),{code:navigator.onLine?'AI_NETWORK_ERROR':'AI_OFFLINE'});}finally{clearTimeout(timeout);}};
  const showToast=message=>{const toast=$('#toast');if(!toast)return;toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3000);};
  const reviewActions=[['full','✦ Полный разбор'],['hint','💡 Дай подсказку'],['simplify','🧠 Объясни проще'],['why_wrong','🔎 Почему мой ответ неверный?'],['similar','📝 Дай похожее задание'],['harder','🔥 Дай сложнее'],['check_explanation','✅ Проверь моё объяснение']];
+ const tutorModes=[
+  ['simple','🧠 Совсем просто','Объясни предыдущую тему совсем простыми словами, как ученику, который впервые её видит. Избегай лишних терминов; если термин нужен — сразу объясни его. Дай одну бытовую или очень понятную аналогию и короткий пример.'],
+  ['ege','🎓 Как на ЕГЭ','Разбери предыдущую тему именно с точки зрения ЕГЭ: что нужно знать для задания, какой алгоритм применять, какие формулировки и ловушки встречаются, и что обязательно запомнить.'],
+  ['example','🧪 Дай пример','Дай один новый понятный пример по предыдущей теме и полностью объясни его по шагам. Пример должен соответствовать школьной программе и формату ЕГЭ.'],
+  ['check','✅ Проверь меня','Проверь моё объяснение предыдущей темы. Сначала назови, что я понял правильно, затем укажи неточности и чего не хватает, после этого дай короткий улучшенный вариант.'],
+  ['quiz','🎯 Спроси меня','Проверь меня по предыдущей теме: задай ОДИН вопрос уровня ЕГЭ без ответа и без подсказки. Дождись моего ответа, а уже следующим сообщением оцени его и объясни ошибки.']
+ ];
  const TUTOR_HISTORY_KEY='osnova-ai-tutor-history-v1';
  const MAX_TUTOR_HISTORY=24;
  const loadTutorHistory=()=>{try{const raw=JSON.parse(localStorage.getItem(TUTOR_HISTORY_KEY)||'[]');if(!Array.isArray(raw))return[];return raw.filter(item=>(item?.role==='user'||item?.role==='assistant')&&typeof item?.text==='string'&&item.text.trim()).map(item=>({role:item.role,text:item.text.trim().slice(0,5000)})).slice(-MAX_TUTOR_HISTORY);}catch{return[];}};
@@ -67,33 +74,51 @@
  function ensureTutorButton(){if(!$('.app')||$('#ai-tutor-fab'))return;const button=document.createElement('button');button.id='ai-tutor-fab';button.className='ai-tutor-fab';button.type='button';button.setAttribute('aria-label','Открыть ИИ-репетитора');button.innerHTML='<span>✦</span><b>ИИ-репетитор</b>';document.body.appendChild(button);button.onclick=openTutor;}
  function openTutor(){
   if($('#ai-tutor-modal'))return;
-  const wrap=document.createElement('div');wrap.id='ai-tutor-modal';wrap.className='ai-tutor-modal';wrap.innerHTML=`<section class="ai-tutor-card" role="dialog" aria-modal="true" aria-labelledby="ai-tutor-title"><div class="ai-tutor-head"><div><span>ОСНОВА · AI</span><h2 id="ai-tutor-title">ИИ-репетитор</h2></div><button class="icon-btn" id="ai-tutor-close" aria-label="Закрыть">×</button></div><div class="ai-tutor-chat" id="ai-tutor-chat"></div><form id="ai-tutor-form"><textarea id="ai-tutor-input" maxlength="2000" rows="3" placeholder="Например: объясни, как отличать окислитель от восстановителя" required></textarea><div class="ai-tutor-actions"><small>Чат сохраняется на этом устройстве. ИИ может ошибаться — важные ответы сверяй с теорией сайта.</small><button class="btn" type="submit">Отправить</button></div></form></section>`;
+  const wrap=document.createElement('div');wrap.id='ai-tutor-modal';wrap.className='ai-tutor-modal';wrap.innerHTML=`<section class="ai-tutor-card" role="dialog" aria-modal="true" aria-labelledby="ai-tutor-title"><div class="ai-tutor-head"><div><span>ОСНОВА · AI</span><h2 id="ai-tutor-title">ИИ-репетитор</h2></div><button class="icon-btn" id="ai-tutor-close" aria-label="Закрыть">×</button></div><div class="ai-tutor-chat" id="ai-tutor-chat"></div><form id="ai-tutor-form"><div class="ai-tutor-modes" aria-label="Быстрые режимы ИИ">${tutorModes.map(([mode,label])=>`<button type="button" class="ai-tutor-mode" data-tutor-mode="${mode}">${label}</button>`).join('')}</div><textarea id="ai-tutor-input" maxlength="2000" rows="3" placeholder="Например: объясни, как отличать окислитель от восстановителя" required></textarea><div class="ai-tutor-actions"><small>Чат сохраняется на этом устройстве. ИИ может ошибаться — важные ответы сверяй с теорией сайта.</small><button class="btn" type="submit">Отправить</button></div></form></section>`;
   document.body.appendChild(wrap);
-  const form=$('#ai-tutor-form',wrap),input=$('#ai-tutor-input',wrap),chat=$('#ai-tutor-chat',wrap),submit=$('button[type=submit]',form);
+  const form=$('#ai-tutor-form',wrap),input=$('#ai-tutor-input',wrap),chat=$('#ai-tutor-chat',wrap),submit=$('button[type=submit]',form),modeButtons=[...wrap.querySelectorAll('[data-tutor-mode]')];
   let tutorHistory=loadTutorHistory();
+  let busy=false;
   const renderMessage=(role,text)=>{const node=document.createElement('div');node.className=`ai-msg ${role}`;node.textContent=text;chat.appendChild(node);return node;};
+  const setBusy=value=>{busy=value;submit.disabled=value;modeButtons.forEach(button=>button.disabled=value);};
   if(tutorHistory.length){tutorHistory.forEach(item=>renderMessage(item.role,item.text));}
-  else renderMessage('assistant','Спроси меня по биологии или химии ЕГЭ. Могу объяснить тему, дать алгоритм или подсказать ход решения.');
+  else renderMessage('assistant','Спроси меня по биологии или химии ЕГЭ. После ответа можешь использовать быстрые режимы: объяснить проще, разобрать как на ЕГЭ, получить пример или проверить себя.');
   chat.scrollTop=chat.scrollHeight;
   const close=()=>wrap.remove();
   $('#ai-tutor-close',wrap).onclick=close;wrap.onclick=e=>{if(e.target===wrap)close();};
-  input.focus();
-  form.onsubmit=async e=>{
-   e.preventDefault();const message=input.value.trim();if(!message)return;
+  const sendTutorMessage=async(message,{displayMessage=message,clearInput=true}={})=>{
+   if(busy)return;
+   const requestMessage=String(message||'').trim(),visibleMessage=String(displayMessage||'').trim();
+   if(!requestMessage||!visibleMessage)return;
    const previous=tutorHistory.slice();
-   renderMessage('user',message);tutorHistory.push({role:'user',text:message});tutorHistory=tutorHistory.slice(-MAX_TUTOR_HISTORY);saveTutorHistory(tutorHistory);
-   input.value='';submit.disabled=true;
+   renderMessage('user',visibleMessage);tutorHistory.push({role:'user',text:visibleMessage});tutorHistory=tutorHistory.slice(-MAX_TUTOR_HISTORY);saveTutorHistory(tutorHistory);
+   if(clearInput)input.value='';setBusy(true);
    const loading=document.createElement('div');loading.className='ai-msg assistant loading';loading.textContent='Думаю…';chat.appendChild(loading);chat.scrollTop=chat.scrollHeight;
    try{
-    const data=await request('/api/ai/tutor',{message:buildTutorRequestMessage(message,previous)});
+    const data=await request('/api/ai/tutor',{message:buildTutorRequestMessage(requestMessage,previous)});
     const answer=cleanAiText(data.answer);
     loading.classList.remove('loading');loading.textContent=answer;
     tutorHistory.push({role:'assistant',text:answer});tutorHistory=tutorHistory.slice(-MAX_TUTOR_HISTORY);saveTutorHistory(tutorHistory);
     const meta=document.createElement('small');meta.className='ai-msg-meta';meta.textContent=`Осталось запросов на сайте сегодня: ${data.remaining}`;loading.appendChild(meta);
    }catch(error){
-    loading.remove();tutorHistory=previous;saveTutorHistory(tutorHistory);if(!input.value.trim())input.value=message;showToast(friendlyError(error));
-   }finally{submit.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight;}
+    loading.remove();tutorHistory=previous;saveTutorHistory(tutorHistory);if(clearInput&&!input.value.trim())input.value=visibleMessage;showToast(friendlyError(error));
+   }finally{setBusy(false);input.focus();chat.scrollTop=chat.scrollHeight;}
   };
+  modeButtons.forEach(button=>button.onclick=()=>{
+   const mode=tutorModes.find(item=>item[0]===button.dataset.tutorMode);if(!mode)return;
+   const [,label,instruction]=mode;
+   const typed=input.value.trim();
+   const hasTopic=tutorHistory.some(item=>item.role==='user');
+   if(button.dataset.tutorMode==='check'){
+    if(!typed){showToast('Напиши в поле, как ты понял тему, и нажми «Проверь меня»');input.focus();return;}
+    return sendTutorMessage(`${instruction}\n\nОбъяснение ученика: ${typed}`,{displayMessage:`${label}: ${typed}`});
+   }
+   if(!hasTopic&&!typed){showToast('Сначала напиши тему или вопрос');input.focus();return;}
+   if(typed)return sendTutorMessage(`${instruction}\n\nТема или уточнение ученика: ${typed}`,{displayMessage:`${label}: ${typed}`});
+   return sendTutorMessage(instruction,{displayMessage:label});
+  });
+  input.focus();
+  form.onsubmit=e=>{e.preventDefault();const message=input.value.trim();if(message)sendTutorMessage(message);};
  }
  function cleanup(){if(!$('.app')){$('#ai-tutor-fab')?.remove();$('#ai-tutor-modal')?.remove();}}
  function refresh(){attachMistakeReview();attachExplainButton();ensureTutorButton();cleanup();}
