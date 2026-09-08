@@ -28,7 +28,7 @@ async function ensureAiUsageStorage(){
   await ensureExamLineBank(database,{minimum:15});
   await ensureBiologyLineBank(database,{minimum:15});
   await ensureChemistryCourse(database);
-  const chemistry=await ensureChemistryLineBank(database,{minimum:20});
-  if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 questions on every line');
+  const chemistry=await ensureChemistryLineBank(database,{minimum:20,mediumMinimum:20});
+  if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 core + 20 medium questions on every line');
   require('./server-training-router');
 })().catch(error=>{console.error('startup',error);process.exit(1)});
