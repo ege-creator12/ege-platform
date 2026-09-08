@@ -12,6 +12,7 @@ const { row, rows, run } = database;
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.TRAINING_UPSTREAM_PORT || (PORT + 1));
 const trainingModes = new Set(['adaptive', 'mixed', 'new', 'review', 'mistakes', 'errors', 'hard', 'infinite', 'topic']);
+const subjectSlugs = new Set(['biology', 'chemistry']);
 
 const json = (res, status, data) => {
   res.writeHead(status, {
@@ -198,22 +199,49 @@ async function createGeneralTraining(req, res) {
   const topicId = body.topicId === undefined || body.topicId === null || Number(body.topicId) === 0 ? 0 : numericId(body.topicId);
   const examLine = body.examLine === undefined || body.examLine === null || Number(body.examLine) === 0 ? 0 : numericId(body.examLine);
   const target = Math.min(100, Math.max(1, Number(body.targetQuestions) || 10));
+  const requestedSubject = String(body.subjectSlug || '').trim();
 
   if (topicId === null) return json(res, 400, { error: 'Некорректный идентификатор темы' });
+  if (requestedSubject && !subjectSlugs.has(requestedSubject)) {
+    return json(res, 400, { error: 'Некорректный предмет', code: 'INVALID_SUBJECT' });
+  }
   if (examLine === null || examLine > 28 || (examLine && !biologyExamRegistry.lines.some(x => x.line === examLine))) {
     return json(res, 400, { error: 'Некорректный номер задания', code: 'INVALID_EXAM_LINE' });
   }
 
-  const biologyId = examLine ? await subjectId('biology') : 0;
+  let onlySubjectId = 0;
+  let resolvedSubject = requestedSubject;
+
+  if (examLine) {
+    resolvedSubject = 'biology';
+    onlySubjectId = await subjectId('biology');
+  } else if (requestedSubject) {
+    onlySubjectId = await subjectId(requestedSubject);
+  } else if (topicId) {
+    const topic = await row('SELECT subject_id FROM topics WHERE id=?', topicId);
+    onlySubjectId = Number(topic?.subject_id || 0);
+    if (onlySubjectId) {
+      const subject = await row('SELECT slug FROM subjects WHERE id=? AND published=1', onlySubjectId);
+      resolvedSubject = String(subject?.slug || '');
+    }
+  } else {
+    // The legacy general practice UI is the biology practice entry point.
+    // Never fall back to an all-subject pool: that used to mix chemistry into biology sessions.
+    resolvedSubject = 'biology';
+    onlySubjectId = await subjectId('biology');
+  }
+
+  if (!onlySubjectId) return json(res, 404, { error: 'Предмет тренировки не найден', code: 'TRAINING_SUBJECT_NOT_FOUND' });
+
   const ids = await questionPool(user.id, topicId, mode, target, {
     examLine,
-    subjectId: biologyId,
+    subjectId: onlySubjectId,
     publishedOnly: Boolean(examLine),
   });
   if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
 
   const session = await saveSession(user.id, topicId, mode, target, ids);
-  json(res, 201, { session });
+  json(res, 201, { session, subjectSlug: resolvedSubject || null });
 }
 
 async function createChemistryTraining(req, res) {
@@ -238,7 +266,7 @@ async function createChemistryTraining(req, res) {
   if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
 
   const session = await saveSession(user.id, 0, mode, target, ids);
-  json(res, 201, { session });
+  json(res, 201, { session, subjectSlug: 'chemistry' });
 }
 
 function proxy(req, res) {
