@@ -10,8 +10,35 @@ function label(options, value) {
   return option?.label||null;
 }
 
+function seedOf(question) {
+  const numeric=Number(question?.id);
+  if(Number.isSafeInteger(numeric)&&numeric>0)return numeric;
+  const text=String(question?.prompt||'question');
+  let seed=0;
+  for(let i=0;i<text.length;i++)seed=(Math.imul(seed,31)+text.charCodeAt(i))>>>0;
+  return seed||1;
+}
+
+function presentationIndexes(length, seed) {
+  const base=Array.from({length},(_,i)=>i);
+  if(length<2)return base;
+  const value=Math.abs(Number(seed)||1),shift=value%(length-1)+1;
+  let order=base.slice(shift).concat(base.slice(0,shift));
+  if(length>2&&Math.floor(value/length)%2)order=order.reverse();
+  if(order.every((value,index)=>value===index))order=base.slice(1).concat(base[0]);
+  return order;
+}
+
 function numberedAnswer(values) {
   return values.map(value=>/^\d+$/.test(String(value))?String(Number(value)+1):String(value)).join('');
+}
+
+function displayedOptionNumber(question, options, value) {
+  const canonicalIndex=options.findIndex(item=>String(item.value)===String(value));
+  if(canonicalIndex<0)return /^\d+$/.test(String(value))?String(Number(value)+1):String(value);
+  const order=presentationIndexes(options.length,seedOf(question));
+  const displayIndex=order.indexOf(canonicalIndex);
+  return displayIndex>=0?String(displayIndex+1):String(canonicalIndex+1);
 }
 
 /** Builds the only post-attempt representation of a correct answer used by the UI. */
@@ -29,8 +56,13 @@ function formatAnswerForReview(question, optionRows=[]) {
     const left=content.left, right=content.right;
     if (Array.isArray(left)&&Array.isArray(right)) {
       const indexes=textValues.map(value=>/^\d+-\d+$/.test(value)?value.split('-')[1]:value);
+      const displayOrder=presentationIndexes(right.length,seedOf(question)+7919);
+      const displayNumber=value=>{
+        const canonical=Number(value),displayIndex=displayOrder.indexOf(canonical);
+        return displayIndex>=0?String(displayIndex+1):String(canonical+1);
+      };
       items=left.map((leftLabel,index)=>`${leftLabel} → ${right[Number(indexes[index])]??indexes[index]}`);
-      examAnswer=numberedAnswer(indexes);
+      examAnswer=indexes.map(displayNumber).join('');
     } else if (textValues.every(value=>/^\d+-\d+$/.test(value))) {
       items=textValues.map(value=>{
         const [leftIndex,rightIndex]=value.split('-').map(Number),combined=label(options,leftIndex);
@@ -43,11 +75,14 @@ function formatAnswerForReview(question, optionRows=[]) {
       examAnswer=numberedAnswer(textValues);
     }
   } else if (type==='sequence') {
-    examAnswer=numberedAnswer(textValues);
+    examAnswer=textValues.map(value=>displayedOptionNumber(question,options,value)).join('');
     items=textValues.map((value,index)=>`${index+1}. ${label(options,value)||value}`);
   } else if (type==='multiple_answer'||question.type==='multiple') {
-    examAnswer=numberedAnswer(textValues);
-    items=textValues.map(value=>`${/^\d+$/.test(value)?Number(value)+1:value} — ${label(options,value)||value}`);
+    examAnswer=textValues.map(value=>displayedOptionNumber(question,options,value)).join('');
+    items=textValues.map(value=>`${displayedOptionNumber(question,options,value)} — ${label(options,value)||value}`);
+  } else if (type==='single_choice'||question.type==='single') {
+    examAnswer=textValues.map(value=>displayedOptionNumber(question,options,value)).join('');
+    items=textValues.map(value=>`${displayedOptionNumber(question,options,value)} — ${label(options,value)||value}`);
   } else if (type==='table') {
     items=textValues.map(value=>label(options,value)||value.replace(/\s*[|:=]\s*/, ' → '));
   } else if (['image','diagram','graph'].includes(type)) {
@@ -61,4 +96,4 @@ function formatAnswerForReview(question, optionRows=[]) {
   return {label:type==='extended_answer'?'Эталон ответа':'Ответ для записи на ЕГЭ',examAnswer,items};
 }
 
-module.exports={formatAnswerForReview};
+module.exports={formatAnswerForReview,presentationIndexes,seedOf,displayedOptionNumber};
