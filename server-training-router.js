@@ -6,6 +6,7 @@ const { spawn } = require('node:child_process');
 const { join } = require('node:path');
 const database = require('./src/db');
 const biologyExamRegistry = require('./content/biology/exam-lines.json');
+const chemistryExamRegistry = require('./content/chemistry/exam-lines');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -70,7 +71,7 @@ async function recentPresentedIds(userId) {
      JOIN training_sessions s ON s.id=tsq.session_id
      WHERE s.user_id=? AND tsq.presented_at IS NOT NULL
      ORDER BY tsq.presented_at DESC, tsq.session_id DESC, tsq.position DESC
-     LIMIT 8`,
+     LIMIT 10`,
     userId,
   );
   return new Set(recent.map(x => Number(x.question_id)));
@@ -83,7 +84,15 @@ function emptyMessage(mode) {
   return 'Для выбранной тренировки пока нет заданий.';
 }
 
-async function questionPool(userId, topicId, mode, limit, examLine = 0) {
+async function subjectId(slug) {
+  const subject = await row('SELECT id FROM subjects WHERE slug=? AND published=1', slug);
+  return Number(subject?.id || 0);
+}
+
+async function questionPool(userId, topicId, mode, limit, options = {}) {
+  const examLine = Number(options.examLine || 0);
+  const onlySubjectId = Number(options.subjectId || 0);
+  const publishedOnly = Boolean(options.publishedOnly);
   const filter = mode === 'new'
     ? 'a.id IS NULL'
     : mode === 'review'
@@ -94,7 +103,7 @@ async function questionPool(userId, topicId, mode, limit, examLine = 0) {
           ? 'q.difficulty>=2'
           : '1=1';
 
-  const candidateLimit = Math.min(600, Math.max(limit * 20, 120));
+  const candidateLimit = Math.min(700, Math.max(limit * 24, 140));
   const candidates = await rows(
     `WITH RECURSIVE tree(id) AS (
        SELECT CAST(? AS BIGINT)
@@ -109,10 +118,20 @@ async function questionPool(userId, topicId, mode, limit, examLine = 0) {
      WHERE q.active=1
        AND (?=0 OR q.topic_id IN (SELECT id FROM tree))
        AND (?=0 OR q.exam_line=?)
+       AND (?=0 OR q.subject_id=?)
+       AND (?=0 OR q.published=1)
        AND ${filter}
      ORDER BY RANDOM()
      LIMIT ?`,
-    topicId, userId, topicId, examLine, examLine, candidateLimit,
+    topicId,
+    userId,
+    topicId,
+    examLine,
+    examLine,
+    onlySubjectId,
+    onlySubjectId,
+    publishedOnly ? 1 : 0,
+    candidateLimit,
   );
 
   if (!candidates.length) return [];
@@ -145,33 +164,15 @@ async function questionPool(userId, topicId, mode, limit, examLine = 0) {
   return scored.slice(0, limit).map(x => Number(x.id));
 }
 
-async function createTraining(req, res) {
-  const user = await auth(req, res);
-  if (!user) return;
-
-  const body = await readJson(req);
-  const mode = trainingModes.has(body.mode) ? body.mode : 'adaptive';
-  const topicId = body.topicId === undefined || body.topicId === null || Number(body.topicId) === 0 ? 0 : numericId(body.topicId);
-  const examLine = body.examLine === undefined || body.examLine === null || Number(body.examLine) === 0 ? 0 : numericId(body.examLine);
-  const target = Math.min(100, Math.max(1, Number(body.targetQuestions) || 10));
-
-  if (topicId === null) return json(res, 400, { error: 'Некорректный идентификатор темы' });
-  if (examLine === null || examLine > 28 || (examLine && !biologyExamRegistry.lines.some(x => x.line === examLine))) {
-    return json(res, 400, { error: 'Некорректный номер задания', code: 'INVALID_EXAM_LINE' });
-  }
-
-  const ids = await questionPool(user.id, topicId, mode, target, examLine);
-  if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
-
+async function saveSession(userId, topicId, mode, target, ids) {
   const storedMode = mode === 'errors'
     ? 'mistakes'
     : ['mixed', 'hard', 'infinite'].includes(mode)
       ? 'adaptive'
       : mode;
-
   const created = await run(
     'INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',
-    user.id,
+    userId,
     topicId || null,
     storedMode,
     Math.min(target, ids.length),
@@ -186,8 +187,57 @@ async function createTraining(req, res) {
       'pending',
     );
   }
+  return row('SELECT * FROM training_sessions WHERE id=?', sessionId);
+}
 
-  const session = await row('SELECT * FROM training_sessions WHERE id=?', sessionId);
+async function createGeneralTraining(req, res) {
+  const user = await auth(req, res);
+  if (!user) return;
+  const body = await readJson(req);
+  const mode = trainingModes.has(body.mode) ? body.mode : 'adaptive';
+  const topicId = body.topicId === undefined || body.topicId === null || Number(body.topicId) === 0 ? 0 : numericId(body.topicId);
+  const examLine = body.examLine === undefined || body.examLine === null || Number(body.examLine) === 0 ? 0 : numericId(body.examLine);
+  const target = Math.min(100, Math.max(1, Number(body.targetQuestions) || 10));
+
+  if (topicId === null) return json(res, 400, { error: 'Некорректный идентификатор темы' });
+  if (examLine === null || examLine > 28 || (examLine && !biologyExamRegistry.lines.some(x => x.line === examLine))) {
+    return json(res, 400, { error: 'Некорректный номер задания', code: 'INVALID_EXAM_LINE' });
+  }
+
+  const biologyId = examLine ? await subjectId('biology') : 0;
+  const ids = await questionPool(user.id, topicId, mode, target, {
+    examLine,
+    subjectId: biologyId,
+    publishedOnly: Boolean(examLine),
+  });
+  if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
+
+  const session = await saveSession(user.id, topicId, mode, target, ids);
+  json(res, 201, { session });
+}
+
+async function createChemistryTraining(req, res) {
+  const user = await auth(req, res);
+  if (!user) return;
+  const body = await readJson(req);
+  const line = numericId(body.examLine);
+  const target = Math.min(100, Math.max(1, Number(body.targetQuestions) || 10));
+  const mode = trainingModes.has(body.mode) ? body.mode : 'adaptive';
+
+  if (!line || !chemistryExamRegistry.lines.some(x => Number(x.line) === line)) {
+    return json(res, 400, { error: 'Некорректный номер задания', code: 'INVALID_EXAM_LINE' });
+  }
+  const chemistryId = await subjectId('chemistry');
+  if (!chemistryId) return json(res, 404, { error: 'Химия не найдена' });
+
+  const ids = await questionPool(user.id, 0, mode, target, {
+    examLine: line,
+    subjectId: chemistryId,
+    publishedOnly: true,
+  });
+  if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
+
+  const session = await saveSession(user.id, 0, mode, target, ids);
   json(res, 201, { session });
 }
 
@@ -238,7 +288,8 @@ async function start() {
   const server = http.createServer(async (req, res) => {
     const path = new URL(req.url, 'http://localhost').pathname;
     try {
-      if (path === '/api/training/sessions' && req.method === 'POST') return await createTraining(req, res);
+      if (path === '/api/training/sessions' && req.method === 'POST') return await createGeneralTraining(req, res);
+      if (path === '/api/subjects/chemistry/training/sessions' && req.method === 'POST') return await createChemistryTraining(req, res);
       proxy(req, res);
     } catch (error) {
       console.error('training-api', error);
