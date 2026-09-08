@@ -1,7 +1,27 @@
 (()=>{
  const $=(selector,root=document)=>root.querySelector(selector);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
- const request=async(path,payload)=>{const response=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});let data={};try{data=await response.json();}catch{}if(!response.ok)throw new Error(data.error||'Не удалось получить ответ ИИ');return data;};
+ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const request=async(path,payload)=>{
+   let lastError;
+   for(let attempt=0;attempt<2;attempt+=1){
+     const controller=new AbortController();
+     const timeout=setTimeout(()=>controller.abort(),45000);
+     try{
+       const response=await fetch(path,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+       let data={};try{data=await response.json();}catch{}
+       if(!response.ok)throw Object.assign(new Error(data.error||`Ошибка ИИ (${response.status})`),{httpStatus:response.status});
+       return data;
+     }catch(error){
+       lastError=error;
+       if(error?.httpStatus)throw error;
+       if(error?.name==='AbortError')throw new Error('ИИ не успел ответить. Попробуй ещё раз.');
+       if(attempt===0){await sleep(700);continue;}
+     }finally{clearTimeout(timeout);}
+   }
+   console.warn('AI request failed',lastError);
+   throw new Error(navigator.onLine?'Не удалось связаться с ИИ. Повтори запрос через несколько секунд.':'Нет подключения к интернету. Проверь сеть и попробуй снова.');
+ };
  const showToast=message=>{const toast=$('#toast');if(!toast)return;toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600);};
 
  function attachExplainButton(){
