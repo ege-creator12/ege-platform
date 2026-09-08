@@ -1,82 +1,18 @@
 (()=>{
 'use strict';
-const $=(s,r=document)=>r.querySelector(s);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const apiJson=async(path,opts={})=>{const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось выполнить запрос');return d};
-const label=s=>s==='chemistry'?'Химия':'Биология';
-
-function addNav(){
- if(!state?.user)return;
- document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>{
-  if(nav.querySelector('[data-student-pro]'))return;
-  const b=document.createElement('button');
-  b.dataset.studentPro='1';b.dataset.nav='pro';
-  b.innerHTML='<span class="nav-icon" aria-hidden="true">✦</span>PRO';
-  const profile=nav.querySelector('[data-nav="profile"]');
-  if(profile)nav.insertBefore(b,profile);else nav.appendChild(b);
-  b.onclick=()=>go('pro');
- });
- syncActive();
-}
-function syncActive(){
- const on=state?.route==='pro';
- document.querySelectorAll('[data-student-pro]').forEach(b=>{
-  b.classList.toggle('active',on);
-  if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
- });
-}
-
-async function loadHub(){
- const [bio,chem]=await Promise.all([apiJson('/api/ai-pro/plan?subject=biology'),apiJson('/api/ai-pro/plan?subject=chemistry')]);
- const plans=[bio.plan,chem.plan].filter(Boolean).sort((a,b)=>Date.parse(b.generatedAt||0)-Date.parse(a.generatedAt||0));
- const plan=plans[0]||null,subject=plan?.subjectSlug||'biology';
- const [tutor,progress,review]=await Promise.all([
-  apiJson(`/api/ai-pro/tutor/today?subject=${subject}`).catch(()=>({tutor:null})),
-  apiJson(`/api/ai-pro/progress?subject=${subject}`).catch(()=>({current:{}})),
-  apiJson(`/api/ai-pro/review-status?subject=${subject}`).catch(()=>({}))
- ]);
- return{plan,subject,tutor:tutor.tutor||tutor,progress,review};
-}
-function score(p){if(!p||p.scoreEstimate==null)return'Мало данных';return p.scoreRange?.low!=null?`${p.scoreRange.low}–${p.scoreRange.high}`:String(p.scoreEstimate)}
-function steps(t){return(t?.steps||[]).map(x=>`<div class="tool-step ${x.done?'done':''}"><span>${x.done?'✓':'•'}</span><div><b>${esc(x.title||x.key)}</b><small>${esc(x.subtitle||x.reason||'')}</small></div></div>`).join('')||'<p class="subtitle">Настрой AI PRO — и репетитор соберёт занятие на сегодня.</p>'}
-function html(d){
- const p=d.plan,t=d.tutor,c=d.progress.current||{},r=d.review||{};
- return `<div class="student-pro-page"><header><div class="eyebrow">OSNOVA PRO</div><h1>Твой цифровой репетитор</h1><p class="subtitle">План, занятие на сегодня, повторение и контроль прогресса — в одном месте.</p></header><div class="admin-tools-hub"><section class="tool-card tool-pro"><div class="tool-head"><div><span class="eyebrow">AI PRO</span><h2>Персональный план</h2></div><span class="pill">${label(d.subject)}</span></div><div class="tool-stats"><div><span>Прогноз</span><b>${esc(score(p))}</b></div><div><span>Готовность</span><b>${p?.readiness??0}%</b></div><div><span>Покрытие</span><b>${p?.coverage??0}%</b></div><div><span>Цель</span><b>${p?.targetScore??85}+</b></div></div><div class="tool-actions"><button class="btn" data-pro-plan>${p?'Обновить план':'Настроить план'}</button><button class="btn ghost" data-pro-diagnostic>Диагностика</button></div><form class="tool-plan-form" hidden><select name="subjectSlug"><option value="biology" ${d.subject==='biology'?'selected':''}>Биология</option><option value="chemistry" ${d.subject==='chemistry'?'selected':''}>Химия</option></select><input name="targetScore" type="number" min="40" max="100" value="${p?.targetScore||85}"><input name="examDate" type="date" value="${p?.examDate||''}" required><input name="daysPerWeek" type="number" min="1" max="7" value="${p?.daysPerWeek||5}"><input name="minutesPerDay" type="number" min="20" max="300" value="${p?.minutesPerDay||60}"><button class="btn">Построить</button></form></section><section class="tool-card"><div class="tool-head"><div><span class="eyebrow">Цифровой репетитор</span><h2>Занятие на сегодня</h2></div><b>${t?.progress??0}%</b></div><div class="tool-steps">${steps(t)}</div><button class="btn block" data-pro-tutor ${t?.nextStep?'':'disabled'}>${t?.nextStep?'Продолжить занятие →':'На сегодня всё выполнено'}</button></section><section class="tool-card"><div class="tool-head"><div><span class="eyebrow">Умное повторение</span><h2>Динамика недели</h2></div></div><div class="tool-stats"><div><span>Заданий</span><b>${c.solved||0}</b></div><div><span>Точность</span><b>${c.accuracy||0}%</b></div><div><span>Практика</span><b>${c.minutes||0} мин</b></div><div><span>Повторить</span><b>${r.dueCount||0}</b></div></div><button class="btn ghost block" data-pro-review ${r.dueCount?'':'disabled'}>${r.dueCount?'Начать повторение':'Повторений пока нет'}</button></section><section class="tool-card"><div class="tool-head"><div><span class="eyebrow">Контроль ЕГЭ</span><h2>Карта линий и 90+</h2></div></div><p class="subtitle">Посмотри, какие линии уже закрыты и где лежат самые быстрые баллы.</p><div class="tool-actions"><button class="btn" data-pro-map="biology">Биология</button><button class="btn ghost" data-pro-map="chemistry">Химия</button></div></section></div></div>`;
-}
-async function start(path,body,subject){const d=await apiJson(path,{method:'POST',body:JSON.stringify(body)});if(!d.session?.id)throw new Error('Не удалось начать занятие');sessionStorage.trainingSession=d.session.id;sessionStorage.trainingSubject=subject;go('training')}
-function bind(d){
- $('[data-pro-plan]')?.addEventListener('click',()=>{const f=$('.tool-plan-form');f.hidden=!f.hidden});
- $('.tool-plan-form')?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(e.currentTarget),b={subjectSlug:fd.get('subjectSlug'),targetScore:+fd.get('targetScore'),examDate:fd.get('examDate'),daysPerWeek:+fd.get('daysPerWeek'),minutesPerDay:+fd.get('minutesPerDay')};const btn=e.currentTarget.querySelector('button');btn.disabled=true;try{await apiJson('/api/ai-pro/plan',{method:'POST',body:JSON.stringify(b)});notify('План обновлён');renderPro()}catch(err){notify(err.message);btn.disabled=false}});
- $('[data-pro-diagnostic]')?.addEventListener('click',()=>start('/api/ai-pro/diagnostic',{subjectSlug:d.subject,count:24},d.subject).catch(e=>notify(e.message)));
- $('[data-pro-review]')?.addEventListener('click',()=>start('/api/ai-pro/smart-review',{subjectSlug:d.subject,count:12},d.subject).catch(e=>notify(e.message)));
- $('[data-pro-tutor]')?.addEventListener('click',()=>{const s=d.tutor?.nextStep;if(!s)return;if(s.key==='theory'&&s.lessonId)return go(`lesson/${s.lessonId}`);if(s.key==='review')return start('/api/ai-pro/smart-review',{subjectSlug:d.subject,count:s.questions||12},d.subject).catch(e=>notify(e.message));if(s.key==='practice'){const path=d.subject==='chemistry'?'/api/subjects/chemistry/training/sessions':'/api/training/sessions';const body=d.subject==='chemistry'?{examLine:d.tutor.line,mode:'adaptive',targetQuestions:s.questions||8}:{subjectSlug:'biology',examLine:d.tutor.line,topicId:0,mode:'adaptive',targetQuestions:s.questions||8};return start(path,body,d.subject).catch(e=>notify(e.message))}});
- document.querySelectorAll('[data-pro-map]').forEach(b=>b.onclick=()=>go(`progress-map/${b.dataset.proMap}`));
-}
-async function renderPro(){
- if(!state?.user)return renderAuth();
- state.route='pro';
- app.innerHTML=shell('<div class="page-state" role="status"><span>Загружаем OSNOVA PRO…</span></div>');
- bindShell();
- try{
-  const d=await loadHub();
-  if(state.route!=='pro')return;
-  app.innerHTML=shell(html(d));
-  bindShell();
-  bind(d);
- }catch(e){
-  if(state.route!=='pro')return;
-  app.innerHTML=shell(`<div class="page-state error"><b>Не удалось загрузить PRO</b><span>${esc(e.message)}</span><button class="btn" data-pro-retry>Повторить</button></div>`);
-  bindShell();
-  $('[data-pro-retry]')?.addEventListener('click',renderPro);
- }
-}
-
-// Integrate PRO into the existing app lifecycle instead of running a second renderer.
-const baseBindShell=bindShell;
-bindShell=function(){baseBindShell();addNav();syncActive();};
-const baseRender=render;
-render=async function(){if(state?.route==='pro')return renderPro();return baseRender();};
-
-// Add the item to the already rendered shell once; all future shells use patched bindShell().
-addNav();
+const $=(s,r=document)=>r.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const api=async(path,opts={})=>{const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось выполнить запрос');return d};
+let coachHistory=[];
+function addNav(){if(!state?.user)return;document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>{if(nav.querySelector('[data-student-pro]'))return;const b=document.createElement('button');b.dataset.studentPro='1';b.dataset.nav='pro';b.innerHTML='<span class="nav-icon">✦</span>PRO';const profile=nav.querySelector('[data-nav="profile"]');if(profile)nav.insertBefore(b,profile);else nav.appendChild(b);b.onclick=()=>go('pro')});document.querySelectorAll('[data-student-pro]').forEach(b=>b.classList.toggle('active',state?.route==='pro'))}
+async function existing(){const[b,c]=await Promise.all([api('/api/ai-pro/plan?subject=biology'),api('/api/ai-pro/plan?subject=chemistry')]);return[b.plan,c.plan].filter(Boolean).sort((x,y)=>Date.parse(y.generatedAt||0)-Date.parse(x.generatedAt||0))[0]||null}
+function questionnaire(p){return `<div class="pro-simple"><div class="pro-intro"><span class="eyebrow">OSNOVA PRO</span><h1>${p?'Настройки плана':'Настроим твою подготовку'}</h1><p>Ответь на несколько вопросов один раз. Дальше ОСНОВА сама будет говорить, что и сколько учить каждый день.</p></div><form class="pro-questionnaire"><label>Предмет<select name="subjectSlug"><option value="biology" ${p?.subjectSlug!=='chemistry'?'selected':''}>Биология</option><option value="chemistry" ${p?.subjectSlug==='chemistry'?'selected':''}>Химия</option></select></label><label>Какой результат хочешь?<input name="targetScore" type="number" min="40" max="100" value="${p?.targetScore||85}" required><small>Например: 85 баллов</small></label><label>Когда ЕГЭ?<input name="examDate" type="date" value="${p?.examDate||''}" required></label><label>Сколько дней в неделю реально готов заниматься?<input name="daysPerWeek" type="number" min="1" max="7" value="${p?.daysPerWeek||5}" required></label><label>Сколько минут в день?<input name="minutesPerDay" type="number" min="20" max="240" step="5" value="${p?.minutesPerDay||60}" required></label><button class="btn block">${p?'Сохранить и перестроить':'Составить мой план'}</button>${p?'<button type="button" class="btn ghost block" data-cancel-settings>Отмена</button>':''}</form></div>`}
+function stepList(t){return(t?.steps||[]).map((s,i)=>`<div class="pro-day-step ${s.status==='done'?'done':''}"><div class="pro-step-time">${s.status==='done'?'✓':`${s.minutes||0} мин`}</div><div><b>${i+1}. ${esc(s.title)}</b><p>${esc(s.description||'')}</p></div></div>`).join('')}
+function today(p,t){const range=p.scoreRange?`${p.scoreRange.low}–${p.scoreRange.high}`:'пока мало данных';return `<div class="pro-simple"><div class="pro-intro"><span class="eyebrow">OSNOVA PRO · ${p.subjectSlug==='chemistry'?'Химия':'Биология'}</span><h1>Что делать сегодня</h1><p>${esc(t?.reason||'План подстраивается под твои реальные ответы и ошибки.')}</p></div><section class="pro-today"><div class="pro-today-head"><div><span>Сегодня</span><h2>${esc(t?.title||'Подготовка по плану')}</h2></div><b>${t?.totalMinutes||p.minutesPerDay} мин</b></div>${t?stepList(t):'<p>Собираем занятие по твоему плану…</p>'}<button class="btn block" data-do-next ${t?.nextStep?'':'disabled'}>${t?.nextStep?'Продолжить →':'На сегодня всё выполнено'}</button></section><div class="pro-summary"><span>Цель <b>${p.targetScore}+</b></span><span>Прогноз <b>${range}</b></span><span>Покрытие <b>${p.coverage||0}%</b></span></div><button class="pro-settings-link" data-settings>Изменить режим подготовки</button><section class="pro-coach"><span class="eyebrow">Куратор плана</span><h2>Спроси про подготовку</h2><p>Можно спросить: что учить завтра, почему выбрана эта тема, увеличить ли нагрузку, когда повторять ошибки.</p><div class="pro-chat" data-chat></div><form data-coach-form><input name="message" maxlength="1500" autocomplete="off" placeholder="Например: что мне учить на этой неделе?" required><button class="btn">Отправить</button></form><small>Куратор отвечает только по твоему плану ЕГЭ.</small></section></div>`}
+async function start(path,body,subject){const d=await api(path,{method:'POST',body:JSON.stringify(body)});if(!d.session?.id)throw new Error('Не удалось начать');sessionStorage.trainingSession=d.session.id;sessionStorage.trainingSubject=subject;go('training')}
+function doStep(d){const s=d.tutor?.nextStep;if(!s)return;if(s.key==='theory'&&s.lessonId)return go(`lesson/${s.lessonId}`);if(s.key==='review')return start('/api/ai-pro/smart-review',{subjectSlug:d.plan.subjectSlug,count:s.count||12},d.plan.subjectSlug).catch(e=>notify(e.message));if(s.key==='practice'){const chem=d.plan.subjectSlug==='chemistry';return start(chem?'/api/subjects/chemistry/training/sessions':'/api/training/sessions',chem?{examLine:d.tutor.line,mode:'adaptive',targetQuestions:s.count||8}:{subjectSlug:'biology',examLine:d.tutor.line,mode:'adaptive',targetQuestions:s.count||8},d.plan.subjectSlug).catch(e=>notify(e.message))}}
+function bindQuestionnaire(p){$('.pro-questionnaire')?.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.currentTarget),body={subjectSlug:f.get('subjectSlug'),targetScore:+f.get('targetScore'),examDate:f.get('examDate'),daysPerWeek:+f.get('daysPerWeek'),minutesPerDay:+f.get('minutesPerDay')},btn=e.currentTarget.querySelector('.btn');btn.disabled=true;btn.textContent='Строим план…';try{await api('/api/ai-pro/plan',{method:'POST',body:JSON.stringify(body)});coachHistory=[];renderPro()}catch(err){notify(err.message);btn.disabled=false;btn.textContent=p?'Сохранить и перестроить':'Составить мой план'}});$('[data-cancel-settings]')?.addEventListener('click',renderPro)}
+function renderChat(){const box=$('[data-chat]');if(!box)return;box.innerHTML=coachHistory.map(m=>`<div class="pro-msg ${m.role}">${esc(m.text)}</div>`).join('');box.scrollTop=box.scrollHeight}
+function bindToday(d){$('[data-do-next]')?.addEventListener('click',()=>doStep(d));$('[data-settings]')?.addEventListener('click',()=>{app.innerHTML=shell(questionnaire(d.plan));bindShell();bindQuestionnaire(d.plan)});$('[data-coach-form]')?.addEventListener('submit',async e=>{e.preventDefault();const input=e.currentTarget.elements.message,q=input.value.trim();if(!q)return;coachHistory.push({role:'user',text:q});input.value='';renderChat();const btn=e.currentTarget.querySelector('button');btn.disabled=true;try{const r=await api('/api/ai-pro/coach',{method:'POST',body:JSON.stringify({subjectSlug:d.plan.subjectSlug,message:q,history:coachHistory.slice(-8)})});coachHistory.push({role:'assistant',text:r.text});renderChat()}catch(err){coachHistory.push({role:'assistant',text:err.message});renderChat()}finally{btn.disabled=false}});renderChat()}
+async function renderPro(){if(!state?.user)return renderAuth();state.route='pro';app.innerHTML=shell('<div class="page-state"><span>Готовим твой план…</span></div>');bindShell();try{const plan=await existing();if(state.route!=='pro')return;if(!plan){app.innerHTML=shell(questionnaire(null));bindShell();bindQuestionnaire(null);return}const r=await api(`/api/ai-pro/tutor/today?subject=${plan.subjectSlug}`);if(state.route!=='pro')return;app.innerHTML=shell(today(r.plan||plan,r.tutor));bindShell();bindToday({plan:r.plan||plan,tutor:r.tutor})}catch(e){if(state.route!=='pro')return;app.innerHTML=shell(`<div class="page-state error"><b>Не удалось загрузить план</b><span>${esc(e.message)}</span><button class="btn" data-retry>Повторить</button></div>`);bindShell();$('[data-retry]')?.addEventListener('click',renderPro)}}
+const baseBind=bindShell;bindShell=function(){baseBind();addNav()};const baseRender=render;render=async function(){if(state?.route==='pro')return renderPro();return baseRender()};addNav();
 })();
