@@ -5,12 +5,15 @@ const { join } = require('node:path');
 
 const root = join(__dirname, '..');
 const server = readFileSync(join(root, 'server-ai-review.js'), 'utf8');
+const router = readFileSync(join(root, 'server-training-router.js'), 'utf8');
 const client = readFileSync(join(root, 'public/ai-helper.js'), 'utf8');
 const entry = readFileSync(join(root, 'server-entry.js'), 'utf8');
 
-test('contextual AI review server parses and is production entrypoint', () => {
+test('contextual AI review server parses and is reachable from production entrypoint', () => {
   assert.doesNotThrow(() => new Function(server));
-  assert.match(entry, /require\('\.\/server-ai-review'\)/);
+  assert.doesNotThrow(() => new Function(router));
+  assert.match(entry, /require\('\.\/server-training-router'\)/);
+  assert.match(router, /server-ai-review\.js/);
 });
 
 test('mistake review has all learning actions and uses real task context', () => {
