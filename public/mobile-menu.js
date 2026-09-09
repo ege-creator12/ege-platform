@@ -21,7 +21,7 @@
     panel.classList.add('open');
     overlay.classList.add('open');
     toggle.setAttribute('aria-expanded','true');
-    requestAnimationFrame(()=>panel.querySelector('button.active,button[data-nav]')?.focus({preventScroll:true}));
+    requestAnimationFrame(()=>panel.querySelector('button.active,button[data-nav],button[data-mobile-action]')?.focus({preventScroll:true}));
   };
 
   const navigate=route=>{
@@ -33,6 +33,16 @@
       return;
     }
     location.hash=route;
+  };
+
+  const openAiTutor=()=>{
+    closeMenu();
+    const open=()=>document.querySelector('#ai-tutor-fab')?.click();
+    if(open())return;
+    requestAnimationFrame(()=>{
+      if(open())return;
+      setTimeout(open,80);
+    });
   };
 
   const ensureContainers=()=>{
@@ -64,6 +74,8 @@
         <div class="mobile-menu-foot">Выбери раздел — меню закроется автоматически.</div>`;
       panel.querySelector('.mobile-menu-close').addEventListener('click',closeMenu);
       panel.addEventListener('click',e=>{
+        const aiButton=e.target.closest('button[data-mobile-action="ai"]');
+        if(aiButton){openAiTutor();return;}
         const button=e.target.closest('button[data-nav]');
         if(button)navigate(button.dataset.nav);
       });
@@ -72,18 +84,33 @@
     return {overlay,panel};
   };
 
+  const mapButtonHtml=active=>`<button type="button" data-nav="progress-map/biology" class="${active?'active':''}" ${active?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">▦</span><span>Карта ЕГЭ</span></button>`;
+  const aiButtonHtml=()=>`<button type="button" data-mobile-action="ai"><span class="nav-icon" aria-hidden="true">✦</span><span>ИИ-репетитор</span></button>`;
+
   const syncLinks=(panel,sourceNav)=>{
     const target=panel.querySelector('.mobile-menu-links');
     if(!target||!sourceNav)return;
     const sourceButtons=[...sourceNav.querySelectorAll('button[data-nav]')];
-    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|');
+    const current=location.hash.slice(1)||'dashboard';
+    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|')+`|route:${current}|extras:v2`;
     if(target.dataset.signature===signature)return;
     target.dataset.signature=signature;
-    target.innerHTML=sourceButtons.map(btn=>{
-      const route=btn.dataset.nav||'';
-      const active=btn.classList.contains('active');
-      return `<button type="button" data-nav="${route}" class="${active?'active':''}" ${active?'aria-current="page"':''}>${btn.innerHTML}</button>`;
-    }).join('');
+
+    const regular=sourceButtons.map(btn=>({
+      route:btn.dataset.nav||'',
+      active:btn.classList.contains('active'),
+      html:btn.innerHTML
+    }));
+    const mapActive=current.startsWith('progress-map');
+    let html='';
+    for(const item of regular){
+      if(item.route==='mocks')html+=mapButtonHtml(mapActive);
+      if(item.route==='profile')html+=aiButtonHtml();
+      html+=`<button type="button" data-nav="${item.route}" class="${item.active?'active':''}" ${item.active?'aria-current="page"':''}>${item.html}</button>`;
+    }
+    if(!regular.some(item=>item.route==='mocks'))html+=mapButtonHtml(mapActive);
+    if(!regular.some(item=>item.route==='profile'))html+=aiButtonHtml();
+    target.innerHTML=html;
   };
 
   const enhance=()=>{
