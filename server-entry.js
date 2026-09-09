@@ -51,5 +51,5 @@ async function deepContentRepair(){
   const ready=await fastContentReady(database);
   if(ready) console.log('Fast startup: content banks already healthy; deep rebuild skipped.');
   else await deepContentRepair();
-  require('./server-performance');
+  await require('./server-performance').start();
 })().catch(error=>{console.error('startup',error);process.exit(1)});
