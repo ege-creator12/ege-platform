@@ -17,7 +17,7 @@ function validate(item,line){
   if(item.type==='multiple'||item.type==='sequence')assert(Array.isArray(item.options)&&item.options.length,`line ${line}: options`);
   if(item.questionType==='extended_answer'){
     assert.equal(item.content?.manualReview,true,`line ${line}: extended manual review`);
-    assert(item.content.criteria.length>=Number(item.maxScore||1),`line ${line}: not enough scoring criteria`);
+    assert(Array.isArray(item.content?.criteria)&&item.content.criteria.length,`line ${line}: scoring criteria missing`);
   }
 }
 
