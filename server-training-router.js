@@ -90,10 +90,24 @@ async function subjectId(slug) {
   return Number(subject?.id || 0);
 }
 
+function biologyLineRule(line) {
+  const info = biologyExamRegistry.lines.find(item => Number(item.line) === Number(line));
+  if (!info) return null;
+  const refs = Array.isArray(info.questionRefs) ? info.questionRefs.map(String).filter(Boolean) : [];
+  return {
+    refs,
+    patterns: [
+      `biology-bank-v4-line${line}-%`,
+      `biology-bank-v5-extra-line${line}-%`,
+    ],
+  };
+}
+
 async function questionPool(userId, topicId, mode, limit, options = {}) {
   const examLine = Number(options.examLine || 0);
   const onlySubjectId = Number(options.subjectId || 0);
   const publishedOnly = Boolean(options.publishedOnly);
+  const strictBiologyLine = Boolean(options.strictBiologyLine && examLine);
   const filter = mode === 'new'
     ? 'a.id IS NULL'
     : mode === 'review'
@@ -103,6 +117,20 @@ async function questionPool(userId, topicId, mode, limit, options = {}) {
         : mode === 'hard'
           ? 'q.difficulty>=2'
           : '1=1';
+
+  let strictClause = '';
+  const strictParams = [];
+  if (strictBiologyLine) {
+    const rule = biologyLineRule(examLine);
+    if (!rule) return [];
+    const parts = rule.patterns.map(() => 'q.external_key LIKE ?');
+    strictParams.push(...rule.patterns);
+    if (rule.refs.length) {
+      parts.push(`q.external_key IN (${rule.refs.map(() => '?').join(',')})`);
+      strictParams.push(...rule.refs);
+    }
+    strictClause = ` AND (${parts.join(' OR ')})`;
+  }
 
   const candidateLimit = Math.min(700, Math.max(limit * 24, 140));
   const candidates = await rows(
@@ -121,6 +149,7 @@ async function questionPool(userId, topicId, mode, limit, options = {}) {
        AND (?=0 OR q.exam_line=?)
        AND (?=0 OR q.subject_id=?)
        AND (?=0 OR q.published=1)
+       ${strictClause}
        AND ${filter}
      ORDER BY RANDOM()
      LIMIT ?`,
@@ -132,6 +161,7 @@ async function questionPool(userId, topicId, mode, limit, options = {}) {
     onlySubjectId,
     onlySubjectId,
     publishedOnly ? 1 : 0,
+    ...strictParams,
     candidateLimit,
   );
 
@@ -225,8 +255,6 @@ async function createGeneralTraining(req, res) {
       resolvedSubject = String(subject?.slug || '');
     }
   } else {
-    // The legacy general practice UI is the biology practice entry point.
-    // Never fall back to an all-subject pool: that used to mix chemistry into biology sessions.
     resolvedSubject = 'biology';
     onlySubjectId = await subjectId('biology');
   }
@@ -237,11 +265,12 @@ async function createGeneralTraining(req, res) {
     examLine,
     subjectId: onlySubjectId,
     publishedOnly: Boolean(examLine),
+    strictBiologyLine: Boolean(examLine),
   });
-  if (!ids.length) return json(res, 404, { error: emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
+  if (!ids.length) return json(res, 404, { error: examLine ? `В проверенном банке линии ${examLine} пока нет подходящих заданий` : emptyMessage(mode), code: 'TRAINING_POOL_EMPTY' });
 
   const session = await saveSession(user.id, topicId, mode, target, ids);
-  json(res, 201, { session, subjectSlug: resolvedSubject || null });
+  json(res, 201, { session, subjectSlug: resolvedSubject || null, examLine: examLine || null, strictLinePool: Boolean(examLine) });
 }
 
 async function createChemistryTraining(req, res) {
