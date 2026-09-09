@@ -18,9 +18,23 @@ async function ensureAiUsageStorage(){
   await database.run('CREATE INDEX IF NOT EXISTS idx_ai_daily_usage_date ON ai_daily_usage(usage_date)');
 }
 
+async function ensureAiCoachStorage(){
+  const userIdType=database.dialect==='postgresql'?'BIGINT':'INTEGER';
+  const timestampType=database.dialect==='postgresql'?'TIMESTAMP':'TEXT';
+  await database.run(`CREATE TABLE IF NOT EXISTS ai_coach_memory (
+    user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subject_slug TEXT NOT NULL,
+    memory_json TEXT NOT NULL DEFAULT '{}',
+    updated_at ${timestampType} NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(user_id, subject_slug)
+  )`);
+  await database.run('CREATE INDEX IF NOT EXISTS idx_ai_coach_memory_updated ON ai_coach_memory(updated_at)');
+}
+
 (async()=>{
   await database.migrate();
   await ensureAiUsageStorage();
+  await ensureAiCoachStorage();
   const {ensureExamLineBank}=require('./src/exam-line-bank');
   const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
   const {ensureChemistryCourse}=require('./src/chemistry-course-upgrade');
