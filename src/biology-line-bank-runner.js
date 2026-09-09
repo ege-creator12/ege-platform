@@ -14,6 +14,39 @@ function fingerprint(item){
 }
 const generatedKey=key=>/^biology-bank-/i.test(String(key||''));
 
+function lineRule(info){
+  const line=Number(info.line);
+  return {
+    line,
+    patterns:[`biology-bank-v4-line${line}-%`,`biology-bank-v5-extra-line${line}-%`],
+    refs:(info.questionRefs||[]).map(String).filter(Boolean),
+  };
+}
+
+function trustedWhere(rule){
+  const parts=rule.patterns.map(()=>`external_key LIKE ?`);
+  const params=[...rule.patterns];
+  if(rule.refs.length){
+    parts.push(`external_key IN (${rule.refs.map(()=>'?').join(',')})`);
+    params.push(...rule.refs);
+  }
+  return {sql:`(${parts.join(' OR ')})`,params};
+}
+
+async function sanitizeExamLineAssignments(db,subjectId){
+  let detached=0;
+  for(const info of registry.lines){
+    const rule=lineRule(info),trusted=trustedWhere(rule);
+    const bad=await db.row(`SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND NOT ${trusted.sql}`,subjectId,rule.line,...trusted.params);
+    const count=Number(bad?.n||0);
+    if(!count)continue;
+    await db.run(`UPDATE questions SET exam_line=NULL WHERE subject_id=? AND exam_line=? AND NOT ${trusted.sql}`,subjectId,rule.line,...trusted.params);
+    detached+=count;
+  }
+  if(detached)console.log(`Biology exam-line cleanup: detached ${detached} legacy/misclassified questions from strict line routing.`);
+  return detached;
+}
+
 async function visibleQuestions(db,subjectId){
   const rows=await db.rows(`SELECT q.id,q.external_key,q.exam_line,q.prompt,q.content_json,
     qo.value option_value,qo.label option_label,qo.position option_position
@@ -63,10 +96,17 @@ async function insertQuestion(db,{subjectId,lesson,line,info,key,item}){
   for(const [i,opt] of (item.options||[]).entries())await db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',questionId,String(opt.value),String(opt.label),i);
 }
 
+async function trustedLineCount(db,subjectId,info){
+  const rule=lineRule(info),trusted=trustedWhere(rule);
+  const result=await db.row(`SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND ${trusted.sql}`,subjectId,rule.line,...trusted.params);
+  return Number(result?.n||0);
+}
+
 async function ensureBiologyLineBank(db,{minimum=24}={}){
   const subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
   if(!subject)return {ok:false,inserted:0,lines:[]};
 
+  const detached=await sanitizeExamLineAssignments(db,subject.id);
   const cleanup=await removeExactGeneratedDuplicates(db,subject.id);
   const fingerprints=cleanup.fingerprints;
   const keyRows=await db.rows('SELECT external_key FROM questions WHERE subject_id=? AND external_key IS NOT NULL',subject.id);
@@ -75,7 +115,7 @@ async function ensureBiologyLineBank(db,{minimum=24}={}){
 
   for(const info of registry.lines){
     const line=Number(info.line);
-    let count=Number((await db.row('SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND active=1 AND published=1',subject.id,line))?.n||0);
+    let count=await trustedLineCount(db,subject.id,info);
     const marks=info.lessonRefs.map(()=>'?').join(',');
     const lesson=await db.row(`SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug IN (${marks}) ORDER BY l.id LIMIT 1`,subject.id,...info.lessonRefs);
     if(!lesson){lines.push({line,count,added:0,warning:'lesson-not-found'});continue;}
@@ -93,14 +133,15 @@ async function ensureBiologyLineBank(db,{minimum=24}={}){
       await insertQuestion(db,{subjectId:subject.id,lesson,line,info,key:candidate.key,item});
       existingKeys.add(candidate.key);fingerprints.add(fp);count++;added++;inserted++;
     }
+    count=await trustedLineCount(db,subject.id,info);
     lines.push({line,count,added,skippedDuplicates});
   }
 
   const ok=lines.every(x=>x.count>=minimum);
   if(cleanup.hidden)console.log(`Biology duplicate cleanup: hidden ${cleanup.hidden} exact visible duplicates.`);
   if(cleanup.authoredDuplicatesHidden)console.log(`Biology duplicate cleanup: ${cleanup.authoredDuplicatesHidden} duplicate authored tasks were kept in history but removed from the active bank.`);
-  if(ok)console.log(`Biology line bank ready: >=${minimum} active unique-visible questions on all 28 lines; generated ${inserted}.`);
-  else console.warn('Biology line bank incomplete:',lines.filter(x=>x.count<minimum));
-  return {ok,inserted,lines,deduplicated:cleanup.hidden,authoredDuplicatesHidden:cleanup.authoredDuplicatesHidden};
+  if(ok)console.log(`Biology strict line bank ready: >=${minimum} trusted questions on all 28 lines; generated ${inserted}.`);
+  else console.warn('Biology strict line bank incomplete:',lines.filter(x=>x.count<minimum));
+  return {ok,inserted,lines,deduplicated:cleanup.hidden,authoredDuplicatesHidden:cleanup.authoredDuplicatesHidden,detachedMisclassified:detached};
 }
-module.exports={ensureBiologyLineBank,fingerprint};
+module.exports={ensureBiologyLineBank,fingerprint,sanitizeExamLineAssignments,lineRule};
