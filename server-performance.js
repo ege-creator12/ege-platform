@@ -147,7 +147,7 @@ function waitForUpstream(left = 220) {
 }
 
 async function start() {
-  const child = spawn(process.execPath, [join(__dirname, 'server-biology-lines.js')], {
+  const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
     cwd: __dirname,
     env: { ...process.env, PORT: String(UPSTREAM_PORT) },
     stdio: 'inherit',
