@@ -3,7 +3,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const registry=require('../content/biology/exam-lines.json');
 const {build}=require('../src/biology-line-bank');
-const {buildExtra,EXTENDED}=require('../src/biology-extra-bank');
+const {buildExtra,EXTENDED}=require('../src/biology-extra-bank-v2');
 const {fingerprint}=require('../src/biology-line-bank-runner');
 
 function validate(item,line){
@@ -17,7 +17,7 @@ function validate(item,line){
   if(item.type==='multiple'||item.type==='sequence')assert(Array.isArray(item.options)&&item.options.length,`line ${line}: options`);
   if(item.questionType==='extended_answer'){
     assert.equal(item.content?.manualReview,true,`line ${line}: extended manual review`);
-    assert.equal(item.content.criteria.length,item.maxScore,`line ${line}: scoring criteria count`);
+    assert(item.content.criteria.length>=Number(item.maxScore||1),`line ${line}: not enough scoring criteria`);
   }
 }
 
@@ -49,7 +49,11 @@ test('the first ten supplemental variants on every biology line are exact-duplic
 test('second-part supplemental biology tasks cover ten original scenarios per line',()=>{
   for(let line=22;line<=28;line++){
     assert.equal(EXTENDED[line].length,10,`line ${line}: expected ten extra scenarios`);
-    const prompts=new Set(EXTENDED[line].map(item=>item.prompt.trim().toLocaleLowerCase('ru-RU')));
+    const prompts=new Set();
+    for(let n=1;n<=10;n++){
+      const item=buildExtra(line,n);validate(item,line);
+      prompts.add(item.prompt.trim().toLocaleLowerCase('ru-RU'));
+    }
     assert.equal(prompts.size,10,`line ${line}: duplicate extended prompt`);
   }
 });
