@@ -3,7 +3,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const registry=require('../content/biology/exam-lines.json');
 const {build}=require('../src/biology-line-bank');
-const {buildExtra,EXTENDED}=require('../src/biology-extra-bank-v2');
+const {buildExtra,EXTENDED,bonus}=require('../src/biology-extra-bank-v3');
 const {fingerprint}=require('../src/biology-line-bank-runner');
 
 function validate(item,line){
@@ -34,8 +34,20 @@ test('expanded biology generator has at least 24 distinct visible tasks for ever
   }
 });
 
-test('the first ten supplemental variants on every biology line are exact-duplicate free',()=>{
-  for(const info of registry.lines){
+test('the first fourteen supplemental variants on every second-part line are exact-duplicate free',()=>{
+  for(let line=22;line<=28;line++){
+    const seen=new Set();
+    for(let n=1;n<=14;n++){
+      const item=buildExtra(line,n),key=fingerprint(item);
+      assert(!seen.has(key),`line ${line}: duplicate supplemental variant ${n}`);
+      seen.add(key);
+    }
+    assert.equal(seen.size,14);
+  }
+});
+
+test('first-part supplemental variants are exact-duplicate free',()=>{
+  for(const info of registry.lines.filter(x=>Number(x.line)<=21)){
     const line=Number(info.line),seen=new Set();
     for(let n=1;n<=10;n++){
       const item=buildExtra(line,n),key=fingerprint(item);
@@ -46,14 +58,15 @@ test('the first ten supplemental variants on every biology line are exact-duplic
   }
 });
 
-test('second-part supplemental biology tasks cover ten original scenarios per line',()=>{
+test('second-part supplemental biology tasks have fourteen original scenarios per line',()=>{
   for(let line=22;line<=28;line++){
-    assert.equal(EXTENDED[line].length,10,`line ${line}: expected ten extra scenarios`);
+    assert.equal(EXTENDED[line].length,10,`line ${line}: expected ten base extra scenarios`);
+    assert.equal(bonus[line].length,4,`line ${line}: expected four bonus scenarios`);
     const prompts=new Set();
-    for(let n=1;n<=10;n++){
+    for(let n=1;n<=14;n++){
       const item=buildExtra(line,n);validate(item,line);
       prompts.add(item.prompt.trim().toLocaleLowerCase('ru-RU'));
     }
-    assert.equal(prompts.size,10,`line ${line}: duplicate extended prompt`);
+    assert.equal(prompts.size,14,`line ${line}: duplicate extended prompt`);
   }
 });
