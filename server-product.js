@@ -70,7 +70,7 @@ async function onboardingState(userId) {
   }
   const hasHistory = Number(history?.attempts || 0) > 0 || Number(history?.plans || 0) > 0;
   return {
-    needsOnboarding: !onboarding?.completed_at && !hasHistory,
+    needsOnboarding: onboarding ? !onboarding.completed_at : !hasHistory,
     legacyUser: !onboarding && hasHistory,
     onboarding: onboarding ? {
       subjectSlug: onboarding.subject_slug,
@@ -118,12 +118,14 @@ async function startDiagnostic(userId) {
   const candidates = await database.rows(`SELECT q.id,q.exam_line FROM questions q
       WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND q.external_key LIKE ?
       ORDER BY RANDOM() LIMIT 100`, subject.id, prefix);
-  let picked = chooseDiagnosticQuestions(candidates, 6);
+  let pool = candidates;
+  let picked = chooseDiagnosticQuestions(pool, 6);
   if (picked.length < 6) {
     const fallback = await database.rows(`SELECT q.id,q.exam_line FROM questions q
       WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL
       ORDER BY RANDOM() LIMIT 100`, subject.id);
-    picked = chooseDiagnosticQuestions([...picked, ...fallback], 6);
+    pool = [...candidates, ...fallback];
+    picked = chooseDiagnosticQuestions(pool, 6);
   }
   if (picked.length < 4) throw Object.assign(new Error('Пока не хватает заданий для диагностики'), { status: 409 });
 
