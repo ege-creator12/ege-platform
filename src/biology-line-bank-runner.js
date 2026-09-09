@@ -1,7 +1,7 @@
 'use strict';
 const registry=require('../content/biology/exam-lines.json');
 const {build}=require('./biology-line-bank');
-const {buildExtra}=require('./biology-extra-bank-v2');
+const {buildExtra}=require('./biology-extra-bank-v3');
 
 const normalize=value=>String(value??'').toLocaleLowerCase('ru-RU').replace(/\s+/g,' ').trim();
 function canonicalJson(value){
