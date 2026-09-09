@@ -66,24 +66,24 @@
       ${quickCard('crown','ОСНОВА PRO','Личный план, AI-репетитор и аналитика','pro')}
     </div>
     <div class="premium-main-grid">
-      <section class="premium-continue">
-        <div class="premium-section-title"><h2>Продолжить обучение</h2><span>→</span></div>
-        <div class="premium-continue-body">
-          <div class="premium-cover" aria-hidden="true"></div>
-          <div class="premium-course-copy"><div class="premium-course-meta">Биология · слабая тема</div><h3>${esc(current.title||'Биология')}</h3><p>Продолжи с места, где сейчас можно быстрее всего поднять результат.</p><div class="premium-progress-row"><div class="progress"><i style="width:${pct}%"></i></div><b>${pct}%</b></div></div>
-          <button class="btn" data-premium-train="${Number(current.id)||0}">Продолжить →</button>
+      <div class="premium-left-stack">
+        <section class="premium-continue">
+          <div class="premium-section-title"><h2>Продолжить обучение</h2><span>→</span></div>
+          <div class="premium-continue-body">
+            <div class="premium-cover" aria-hidden="true"></div>
+            <div class="premium-course-copy"><div class="premium-course-meta">Биология · слабая тема</div><h3>${esc(current.title||'Биология')}</h3><p>Продолжи с места, где сейчас можно быстрее всего поднять результат.</p><div class="premium-progress-row"><div class="progress"><i style="width:${pct}%"></i></div><b>${pct}%</b></div></div>
+            <button class="btn" data-premium-train="${Number(current.id)||0}">Продолжить →</button>
+          </div>
+        </section>
+        <div class="premium-results">
+          ${metric('learned','Изучено тем',`${mastered} / ${total}`)}
+          ${metric('target','Средний результат',`${Number(stats.accuracy)||0}%`,Number(stats.accuracy)>=70?'хороший темп':'есть запас')}
+          ${metric('task','Решено заданий',Number(stats.solved)||0,'всего')}
+          ${metric('flame','Серия дней',Number(stats.streak)||0,`${plural(stats.streak,'день','дня','дней')} подряд`)}
         </div>
-      </section>
-      <div class="premium-side-stack">${weekHtml(weak)}${calendarHtml()}</div>
-    </div>
-    <div class="premium-bottom-grid">
-      <div class="premium-results">
-        ${metric('learned','Изучено тем',`${mastered} / ${total}`)}
-        ${metric('target','Средний результат',`${Number(stats.accuracy)||0}%`,Number(stats.accuracy)>=70?'хороший темп':'есть запас')}
-        ${metric('task','Решено заданий',Number(stats.solved)||0,'всего')}
-        ${metric('flame','Серия дней',Number(stats.streak)||0,`${plural(stats.streak,'день','дня','дней')} подряд`)}
+        <aside class="premium-quote"><strong>«Дисциплина превращает цели в реальность»</strong><span></span></aside>
       </div>
-      <aside class="premium-quote"><strong>«Дисциплина превращает цели в реальность»</strong><span></span></aside>
+      <div class="premium-side-stack">${weekHtml(weak)}${calendarHtml()}</div>
     </div>
   </section>`;
  }
