@@ -53,8 +53,11 @@ test('biology line payload scopes count, progress, mistakes and examples to biol
   }
 });
 
-test('production entry loads strict biology line router and router parses', () => {
+test('production entry reaches strict biology router through performance gateway', () => {
   const entry = fs.readFileSync(path.join(root, 'server-entry.js'), 'utf8');
-  assert.match(entry, /require\('\.\/server-biology-lines'\)/);
+  const performance = fs.readFileSync(path.join(root, 'server-performance.js'), 'utf8');
+  assert.match(entry, /require\('\.\/server-performance'\)/);
+  assert.match(performance, /server-biology-lines\.js/);
+  execFileSync(process.execPath, ['--check', path.join(root, 'server-performance.js')]);
   execFileSync(process.execPath, ['--check', path.join(root, 'server-biology-lines.js')]);
 });
