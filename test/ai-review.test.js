@@ -7,6 +7,7 @@ const root = join(__dirname, '..');
 const server = readFileSync(join(root, 'server-ai-review.js'), 'utf8');
 const aiPro = readFileSync(join(root, 'server-ai-pro.js'), 'utf8');
 const router = readFileSync(join(root, 'server-training-router.js'), 'utf8');
+const biologyLines = readFileSync(join(root, 'server-biology-lines.js'), 'utf8');
 const client = readFileSync(join(root, 'public/ai-helper.js'), 'utf8');
 const entry = readFileSync(join(root, 'server-entry.js'), 'utf8');
 
@@ -14,7 +15,9 @@ test('contextual AI review server parses and is reachable from production entryp
   assert.doesNotThrow(() => new Function(server));
   assert.doesNotThrow(() => new Function(aiPro));
   assert.doesNotThrow(() => new Function(router));
-  assert.match(entry, /require\('\.\/server-ai-pro'\)/);
+  assert.doesNotThrow(() => new Function(biologyLines));
+  assert.match(entry, /require\('\.\/server-biology-lines'\)/);
+  assert.match(biologyLines, /server-ai-pro\.js/);
   assert.match(aiPro, /server-training-router\.js/);
   assert.match(router, /server-ai-review\.js/);
 });
