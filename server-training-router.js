@@ -59,15 +59,34 @@ async function assertBiologyLineIds(ids,line,subject){
 async function saveSession(userId,topicId,mode,target,ids){const storedMode=mode==='errors'?'mistakes':['mixed','hard','infinite'].includes(mode)?'adaptive':mode;const created=await run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',userId,topicId||null,storedMode,Math.min(target,ids.length)),sessionId=Number(created.lastInsertRowid);for(const [position,questionId] of ids.entries())await run('INSERT INTO training_session_questions(session_id,question_id,position,state) VALUES(?,?,?,?)',sessionId,questionId,position,'pending');return row('SELECT * FROM training_sessions WHERE id=?',sessionId)}
 
 async function createGeneralTraining(req,res){
- const user=await auth(req,res);if(!user)return;const body=await readJson(req),mode=trainingModes.has(body.mode)?body.mode:'adaptive',topicId=body.topicId===undefined||body.topicId===null||Number(body.topicId)===0?0:numericId(body.topicId),examLine=body.examLine===undefined||body.examLine===null||Number(body.examLine)===0?0:numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),requestedSubject=String(body.subjectSlug||'').trim();
- if(topicId===null)return json(res,400,{error:'Некорректный идентификатор темы'});if(requestedSubject&&!subjectSlugs.has(requestedSubject))return json(res,400,{error:'Некорректный предмет',code:'INVALID_SUBJECT'});if(examLine===null||examLine>28||(examLine&&!biologyExamRegistry.lines.some(x=>Number(x.line)===Number(examLine))))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});
- let onlySubjectId=0,resolvedSubject=requestedSubject;
- if(examLine){resolvedSubject='biology';onlySubjectId=await subjectId('biology')}else if(requestedSubject)onlySubjectId=await subjectId(requestedSubject);else if(topicId){const topic=await row('SELECT subject_id FROM topics WHERE id=?',topicId);onlySubjectId=Number(topic?.subject_id||0);if(onlySubjectId){const subject=await row('SELECT slug FROM subjects WHERE id=? AND published=1',onlySubjectId);resolvedSubject=String(subject?.slug||'')}}else{resolvedSubject='biology';onlySubjectId=await subjectId('biology')}
- if(!onlySubjectId)return json(res,404,{error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
- const ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId:onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
+ const user=await auth(req,res);if(!user)return;
+ const body=await readJson(req),mode=trainingModes.has(body.mode)?body.mode:'adaptive',topicId=body.topicId===undefined||body.topicId===null||Number(body.topicId)===0?0:numericId(body.topicId),examLine=body.examLine===undefined||body.examLine===null||Number(body.examLine)===0?0:numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),requestedSubject=String(body.subjectSlug||'').trim();
+ if(topicId===null)return json(res,400,{error:'Некорректный идентификатор темы'});
+ if(requestedSubject&&!subjectSlugs.has(requestedSubject))return json(res,400,{error:'Некорректный предмет',code:'INVALID_SUBJECT'});
+ if(examLine===null||examLine>28||(examLine&&!biologyExamRegistry.lines.some(x=>Number(x.line)===Number(examLine))))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});
+
+ let onlySubjectId=0;
+ let resolvedSubject=requestedSubject;
+ if(examLine){
+  resolvedSubject = 'biology';
+  onlySubjectId = await subjectId('biology');
+ }else if(requestedSubject){
+  onlySubjectId=await subjectId(requestedSubject);
+ }else if(topicId){
+  const topic=await row('SELECT subject_id FROM topics WHERE id=?',topicId);
+  onlySubjectId=Number(topic?.subject_id||0);
+  if(onlySubjectId){const subject=await row('SELECT slug FROM subjects WHERE id=? AND published=1',onlySubjectId);resolvedSubject=String(subject?.slug||'')}
+ }else{
+  resolvedSubject = 'biology';
+  onlySubjectId = await subjectId('biology');
+ }
+ if (!onlySubjectId) return json(res, 404, {error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
+
+ const ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId: onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
  if(!ids.length)return json(res,404,{error:examLine?`В строгом банке линии ${examLine} пока нет подходящих заданий`:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});
  if(examLine)await assertBiologyLineIds(ids,examLine,onlySubjectId);
- const session=await saveSession(user.id,topicId,mode,target,ids);json(res,201,{session,subjectSlug:resolvedSubject||null,examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?6:null});
+ const session=await saveSession(user.id,topicId,mode,target,ids);
+ json(res,201,{session,subjectSlug:resolvedSubject||null,examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?6:null});
 }
 
 async function createChemistryTraining(req,res){const user=await auth(req,res);if(!user)return;const body=await readJson(req),line=numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),mode=trainingModes.has(body.mode)?body.mode:'adaptive';if(!line||!chemistryExamRegistry.lines.some(x=>Number(x.line)===line))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});const chemistryId=await subjectId('chemistry');if(!chemistryId)return json(res,404,{error:'Химия не найдена'});const ids=await questionPool(user.id,0,mode,target,{examLine:line,subjectId:chemistryId,publishedOnly:true});if(!ids.length)return json(res,404,{error:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});const session=await saveSession(user.id,0,mode,target,ids);json(res,201,{session,subjectSlug:'chemistry'})}
