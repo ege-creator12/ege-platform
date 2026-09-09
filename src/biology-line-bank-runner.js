@@ -1,7 +1,7 @@
 'use strict';
 const registry=require('../content/biology/exam-lines.json');
 const {build}=require('./biology-line-bank');
-const {buildExtra}=require('./biology-extra-bank');
+const {buildExtra}=require('./biology-extra-bank-v2');
 
 const normalize=value=>String(value??'').toLocaleLowerCase('ru-RU').replace(/\s+/g,' ').trim();
 function canonicalJson(value){
@@ -31,7 +31,7 @@ async function visibleQuestions(db,subjectId){
 
 async function removeExactGeneratedDuplicates(db,subjectId){
   const items=await visibleQuestions(db,subjectId),seen=new Map();
-  let hidden=0,manualDuplicates=0;
+  let hidden=0,authoredDuplicatesHidden=0;
   for(const item of items){
     const fp=fingerprint(item),previous=seen.get(fp);
     if(!previous){seen.set(fp,item);continue;}
@@ -41,11 +41,11 @@ async function removeExactGeneratedDuplicates(db,subjectId){
     }else if(previousGenerated){
       await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',previous.id);hidden++;seen.set(fp,item);
     }else{
-      manualDuplicates++;
+      await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',item.id);hidden++;authoredDuplicatesHidden++;
     }
   }
   const kept=(await visibleQuestions(db,subjectId)).map(item=>fingerprint(item));
-  return {hidden,manualDuplicates,fingerprints:new Set(kept)};
+  return {hidden,authoredDuplicatesHidden,fingerprints:new Set(kept)};
 }
 
 async function insertQuestion(db,{subjectId,lesson,line,info,key,item}){
@@ -97,10 +97,10 @@ async function ensureBiologyLineBank(db,{minimum=24}={}){
   }
 
   const ok=lines.every(x=>x.count>=minimum);
-  if(cleanup.hidden)console.log(`Biology duplicate cleanup: hidden ${cleanup.hidden} exact generated duplicates.`);
-  if(cleanup.manualDuplicates)console.warn(`Biology bank: ${cleanup.manualDuplicates} identical authored tasks found; left untouched for editorial review.`);
+  if(cleanup.hidden)console.log(`Biology duplicate cleanup: hidden ${cleanup.hidden} exact visible duplicates.`);
+  if(cleanup.authoredDuplicatesHidden)console.log(`Biology duplicate cleanup: ${cleanup.authoredDuplicatesHidden} duplicate authored tasks were kept in history but removed from the active bank.`);
   if(ok)console.log(`Biology line bank ready: >=${minimum} active unique-visible questions on all 28 lines; generated ${inserted}.`);
   else console.warn('Biology line bank incomplete:',lines.filter(x=>x.count<minimum));
-  return {ok,inserted,lines,deduplicated:cleanup.hidden,manualDuplicates:cleanup.manualDuplicates};
+  return {ok,inserted,lines,deduplicated:cleanup.hidden,authoredDuplicatesHidden:cleanup.authoredDuplicatesHidden};
 }
 module.exports={ensureBiologyLineBank,fingerprint};
