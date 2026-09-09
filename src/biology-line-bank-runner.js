@@ -1,7 +1,6 @@
 'use strict';
 const registry=require('../content/biology/exam-lines.json');
-const {build}=require('./biology-line-bank');
-const {buildExtra}=require('./biology-extra-bank-v3');
+const {buildStrictV6}=require('./biology-strict-line-bank-v6');
 
 const normalize=value=>String(value??'').toLocaleLowerCase('ru-RU').replace(/\s+/g,' ').trim();
 function canonicalJson(value){
@@ -10,26 +9,16 @@ function canonicalJson(value){
 }
 function fingerprint(item){
   const options=(item.options||[]).map(o=>[String(o.value??''),normalize(o.label)]);
-  return [normalize(item.prompt),canonicalJson(item.content||item.content_json||{}),JSON.stringify(options)].join('|');
+  return [normalize(item.prompt),canonicalJson(item.content||item.content_json||{}),JSON.stringify(options),String(item.imageUrl||item.image_url||'')].join('|');
 }
 const generatedKey=key=>/^biology-bank-/i.test(String(key||''));
 
 function lineRule(info){
   const line=Number(info.line);
-  return {
-    line,
-    patterns:[`biology-bank-v4-line${line}-%`,`biology-bank-v5-extra-line${line}-%`],
-    refs:(info.questionRefs||[]).map(String).filter(Boolean),
-  };
+  return {line,patterns:[`biology-bank-v6-line${line}-%`],refs:[]};
 }
-
 function trustedWhere(rule){
-  const parts=rule.patterns.map(()=>`external_key LIKE ?`);
-  const params=[...rule.patterns];
-  if(rule.refs.length){
-    parts.push(`external_key IN (${rule.refs.map(()=>'?').join(',')})`);
-    params.push(...rule.refs);
-  }
+  const parts=rule.patterns.map(()=>`external_key LIKE ?`),params=[...rule.patterns];
   return {sql:`(${parts.join(' OR ')})`,params};
 }
 
@@ -43,20 +32,20 @@ async function sanitizeExamLineAssignments(db,subjectId){
     await db.run(`UPDATE questions SET exam_line=NULL WHERE subject_id=? AND exam_line=? AND NOT ${trusted.sql}`,subjectId,rule.line,...trusted.params);
     detached+=count;
   }
-  if(detached)console.log(`Biology exam-line cleanup: detached ${detached} legacy/misclassified questions from strict line routing.`);
+  if(detached)console.log(`Biology exam-line cleanup: detached ${detached} non-v6 questions from strict line routing.`);
   return detached;
 }
 
 async function visibleQuestions(db,subjectId){
-  const rows=await db.rows(`SELECT q.id,q.external_key,q.exam_line,q.prompt,q.content_json,
+  const result=await db.rows(`SELECT q.id,q.external_key,q.exam_line,q.prompt,q.content_json,q.image_url,
     qo.value option_value,qo.label option_label,qo.position option_position
     FROM questions q LEFT JOIN question_options qo ON qo.question_id=q.id
     WHERE q.subject_id=? AND q.active=1 AND q.published=1
     ORDER BY q.id,qo.position`,subjectId);
   const map=new Map();
-  for(const row of rows){
+  for(const row of result){
     let item=map.get(Number(row.id));
-    if(!item){item={id:Number(row.id),external_key:row.external_key,exam_line:Number(row.exam_line||0),prompt:row.prompt,content_json:row.content_json,options:[]};map.set(item.id,item);}
+    if(!item){item={id:Number(row.id),external_key:row.external_key,exam_line:Number(row.exam_line||0),prompt:row.prompt,content_json:row.content_json,image_url:row.image_url,options:[]};map.set(item.id,item);}
     if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
   }
   return [...map.values()];
@@ -69,13 +58,9 @@ async function removeExactGeneratedDuplicates(db,subjectId){
     const fp=fingerprint(item),previous=seen.get(fp);
     if(!previous){seen.set(fp,item);continue;}
     const currentGenerated=generatedKey(item.external_key),previousGenerated=generatedKey(previous.external_key);
-    if(currentGenerated){
-      await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',item.id);hidden++;
-    }else if(previousGenerated){
-      await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',previous.id);hidden++;seen.set(fp,item);
-    }else{
-      await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',item.id);hidden++;authoredDuplicatesHidden++;
-    }
+    if(currentGenerated){await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',item.id);hidden++;}
+    else if(previousGenerated){await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',previous.id);hidden++;seen.set(fp,item);}
+    else{await db.run('UPDATE questions SET active=0,published=0 WHERE id=?',item.id);hidden++;authoredDuplicatesHidden++;}
   }
   const kept=(await visibleQuestions(db,subjectId)).map(item=>fingerprint(item));
   return {hidden,authoredDuplicatesHidden,fingerprints:new Set(kept)};
@@ -86,12 +71,12 @@ async function insertQuestion(db,{subjectId,lesson,line,info,key,item}){
   const result=await db.run(`INSERT INTO questions(
     subject_id,topic_id,lesson_id,external_key,type,question_type,prompt,instruction,explanation,difficulty,
     answer_json,answer_data_json,explanation_json,content_json,media_json,source,source_type,exam_line,points,estimated_seconds,
-    active,published,exam_year,solution_steps_json,max_score,content_status
-  ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,TRUE,TRUE,?,?,?,?)`,
+    active,published,exam_year,solution_steps_json,max_score,content_status,image_url
+  ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,TRUE,TRUE,?,?,?,?,?)`,
     subjectId,lesson.topic_id,lesson.id,key,item.type,item.questionType,item.prompt,item.instruction,item.explanation,item.difficulty,
     JSON.stringify(item.answer),JSON.stringify({correct:item.answer,acceptedVariants:item.acceptedVariants||[],content:item.content||{}}),
     JSON.stringify({short:item.explanation,fullSolution:item.explanation,scoringPoints:item.content?.criteria||[]}),JSON.stringify(item.content||{}),'{}',
-    'ОСНОВА · авторские задания по структуре ФИПИ ЕГЭ-2027','original',line,maxScore,line>=22?360:120,2027,JSON.stringify(item.solutionSteps||[]),maxScore,'review');
+    'ОСНОВА · строгий авторский банк по формату ФИПИ ЕГЭ-2027','original',line,maxScore,line>=22?360:120,2027,JSON.stringify(item.solutionSteps||[]),maxScore,'review',item.imageUrl||null);
   const questionId=Number(result.lastInsertRowid);
   for(const [i,opt] of (item.options||[]).entries())await db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',questionId,String(opt.value),String(opt.label),i);
 }
@@ -105,7 +90,6 @@ async function trustedLineCount(db,subjectId,info){
 async function ensureBiologyLineBank(db,{minimum=24}={}){
   const subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
   if(!subject)return {ok:false,inserted:0,lines:[]};
-
   const detached=await sanitizeExamLineAssignments(db,subject.id);
   const cleanup=await removeExactGeneratedDuplicates(db,subject.id);
   const fingerprints=cleanup.fingerprints;
@@ -121,17 +105,13 @@ async function ensureBiologyLineBank(db,{minimum=24}={}){
     if(!lesson){lines.push({line,count,added:0,warning:'lesson-not-found'});continue;}
 
     let added=0,skippedDuplicates=0;
-    const candidates=[];
-    for(let n=1;n<=60;n++)candidates.push({key:`biology-bank-v4-line${line}-${n}`,item:()=>build(line,n)});
-    for(let n=1;n<=48;n++)candidates.push({key:`biology-bank-v5-extra-line${line}-${n}`,item:()=>buildExtra(line,n)});
-
-    for(const candidate of candidates){
-      if(count>=minimum)break;
-      if(existingKeys.has(candidate.key))continue;
-      const item=candidate.item(),fp=fingerprint(item);
+    for(let n=1;n<=96&&count<minimum;n++){
+      const key=`biology-bank-v6-line${line}-${n}`;
+      if(existingKeys.has(key))continue;
+      const item=buildStrictV6(line,n),fp=fingerprint(item);
       if(fingerprints.has(fp)){skippedDuplicates++;continue;}
-      await insertQuestion(db,{subjectId:subject.id,lesson,line,info,key:candidate.key,item});
-      existingKeys.add(candidate.key);fingerprints.add(fp);count++;added++;inserted++;
+      await insertQuestion(db,{subjectId:subject.id,lesson,line,info,key,item});
+      existingKeys.add(key);fingerprints.add(fp);count++;added++;inserted++;
     }
     count=await trustedLineCount(db,subject.id,info);
     lines.push({line,count,added,skippedDuplicates});
@@ -139,9 +119,8 @@ async function ensureBiologyLineBank(db,{minimum=24}={}){
 
   const ok=lines.every(x=>x.count>=minimum);
   if(cleanup.hidden)console.log(`Biology duplicate cleanup: hidden ${cleanup.hidden} exact visible duplicates.`);
-  if(cleanup.authoredDuplicatesHidden)console.log(`Biology duplicate cleanup: ${cleanup.authoredDuplicatesHidden} duplicate authored tasks were kept in history but removed from the active bank.`);
-  if(ok)console.log(`Biology strict line bank ready: >=${minimum} trusted questions on all 28 lines; generated ${inserted}.`);
-  else console.warn('Biology strict line bank incomplete:',lines.filter(x=>x.count<minimum));
+  if(ok)console.log(`Biology strict v6 line bank ready: >=${minimum} unique tasks on all 28 lines; generated ${inserted}.`);
+  else console.warn('Biology strict v6 bank incomplete:',lines.filter(x=>x.count<minimum));
   return {ok,inserted,lines,deduplicated:cleanup.hidden,authoredDuplicatesHidden:cleanup.authoredDuplicatesHidden,detachedMisclassified:detached};
 }
 module.exports={ensureBiologyLineBank,fingerprint,sanitizeExamLineAssignments,lineRule};
