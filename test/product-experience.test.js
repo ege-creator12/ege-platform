@@ -43,17 +43,22 @@ test('daily analytics fills empty dates and computes current streak',()=>{
 test('product UI and server routes are wired without replacing learning logic',()=>{
  const server=readFileSync(join(root,'server-product.js'),'utf8');
  const client=readFileSync(join(root,'public/product-experience.js'),'utf8');
+ const settings=readFileSync(join(root,'public/product-settings.js'),'utf8');
  const html=readFileSync(join(root,'public/index.html'),'utf8');
  assert.doesNotThrow(()=>new Function(server));
  assert.doesNotThrow(()=>new Function(client));
+ assert.doesNotThrow(()=>new Function(settings));
  for(const route of ['/api/product/onboarding','/api/product/onboarding/diagnostic','/api/product/analytics','/api/product/event']) assert.match(server,new RegExp(route.replaceAll('/','\\/')));
  assert.match(server,/planner\.buildPlan/);
  assert.match(server,/biology-bank-v6-line%/);
  assert.match(server,/chemistry-bank-v2-line%/);
  assert.match(client,/6 заданий/);
  assert.match(client,/data-product-analytics/);
+ assert.match(settings,/data-analytics-settings/);
+ assert.match(settings,/Сохранить и перестроить/);
  assert.match(html,/product-experience\.css/);
  assert.match(html,/product-experience\.js/);
+ assert.match(html,/product-settings\.js/);
 });
 
 test('both database dialects receive product migrations',()=>{
