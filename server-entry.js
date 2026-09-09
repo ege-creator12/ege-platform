@@ -1,5 +1,6 @@
 process.env.PRESERVE_ADMIN_CONTENT = process.env.PRESERVE_ADMIN_CONTENT || '1';
 const database = require('./src/db');
+const { fastContentReady } = require('./src/startup-readiness');
 const originalRun = database.run;
 database.run = (sql, ...params) => originalRun(
   sql.replace('updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP', 'updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
@@ -31,10 +32,7 @@ async function ensureAiCoachStorage(){
   await database.run('CREATE INDEX IF NOT EXISTS idx_ai_coach_memory_updated ON ai_coach_memory(updated_at)');
 }
 
-(async()=>{
-  await database.migrate();
-  await ensureAiUsageStorage();
-  await ensureAiCoachStorage();
+async function deepContentRepair(){
   const {ensureExamLineBank}=require('./src/exam-line-bank');
   const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
   const {ensureChemistryCourse}=require('./src/chemistry-course-upgrade');
@@ -45,5 +43,13 @@ async function ensureAiCoachStorage(){
   await ensureChemistryCourse(database);
   const chemistry=await ensureChemistryLineBank(database,{minimum:20,mediumMinimum:20});
   if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 core + 20 medium questions on every line');
-  require('./server-biology-lines');
+}
+
+(async()=>{
+  await database.migrate();
+  await Promise.all([ensureAiUsageStorage(),ensureAiCoachStorage()]);
+  const ready=await fastContentReady(database);
+  if(ready) console.log('Fast startup: content banks already healthy; deep rebuild skipped.');
+  else await deepContentRepair();
+  require('./server-performance');
 })().catch(error=>{console.error('startup',error);process.exit(1)});
