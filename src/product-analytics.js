@@ -95,13 +95,13 @@ async function collectAnalytics(db, userId, subjectSlug = '') {
       const correct = Math.max(0, fourteen.correct - current.correct);
       return { attempts, correct, accuracy: pct(correct, attempts), minutes: Math.max(0, fourteen.minutes - current.minutes) };
     }),
-    db.rows(`SELECT SUBSTR(CAST(a.created_at AS TEXT),1,10) day,COUNT(*) attempts,
+    db.rows(`SELECT SUBSTR(CAST(a.created_at AS TEXT),1,10) AS "day",COUNT(*) attempts,
         COALESCE(SUM(CASE WHEN a.correct=1 THEN 1 ELSE 0 END),0) correct,
         COALESCE(SUM(COALESCE(a.duration_seconds,0)),0) seconds
       FROM attempts a JOIN questions q ON q.id=a.question_id JOIN subjects s ON s.id=q.subject_id
       WHERE a.user_id=? AND a.created_at>=?${filter}
       GROUP BY SUBSTR(CAST(a.created_at AS TEXT),1,10)
-      ORDER BY day`, ...dailyParams),
+      ORDER BY "day"`, ...dailyParams),
     db.rows(`SELECT s.slug subject_slug,q.exam_line,COUNT(*) attempted,
         COALESCE(SUM(CASE WHEN a.correct=1 THEN 1 ELSE 0 END),0) correct,
         COALESCE(ROUND(AVG(a.correct)*100),0) accuracy,
