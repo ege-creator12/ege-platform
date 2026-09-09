@@ -8,6 +8,7 @@
   const route=()=>location.hash.slice(1)||'dashboard';
   const isDashboard=()=>route()==='dashboard';
   const api=async(path,opts={})=>{
+    if(window.OsnovaData)return window.OsnovaData.request(path,opts);
     const response=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});
     const data=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(data.error||'Не удалось выполнить запрос');

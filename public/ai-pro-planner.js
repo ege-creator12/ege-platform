@@ -5,7 +5,7 @@
  const $=(s,r=document)=>r.querySelector(s);
  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
  const dashboard=()=>((location.hash.slice(1)||'dashboard')==='dashboard');
- const api=async(path,opts={})=>{const response=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Не удалось выполнить запрос');return data;};
+ const api=async(path,opts={})=>{if(window.OsnovaData)return window.OsnovaData.request(path,opts);const response=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Не удалось выполнить запрос');return data;};
  const notify=message=>{const toast=$('#toast');if(!toast)return;toast.textContent=message;toast.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove('show'),3000);};
  const defaultExamDate=()=>{const d=new Date();d.setDate(d.getDate()+240);return d.toISOString().slice(0,10);};
  const subjectLabel=slug=>slug==='chemistry'?'Химия':'Биология';

@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const $=(s,r=document)=>r.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
-const api=async(path,opts={})=>{const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось выполнить запрос');return d};
+const api=async(path,opts={})=>{if(window.OsnovaData)return window.OsnovaData.request(path,opts);const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось выполнить запрос');return d};
 const CHAT_LIMIT=30,CHAT_KEY='osnova-pro-coach-v3:';
 const quickPrompts=['Составь план на неделю','Что мне учить завтра?','Разбери мои ошибки','Собери тренировку под меня','Нужно ли увеличить нагрузку?'];
 const modes=[['coach','Куратор'],['teach','Научи меня'],['ege90','90+'],['quiz','Проверь меня'],['hint','Только подсказка'],['check','Проверь объяснение']];

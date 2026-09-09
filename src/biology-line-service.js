@@ -101,20 +101,60 @@ async function biologyLinePayload(db, registry, line, userId) {
 }
 
 async function biologyLinesPayload(db, registry, userId) {
-  const lines = [];
-  for (const item of registry.lines) {
-    const payload = await biologyLinePayload(db, registry, item.line, userId);
-    if (!payload) continue;
-    lines.push({
+  const subject = await biologySubject(db);
+  const numbers = registry.lines.map(item => Number(item.line));
+  let lines = [];
+  if (subject && numbers.length) {
+    const marks = numbers.map(() => '?').join(',');
+    // Match each question's declared line as strictly as the detail endpoint.
+    const scope = `q.subject_id=? AND q.exam_line IN (${marks})
+      AND q.external_key LIKE ('biology-bank-v6-line' || CAST(q.exam_line AS TEXT) || '-%')`;
+    const [counts, stats, wrong] = await Promise.all([
+      db.rows(`SELECT q.exam_line,COUNT(*) n FROM questions q
+        WHERE ${scope} AND q.active=1 AND q.published=1 GROUP BY q.exam_line`,
+        subject.id, ...numbers),
+      db.rows(`SELECT q.exam_line,COUNT(*) attempted,COALESCE(SUM(a.correct),0) correct,
+          MAX(a.created_at) last_attempt_at
+        FROM attempts a JOIN questions q ON q.id=a.question_id
+        WHERE a.user_id=? AND ${scope} GROUP BY q.exam_line`,
+        userId, subject.id, ...numbers),
+      db.rows(`WITH latest AS (
+          SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn
+          FROM attempts a WHERE user_id=?
+        )
+        SELECT q.exam_line,q.external_key FROM latest a JOIN questions q ON q.id=a.question_id
+        WHERE a.rn=1 AND a.correct=0 AND ${scope} ORDER BY a.created_at DESC`,
+        userId, subject.id, ...numbers),
+    ]);
+    const countByLine = new Map(counts.map(item => [Number(item.exam_line),Number(item.n)]));
+    const statByLine = new Map(stats.map(item => [Number(item.exam_line),item]));
+    const wrongByLine = new Map();
+    for (const item of wrong) {
+      const line = Number(item.exam_line);
+      if (!wrongByLine.has(line)) wrongByLine.set(line,[]);
+      wrongByLine.get(line).push(item.external_key);
+    }
+    lines = registry.lines.map(item => {
+      const stat = statByLine.get(Number(item.line));
+      const attempted = Number(stat?.attempted || 0);
+      const correct = Number(stat?.correct || 0);
+      return {
       line: Number(item.line),
       title: item.title,
       part: item.part,
       answerFormat: item.answerFormat,
       shortDescription: item.shortDescription,
-      questionCount: payload.questionCount,
-      progress: payload.progress,
+      questionCount: countByLine.get(Number(item.line)) || 0,
+      progress: {
+        attempted,
+        correct,
+        accuracy: attempted ? Math.round(correct / attempted * 100) : 0,
+        lastAttemptAt: stat?.last_attempt_at || null,
+        wrongQuestionRefs: wrongByLine.get(Number(item.line)) || [],
+      },
       strictBank: true,
       bankVersion: 6,
+      };
     });
   }
   return {

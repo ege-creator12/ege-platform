@@ -1,10 +1,6 @@
 (() => {
   'use strict';
 
-  const CACHE_MS = 45000;
-  let cache = null;
-  let cacheAt = 0;
-
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
   })[c]);
@@ -12,21 +8,15 @@
   const route = () => location.hash.slice(1) || 'dashboard';
 
   async function getJson(path) {
+    if (window.OsnovaData) return window.OsnovaData.request('/api' + path);
     const response = await fetch('/api' + path, { headers: { accept: 'application/json' }, cache: 'no-store' });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Не удалось загрузить прогресс');
     return data;
   }
 
-  async function load(force = false) {
-    if (!force && cache && Date.now() - cacheAt < CACHE_MS) return cache;
-    const [biology, chemistry] = await Promise.all([
-      getJson('/subjects/biology/exam-lines'),
-      getJson('/subjects/chemistry/exam-lines'),
-    ]);
-    cache = { biology, chemistry };
-    cacheAt = Date.now();
-    return cache;
+  async function loadSubject(slug) {
+    return getJson('/subjects/' + slug + '/exam-lines');
   }
 
   function normalizeLine(line) {
@@ -172,12 +162,14 @@
     const slug = parts[1] === 'chemistry' ? 'chemistry' : 'biology';
     loading();
     try {
-      const data = await load();
-      app.innerHTML = shell(mapPage(slug, data[slug]));
+      const data = await loadSubject(slug);
+      if (route() !== 'progress-map/' + slug && !(slug === 'biology' && route() === 'progress-map')) return;
+      app.innerHTML = shell(mapPage(slug, data));
       bindShell();
       injectNav();
       bindMap(app);
     } catch (error) {
+      if (route() !== 'progress-map/' + slug && !(slug === 'biology' && route() === 'progress-map')) return;
       console.error('ege-progress-map', error);
       errorState(renderMapRoute);
     }
@@ -209,17 +201,26 @@
     const host = document.createElement('section');
     host.id = 'ege-progress-snapshot';
     host.className = 'ege-progress-snapshot';
-    host.innerHTML = '<div class="section-head"><h2>Карта подготовки</h2><span class="pill">Загружаем…</span></div>';
+    host.innerHTML = `<div class="section-head"><div><h2>Карта подготовки</h2><p>Готовность и слабые линии по каждому предмету.</p></div><button class="btn ghost" data-open-map-all>Открыть карту</button></div><div class="ege-map-summary-grid">${['biology','chemistry'].map(slug=>`<div data-summary-slot="${slug}" class="card" role="status" aria-live="polite"><span class="eyebrow">${subjectLabel(slug)}</span><p>Загружаем прогресс…</p></div>`).join('')}</div>`;
     hero.insertAdjacentElement('afterend', host);
-    try {
-      const data = await load();
-      if (!host.isConnected || route() !== 'dashboard') return;
-      host.innerHTML = `<div class="section-head"><div><h2>Карта подготовки</h2><p>Готовность и слабые линии по каждому предмету.</p></div><button class="btn ghost" data-open-map-all>Открыть карту</button></div><div class="ege-map-summary-grid">${summaryCard('biology', data.biology)}${summaryCard('chemistry', data.chemistry)}</div>`;
-      host.querySelector('[data-open-map-all]').onclick = () => go('progress-map/biology');
-      host.querySelectorAll('[data-map-open]').forEach(card => card.onclick = () => go('progress-map/' + card.dataset.mapOpen));
-    } catch (error) {
-      host.remove();
+    host.querySelector('[data-open-map-all]').onclick = () => go('progress-map/biology');
+    async function fill(slug) {
+      const slot = host.querySelector('[data-summary-slot="' + slug + '"]');
+      if (!slot) return;
+      try {
+        const data = await loadSubject(slug);
+        if (!host.isConnected || route() !== 'dashboard') return;
+        slot.className = 'ege-summary-slot';
+        slot.removeAttribute('role');
+        slot.innerHTML = summaryCard(slug, data);
+        slot.querySelector('[data-map-open]').onclick = () => go('progress-map/' + slug);
+      } catch {
+        if (!host.isConnected || route() !== 'dashboard') return;
+        slot.innerHTML = `<span class="eyebrow">${subjectLabel(slug)}</span><p>Не удалось загрузить прогресс.</p><button class="btn ghost" data-retry-summary>Повторить</button>`;
+        slot.querySelector('[data-retry-summary]').onclick = event => { event.currentTarget.disabled = true; fill(slug); };
+      }
     }
+    await Promise.allSettled(['biology','chemistry'].map(fill));
   }
 
   const previousRender = render;

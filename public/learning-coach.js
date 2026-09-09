@@ -2,9 +2,6 @@
   'use strict';
 
   const ROOT_ID = 'learning-coach';
-  const CACHE_MS = 30000;
-  let cache = null;
-  let cacheAt = 0;
   let mounting = false;
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -27,6 +24,7 @@
   }
 
   async function getJson(path, options = {}) {
+    if (window.OsnovaData) return window.OsnovaData.request('/api' + path, options);
     const response = await fetch('/api' + path, {
       headers: { 'content-type': 'application/json' },
       ...options,
@@ -36,17 +34,14 @@
     return data;
   }
 
-  async function loadData(force = false) {
-    if (!force && cache && Date.now() - cacheAt < CACHE_MS) return cache;
+  async function loadData() {
     const [me, topics, attempts, subjects] = await Promise.all([
       getJson('/me'),
       getJson('/topics'),
       getJson('/attempts?limit=100'),
       getJson('/subjects'),
     ]);
-    cache = { me, topics: topics.topics || [], attempts: attempts.attempts || [], subjects: subjects.subjects || [] };
-    cacheAt = Date.now();
-    return cache;
+    return { me, topics: topics.topics || [], attempts: attempts.attempts || [], subjects: subjects.subjects || [] };
   }
 
   function attemptAnalytics(attempts) {
@@ -331,7 +326,6 @@
   if (app) observer.observe(app, { childList: true, subtree: true });
   addEventListener('hashchange', () => setTimeout(mount, 0));
   addEventListener('focus', () => {
-    if (Date.now() - cacheAt > CACHE_MS) cache = null;
     mount();
   });
   setTimeout(mount, 0);

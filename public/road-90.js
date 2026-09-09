@@ -3,7 +3,7 @@
  const ID='road-90-panel';let busy=false;
  const $=(s,r=document)=>r.querySelector(s),route=()=>location.hash.slice(1)||'dashboard';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
- const api=async path=>{const r=await fetch('/api'+path,{credentials:'same-origin',headers:{accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось загрузить режим 90+');return d;};
+ const api=async path=>{if(window.OsnovaData)return window.OsnovaData.request('/api'+path);const r=await fetch('/api'+path,{credentials:'same-origin',headers:{accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось загрузить режим 90+');return d;};
  const notify=m=>{const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>t.classList.remove('show'),2600)};
  const slug=()=>route().split('/')[1]==='chemistry'?'chemistry':'biology';
  const label=s=>s==='chemistry'?'Химия':'Биология';

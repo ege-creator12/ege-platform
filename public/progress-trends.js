@@ -3,7 +3,7 @@
  const ROOT='weekly-progress-center';let mounting=false,active='biology';
  const $=(s,r=document)=>r.querySelector(s),route=()=>location.hash.slice(1)||'dashboard';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
- const api=async(path,opts={})=>{const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось загрузить прогресс');return d;};
+ const api=async(path,opts={})=>{if(window.OsnovaData)return window.OsnovaData.request(path,opts);const r=await fetch(path,{credentials:'same-origin',headers:{'content-type':'application/json'},...opts});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Не удалось загрузить прогресс');return d;};
  const notify=m=>{const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>t.classList.remove('show'),2800);};
  const label=s=>s==='chemistry'?'Химия':'Биология';
  function bars(history){const max=Math.max(1,...history.map(x=>Number(x.solved)||0));return `<div class="weekly-chart">${history.map((x,i)=>{const h=Math.max(5,Math.round((Number(x.solved)||0)/max*100));return `<div class="weekly-col" title="${esc(x.label)}: ${x.solved} заданий, точность ${x.accuracy}%"><div class="weekly-value">${x.solved||''}</div><div class="weekly-barbox"><i style="height:${h}%"></i><span>${x.accuracy}%</span></div><small>${esc(x.label)}</small></div>`}).join('')}</div>`;}

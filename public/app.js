@@ -1,6 +1,6 @@
 const app=document.querySelector('#app'),toast=document.querySelector('#toast');let state={user:null,stats:null,topics:[],examDate:null,route:location.hash.slice(1)||'dashboard'};
 const icons={dashboard:'⌂',biology:'⌘',chemistry:'⚗',practice:'✓',mocks:'◷',profile:'◎',admin:'◇'};
-const api=async(path,opts={})=>{const r=await fetch('/api'+path,{headers:{'content-type':'application/json'},...opts});const data=await r.json();if(!r.ok)throw Error(data.error);return data};
+const api=async(path,opts={})=>{if(window.OsnovaData)return window.OsnovaData.request('/api'+path,opts);const r=await fetch('/api'+path,{headers:{'content-type':'application/json'},...opts});const data=await r.json();if(!r.ok)throw Error(data.error);return data};
 const notify=m=>{toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const currentNav=()=>state.route.startsWith('biology')?'biology':state.route.startsWith('chemistry')?'chemistry':/^(lesson|topic|section)\//.test(state.route)?(state.currentSubject||'biology'):state.route.split('/')[0];
