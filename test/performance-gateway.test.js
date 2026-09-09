@@ -5,12 +5,15 @@ const {readFileSync}=require('node:fs');
 const {join}=require('node:path');
 
 const source=readFileSync(join(__dirname,'..','server-performance.js'),'utf8');
+const product=readFileSync(join(__dirname,'..','server-product.js'),'utf8');
 const entry=readFileSync(join(__dirname,'..','server-entry.js'),'utf8');
 
-test('performance gateway parses and sits before the existing server chain',()=>{
+test('performance gateway parses and sits before the product and existing server chain',()=>{
  assert.doesNotThrow(()=>new Function(source));
+ assert.doesNotThrow(()=>new Function(product));
  assert.match(entry,/require\('\.\/server-performance'\)/);
- assert.match(source,/server-biology-lines\.js/);
+ assert.match(source,/server-product\.js/);
+ assert.match(product,/server-biology-lines\.js/);
 });
 
 test('topics fast path avoids recursive whole-tree aggregation',()=>{
