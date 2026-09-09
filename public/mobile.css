@@ -22,6 +22,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .dark .lesson-block.deep_dive{background:#242036;color:var(--text)}.dark .lesson-table,.dark .lesson-block{color:var(--text)}
 .mock-help-box{overflow-wrap:anywhere}.mock-help-box p{white-space:pre-line;line-height:1.65}.return-flag{padding:10px 0;min-height:44px}.return-flag input{width:20px;height:20px;vertical-align:middle;margin-right:6px;accent-color:var(--accent)}
 .mock-review summary{gap:12px;min-height:44px}.mock-review summary span{flex-shrink:0;font-size:.875rem}.mock-review p{white-space:pre-line;line-height:1.65}
+.bio-search-form input{color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;caret-color:var(--accent)!important;opacity:1!important}.bio-search-form input::placeholder{color:var(--muted)!important;-webkit-text-fill-color:var(--muted)!important;opacity:1!important}
 @media(max-width:900px){
   .app main{padding:16px 16px calc(100px + env(safe-area-inset-bottom))}.topbar{margin-bottom:20px;gap:8px}
   .mobile-nav{padding:6px max(6px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));gap:3px}
