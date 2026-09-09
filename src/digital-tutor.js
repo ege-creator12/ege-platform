@@ -27,11 +27,11 @@ async function theoryState(db, userId, lesson) {
 }
 async function recentLineSessions(db, userId, sid, line) {
   if (!sid || !line) return [];
-  return db.rows(`SELECT ts.id,ts.status,ts.mode,ts.created_at,COUNT(DISTINCT tsq.question_id) question_count FROM training_sessions ts JOIN training_session_questions tsq ON tsq.session_id=ts.id JOIN questions q ON q.id=tsq.question_id WHERE ts.user_id=? AND q.subject_id=? AND q.exam_line=? GROUP BY ts.id,ts.status,ts.mode,ts.created_at ORDER BY ts.id DESC LIMIT 30`, userId, sid, line);
+  return db.rows(`SELECT ts.id,ts.status,ts.mode,ts.started_at AS created_at,COUNT(DISTINCT tsq.question_id) question_count FROM training_sessions ts JOIN training_session_questions tsq ON tsq.session_id=ts.id JOIN questions q ON q.id=tsq.question_id WHERE ts.user_id=? AND q.subject_id=? AND q.exam_line=? GROUP BY ts.id,ts.status,ts.mode,ts.started_at ORDER BY ts.id DESC LIMIT 30`, userId, sid, line);
 }
 async function recentReviewSessions(db, userId, sid) {
   if (!sid) return [];
-  return db.rows(`SELECT ts.id,ts.status,ts.mode,ts.created_at,COUNT(DISTINCT tsq.question_id) question_count FROM training_sessions ts JOIN training_session_questions tsq ON tsq.session_id=ts.id JOIN questions q ON q.id=tsq.question_id WHERE ts.user_id=? AND q.subject_id=? AND ts.mode='review' GROUP BY ts.id,ts.status,ts.mode,ts.created_at ORDER BY ts.id DESC LIMIT 30`, userId, sid);
+  return db.rows(`SELECT ts.id,ts.status,ts.mode,ts.started_at AS created_at,COUNT(DISTINCT tsq.question_id) question_count FROM training_sessions ts JOIN training_session_questions tsq ON tsq.session_id=ts.id JOIN questions q ON q.id=tsq.question_id WHERE ts.user_id=? AND q.subject_id=? AND ts.mode='review' GROUP BY ts.id,ts.status,ts.mode,ts.started_at ORDER BY ts.id DESC LIMIT 30`, userId, sid);
 }
 function sessionState(list) {
   const today = dayKey(), todaySessions = list.filter(item => dayKey(item.created_at) === today), completed = todaySessions.find(item => item.status === 'completed'), active = todaySessions.find(item => item.status === 'active');
