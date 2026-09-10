@@ -3,7 +3,8 @@ const builders=require('../../src/chemistry-line-bank');
 const registry=require('./exam-lines');
 
 const SOURCE='Авторские варианты ОСНОВЫ по структуре проекта КИМ ФИПИ ЕГЭ-2027; задания официального банка дословно не копируются.';
-const VARIANT_COUNT=3;
+const VARIANT_COUNT=12;
+const VARIANT_OFFSETS=[5,10,15,1,2,3,4,6,7,8,9,11];
 
 function scoringModeFor(q,line){
  if(q.questionType==='extended_answer'||q.manualReview)return 'manual';
@@ -15,9 +16,11 @@ function scoringModeFor(q,line){
 }
 
 function itemNumber(line,variant){
- // Stable but mixed selection: every variant uses a different authored task on every line,
- // while difficulty 1/2/3 is distributed throughout each paper instead of being uniform.
- return ((line*7+variant*5+Math.floor(line/3))%20)+1;
+ // Variants 1-3 keep their old selection. Added variants use distinct offsets
+ // modulo 20, so every full paper gets a different authored task on each line.
+ const offset=VARIANT_OFFSETS[Number(variant)-1];
+ if(offset===undefined)throw new RangeError('Unknown chemistry mock variant');
+ return ((line*7+offset+Math.floor(line/3))%20)+1;
 }
 
 function variantQuestions(variant=1){
