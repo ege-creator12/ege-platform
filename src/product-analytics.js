@@ -23,17 +23,27 @@ function normalizeOnboarding(input = {}) {
   return { subjectSlug, currentScore, targetScore, examDate, daysPerWeek, minutesPerDay };
 }
 
-function chooseDiagnosticQuestions(rows = [], count = 6) {
-  const chosen = [];
-  const lines = new Set();
-  for (const row of rows) {
-    const id = num(row.id), line = num(row.exam_line);
-    if (!id || !line || lines.has(line)) continue;
-    lines.add(line);
-    chosen.push({ id, line });
-    if (chosen.length >= count) break;
+function chooseDiagnosticQuestions(rows=[],count=8){
+  const candidates=rows.map((row,index)=>({
+    id:num(row.id),line:num(row.exam_line),difficulty:Math.max(1,Math.min(3,num(row.difficulty)||1)),
+    estimatedSeconds:Math.max(0,num(row.estimated_seconds)),index,
+  })).filter(row=>row.id&&row.line);
+  const limit=Math.max(1,Math.round(num(count)||8)),uniqueLines=[...new Set(candidates.map(row=>row.line))].sort((a,b)=>a-b);
+  if(!uniqueLines.length)return [];
+  const maxLine=Math.max(...uniqueLines),bucketCount=Math.min(limit,uniqueLines.length),difficultyPlan=[1,1,2,1,2,2,3,3];
+  const chosen=[],usedIds=new Set(),usedLines=new Set();
+  for(let bucket=0;bucket<bucketCount;bucket++){
+    const from=Math.floor(bucket*maxLine/bucketCount)+1,to=Math.floor((bucket+1)*maxLine/bucketCount),target=difficultyPlan[bucket%difficultyPlan.length];
+    const available=candidates.filter(row=>row.line>=from&&row.line<=to&&!usedIds.has(row.id)&&!usedLines.has(row.line))
+      .sort((a,b)=>Math.abs(a.difficulty-target)-Math.abs(b.difficulty-target)||(a.estimatedSeconds||999)-(b.estimatedSeconds||999)||a.index-b.index);
+    const item=available[0];if(!item)continue;chosen.push({id:item.id,line:item.line});usedIds.add(item.id);usedLines.add(item.line);
   }
-  return chosen;
+  for(const item of candidates){
+    if(chosen.length>=limit)break;
+    if(usedIds.has(item.id)||usedLines.has(item.line))continue;
+    chosen.push({id:item.id,line:item.line});usedIds.add(item.id);usedLines.add(item.line);
+  }
+  return chosen.slice(0,limit);
 }
 
 function fillDailySeries(rows = [], days = 14, now = new Date()) {

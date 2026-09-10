@@ -42,11 +42,86 @@ function openOnboarding(status={},manual=false){
       overlay.querySelectorAll('[data-load]').forEach(button=>{button.classList.toggle('active',Number(button.dataset.load)===model.minutesPerDay);button.onclick=()=>{model.minutesPerDay=Number(button.dataset.load);$('[data-minutes]',overlay).value=model.minutesPerDay;overlay.querySelectorAll('[data-load]').forEach(x=>x.classList.toggle('active',x===button))}});$('[data-back]',overlay).onclick=()=>{step=2;render()};$('[data-build]',overlay).onclick=async()=>{model.daysPerWeek=Math.max(1,Math.min(7,Number($('[data-days]',overlay).value)||5));model.minutesPerDay=Math.max(20,Math.min(300,Number($('[data-minutes]',overlay).value)||60));const btn=$('[data-build]',overlay);btn.disabled=true;btn.textContent='Собираю план…';try{const result=await api('/api/product/onboarding',{method:'POST',body:JSON.stringify(model)});savedPlan=result.plan;status.onboarding=result.onboarding;step=4;render()}catch(error){toast(error.message);btn.disabled=false;btn.textContent='Собрать мой план'}};return;
     }
     const plan=savedPlan||{};const diagnostic=status.diagnostic;const goal=Number(plan.targetScore||model.targetScore||existing.targetScore||80);const days=Number(plan.daysPerWeek||model.daysPerWeek||existing.daysPerWeek||5);const minutes=Number(plan.minutesPerDay||model.minutesPerDay||existing.minutesPerDay||60);const subject=(plan.subjectSlug||model.subjectSlug||existing.subjectSlug)==='chemistry'?'Химия':'Биология';
-    overlay.innerHTML=onboardingShell(4,`<div class="product-kicker">Готово</div><h1>${diagnostic?.status==='active'?'Продолжи диагностику':'Твой стартовый план готов'}</h1><p class="product-onboarding-lead">${diagnostic?.status==='active'?`Ты уже ответил на ${diagnostic.answered||0} из ${diagnostic.target||6}. Закончи короткую проверку — после неё аналитика начнёт опираться на реальные ответы.`:'План уже сохранён в PRO. Остался короткий тест на реальных заданиях, чтобы сайт понял твои сильные и слабые линии.'}</p><div class="product-plan-ready"><div class="product-plan-stat"><span>Предмет</span><b>${subject}</b></div><div class="product-plan-stat"><span>Цель</span><b>${goal}+ баллов</b></div><div class="product-plan-stat"><span>Режим</span><b>${days} дн. × ${minutes} мин</b></div><div class="product-plan-stat"><span>Старт</span><b>${plan.coverage?`Покрытие ${plan.coverage}%`:'Диагностика'}</b></div></div><div class="product-diagnostic-box"><h3>6 заданий · примерно 8–12 минут</h3><p>Задания берутся из настоящего банка выбранного предмета. Ответы сразу попадут в твою обычную статистику.</p><button class="btn block" data-diagnostic>${diagnostic?.status==='active'?'Продолжить диагностику →':'Начать диагностику →'}</button></div><div class="product-onboarding-actions"><button class="product-onboarding-skip" data-later>${manual?'Сохранить без диагностики':'Сделать диагностику позже'}</button><span></span></div>`);
-    $('[data-diagnostic]',overlay).onclick=async()=>{const btn=$('[data-diagnostic]',overlay);btn.disabled=true;btn.textContent='Запускаю…';try{let session=diagnostic;if(!session||session.status!=='active'){const result=await api('/api/product/onboarding/diagnostic',{method:'POST',body:'{}'});session=result.session}sessionStorage.trainingSession=String(session.id);sessionStorage.trainingSubject=session.subjectSlug||model.subjectSlug||existing.subjectSlug||'biology';removeOnboarding();if(typeof go==='function')go('training')}catch(error){toast(error.message);btn.disabled=false;btn.textContent='Начать диагностику →'}};
+    overlay.innerHTML=onboardingShell(4,`<div class="product-kicker">Готово</div><h1>${diagnostic?.status==='active'?'Продолжи диагностику':'Твой стартовый план готов'}</h1><p class="product-onboarding-lead">${diagnostic?.status==='active'?`Ты уже ответил на ${diagnostic.answered||0} из ${diagnostic.target||8}. Закончи короткую проверку — после неё аналитика начнёт опираться на реальные ответы.`:'План уже сохранён в PRO. Остался короткий тест на реальных заданиях, чтобы сайт понял твои сильные и слабые линии.'}</p><div class="product-plan-ready"><div class="product-plan-stat"><span>Предмет</span><b>${subject}</b></div><div class="product-plan-stat"><span>Цель</span><b>${goal}+ баллов</b></div><div class="product-plan-stat"><span>Режим</span><b>${days} дн. × ${minutes} мин</b></div><div class="product-plan-stat"><span>Старт</span><b>${plan.coverage?`Покрытие ${plan.coverage}%`:'Диагностика'}</b></div></div><div class="product-diagnostic-box"><h3>8 заданий · примерно 10–15 минут</h3><p>Вопросы берутся из разных частей программы и идут от базовых к более сложным. Во время диагностики подсказок не будет, а понятный результат появится в конце.</p><button class="btn block" data-diagnostic>${diagnostic?.status==='active'?'Продолжить диагностику →':'Начать диагностику →'}</button></div><div class="product-onboarding-actions"><button class="product-onboarding-skip" data-later>${manual?'Сохранить без диагностики':'Сделать диагностику позже'}</button><span></span></div>`);
+    $('[data-diagnostic]',overlay).onclick=async()=>{
+      const btn=$('[data-diagnostic]',overlay);btn.disabled=true;btn.textContent='Запускаю…';
+      try{
+        let session=diagnostic;const currentTarget=Number(session?.target||session?.targetQuestions||0);
+        if(!session||session.status!=='active'||currentTarget!==8){
+          const result=await api('/api/product/onboarding/diagnostic',{method:'POST',body:JSON.stringify({restart:Boolean(session?.status==='active')})});session=result.session;
+        }
+        return openDiagnostic(session,session.subjectSlug||model.subjectSlug||existing.subjectSlug||'biology');
+      }catch(error){toast(error.message);btn.disabled=false;btn.textContent='Начать диагностику →'}
+    };
     $('[data-later]',overlay).onclick=async()=>{try{await api('/api/product/onboarding/complete',{method:'POST',body:JSON.stringify({skippedDiagnostic:true})});removeOnboarding();toast('План сохранён — диагностику можно пройти позже')}catch(error){toast(error.message)}};
   }
   render();
+}
+
+function diagnosticLevel(accuracy){
+  if(accuracy>=75)return {title:'Уверенный старт',tone:'high',text:'База уже крепкая. План начнёт с точечной работы над ошибками и более сложных линий.'};
+  if(accuracy>=45)return {title:'Базовый уровень',tone:'mid',text:'Основа есть. Сайт поставит первыми темы, где сейчас теряются самые быстрые баллы.'};
+  return {title:'Начальный уровень',tone:'low',text:'Начнём спокойно с фундамента и коротких тренировок — без прыжка в сложные темы.'};
+}
+async function openDiagnostic(session={},subjectSlug='biology'){
+  removeOnboarding();onboardingOpen=true;
+  const overlay=document.createElement('div');overlay.className='product-onboarding product-diagnostic-flow';document.body.appendChild(overlay);
+  const sessionId=Number(session.id||0),fallbackTotal=Math.max(1,Number(session.targetQuestions||session.target||8));
+  const subjectName=subjectSlug==='chemistry'?'Химия':'Биология';
+  let startedAt=Date.now(),busy=false;
+
+  const frame=(answered,total,body)=>`<div class="product-onboarding-card product-diagnostic-card"><div class="product-diagnostic-head"><div><div class="product-onboarding-brand">ОСНОВА <b>ДИАГНОСТИКА</b></div><span>${subjectName}</span></div><strong>${Math.min(answered+1,total)} / ${total}</strong></div><div class="product-diagnostic-progress" aria-label="Прогресс диагностики"><i style="width:${Math.round(answered/Math.max(1,total)*100)}%"></i></div>${body}</div>`;
+
+  async function finish(summary={}){
+    const answered=Number(summary.answered_count??summary.answeredCount??fallbackTotal);
+    const correct=Number(summary.correct_count??summary.correctCount??0);
+    const accuracy=answered?Math.round(correct/answered*100):0;
+    overlay.innerHTML=frame(answered,Math.max(answered,fallbackTotal),'<div class="product-diagnostic-loading"><span></span><b>Собираю результат…</b><small>Обновляю стартовый план по твоим ответам</small></div>');
+    let completed={};
+    try{completed=await api('/api/product/onboarding/complete',{method:'POST',body:JSON.stringify({skippedDiagnostic:false})})}
+    catch(error){toast(error.message)}
+    const level=diagnosticLevel(accuracy),plan=completed.plan||{};
+    overlay.innerHTML=frame(fallbackTotal,fallbackTotal,`<div class="product-diagnostic-result ${level.tone}"><div class="product-kicker">Диагностика завершена</div><div class="product-diagnostic-score">${accuracy}<small>%</small></div><h1>${level.title}</h1><p>${level.text}</p><div class="product-diagnostic-stats"><div><span>Верно</span><b>${correct} из ${answered}</b></div><div><span>Предмет</span><b>${subjectName}</b></div><div><span>План</span><b>${plan.priorityLines?.length?'Обновлён':'Готов'}</b></div></div><div class="product-diagnostic-note">Это стартовый срез, а не прогноз балла ЕГЭ. Он станет точнее после обычных тренировок.</div><button class="btn block" data-diagnostic-finish>Перейти на главную →</button></div>`);
+    $('[data-diagnostic-finish]',overlay).onclick=()=>{removeOnboarding();checkedUserId=null;if(typeof boot==='function')boot();else if(typeof go==='function')go('dashboard')};
+  }
+
+  async function loadNext(){
+    if(!sessionId){toast('Не удалось открыть диагностику');removeOnboarding();return}
+    overlay.innerHTML=frame(Number(session.answered||0),fallbackTotal,'<div class="product-diagnostic-loading"><span></span><b>Загружаю задание…</b></div>');
+    try{
+      const data=await api(`/api/training/sessions/${sessionId}/next`);
+      if(data.done)return finish(data.session);
+      const q=data.question;q.options=data.options||[];
+      if(q.manualReview){
+        const skipped=await api(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:q.id,duration:0})});
+        return skipped.done?finish(skipped.session):loadNext();
+      }
+      const answered=Number(data.session.answeredCount||0),total=Number(data.session.targetQuestions||fallbackTotal);
+      const controls=window.QuestionControls?.render(q,[],'diagnostic')||'<div class="product-diagnostic-error">Не удалось показать варианты ответа</div>';
+      overlay.innerHTML=frame(answered,total,`<div class="product-diagnostic-question"><div class="product-diagnostic-meta"><span>Вопрос ${answered+1} из ${total}</span><span>${esc(q.topic||subjectName)}</span></div>${q.instruction?`<p class="question-instruction">${esc(q.instruction)}</p>`:''}<h2>${esc(q.prompt)}</h2><div class="product-diagnostic-controls">${controls}</div><p class="product-diagnostic-hint">Правильность покажем только в конце — так результат будет честным.</p><div class="product-diagnostic-actions"><button class="btn ghost" data-diagnostic-skip>Не знаю</button><button class="btn" data-diagnostic-answer>Ответить →</button></div><button class="product-diagnostic-later" data-diagnostic-later>Выйти и продолжить позже</button></div>`);
+      overlay.querySelectorAll('.option').forEach(option=>option.onclick=()=>setTimeout(()=>option.classList.toggle('selected',option.querySelector('input')?.checked),0));
+      const setBusy=value=>{busy=value;overlay.querySelectorAll('[data-diagnostic-answer],[data-diagnostic-skip]').forEach(button=>button.disabled=value)};
+      const advance=async result=>{try{if(result.stats&&typeof state!=='undefined')state.stats=result.stats}catch{};if(result.done)return finish(result.session);session.answered=answered+1;startedAt=Date.now();return loadNext()};
+      $('[data-diagnostic-answer]',overlay).onclick=async()=>{
+        if(busy)return;
+        const answer=window.QuestionControls?.read($('.product-diagnostic-question',overlay),q)||[];
+        if(!answer.length||answer.some(value=>!String(value).trim()||value==='invalid'))return toast('Сначала заполни ответ');
+        setBusy(true);
+        try{await advance(await api(`/api/training/sessions/${sessionId}/answer`,{method:'POST',body:JSON.stringify({questionId:q.id,answer,duration:Math.round((Date.now()-startedAt)/1000)})}))}
+        catch(error){toast(error.message);setBusy(false)}
+      };
+      $('[data-diagnostic-skip]',overlay).onclick=async()=>{
+        if(busy)return;setBusy(true);
+        try{await advance(await api(`/api/training/sessions/${sessionId}/reveal`,{method:'POST',body:JSON.stringify({questionId:q.id,duration:Math.round((Date.now()-startedAt)/1000)})}))}
+        catch(error){toast(error.message);setBusy(false)}
+      };
+      $('[data-diagnostic-later]',overlay).onclick=()=>{removeOnboarding();toast('Диагностика сохранена — продолжишь с этого вопроса')};
+    }catch(error){
+      overlay.innerHTML=frame(Number(session.answered||0),fallbackTotal,`<div class="product-diagnostic-error"><h2>Не удалось загрузить вопрос</h2><p>${esc(error.message)}</p><button class="btn" data-diagnostic-retry>Попробовать ещё раз</button><button class="product-diagnostic-later" data-diagnostic-later>Вернуться на сайт</button></div>`);
+      $('[data-diagnostic-retry]',overlay).onclick=loadNext;$('[data-diagnostic-later]',overlay).onclick=removeOnboarding;
+    }
+  }
+  loadNext();
 }
 
 function deltaHtml(value,suffix=''){const n=Number(value||0);if(!n)return '<small>без изменений</small>';return `<small class="${n<0?'down':''}">${n>0?'+':''}${n}${suffix} к прошлой неделе</small>`}

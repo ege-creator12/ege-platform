@@ -27,6 +27,13 @@ test('diagnostic selector takes distinct exam lines',()=>{
  assert.deepEqual(picked.map(x=>x.id),[1,3,4,5,6,7]);
 });
 
+test('diagnostic selector spreads questions across the program and keeps lines unique',()=>{
+ const rows=Array.from({length:32},(_,index)=>({id:index+1,exam_line:index+1,difficulty:index%3+1,estimated_seconds:60+index}));
+ const picked=chooseDiagnosticQuestions(rows,8);
+ assert.equal(picked.length,8);
+ assert.equal(new Set(picked.map(item=>item.line)).size,8);
+ for(let bucket=0;bucket<8;bucket++)assert.ok(picked[bucket].line>=bucket*4+1&&picked[bucket].line<=(bucket+1)*4);
+});
 test('daily analytics fills empty dates and computes current streak',()=>{
  const now=new Date('2026-09-09T12:00:00Z');
  const series=fillDailySeries([
@@ -52,7 +59,12 @@ test('product UI and server routes are wired without replacing learning logic',(
  assert.match(server,/planner\.buildPlan/);
  assert.match(server,/biology-bank-v6-line%/);
  assert.match(server,/chemistry-bank-v2-line%/);
- assert.match(client,/6 заданий/);
+ assert.match(client,/8 заданий/);
+ assert.match(client,/data-diagnostic-answer/);
+ assert.match(client,/стартовый срез/i);
+ assert.match(server,/extended_answer/);
+ assert.match(server,/needsManualReview/);
+ assert.match(server,/restart/);
  assert.match(client,/data-product-analytics/);
  assert.match(settings,/data-analytics-settings/);
  assert.match(settings,/Сохранить и перестроить/);

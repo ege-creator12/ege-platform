@@ -7,6 +7,7 @@ const { join } = require('node:path');
 const database = require('./src/db');
 const planner = require('./src/ai-study-planner');
 const { normalizeOnboarding, chooseDiagnosticQuestions, collectAnalytics } = require('./src/product-analytics');
+const { needsManualReview } = require('./src/question-answer');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PRODUCT_UPSTREAM_PORT || (PORT + 1));
@@ -82,7 +83,7 @@ async function onboardingState(userId) {
       completedAt: onboarding.completed_at || null,
     } : null,
     diagnostic: diagnostic ? {
-      id: Number(diagnostic.id), status: diagnostic.status,
+      id: Number(diagnostic.id), status: diagnostic.status, subjectSlug: onboarding.subject_slug,
       answered: Number(diagnostic.answered_count || 0), target: Number(diagnostic.target_questions || 0),
       startedAt: diagnostic.started_at || null, finishedAt: diagnostic.finished_at || null,
     } : null,
@@ -108,43 +109,62 @@ async function saveOnboarding(userId, payload) {
   return { input, plan };
 }
 
-async function startDiagnostic(userId) {
-  const onboarding = await database.row('SELECT * FROM user_onboarding WHERE user_id=?', userId);
-  if (!onboarding) throw Object.assign(new Error('Сначала заполни короткую анкету'), { status: 409 });
-  const slug = onboarding.subject_slug;
-  const subject = await database.row('SELECT id FROM subjects WHERE slug=? AND published=1', slug);
-  if (!subject) throw Object.assign(new Error('Предмет не найден'), { status: 404 });
-  const prefix = slug === 'biology' ? 'biology-bank-v6-line%' : 'chemistry-bank-v2-line%';
-  const candidates = await database.rows(`SELECT q.id,q.exam_line FROM questions q
-      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND q.external_key LIKE ?
-      ORDER BY RANDOM() LIMIT 100`, subject.id, prefix);
-  let pool = candidates;
-  let picked = chooseDiagnosticQuestions(pool, 6);
-  if (picked.length < 6) {
-    const fallback = await database.rows(`SELECT q.id,q.exam_line FROM questions q
-      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL
-      ORDER BY RANDOM() LIMIT 100`, subject.id);
-    pool = [...candidates, ...fallback];
-    picked = chooseDiagnosticQuestions(pool, 6);
-  }
-  if (picked.length < 4) throw Object.assign(new Error('Пока не хватает заданий для диагностики'), { status: 409 });
+async function startDiagnostic(userId,options={}){
+  const onboarding=await database.row('SELECT * FROM user_onboarding WHERE user_id=?',userId);
+  if(!onboarding)throw Object.assign(new Error('Сначала заполни короткую анкету'),{status:409});
+  const slug=onboarding.subject_slug,restart=Boolean(options.restart);
+  const active=onboarding.diagnostic_session_id?await database.row("SELECT id,status,answered_count,target_questions FROM training_sessions WHERE id=? AND user_id=?",onboarding.diagnostic_session_id,userId):null;
+  if(active?.status==='active'&&!restart)return {id:Number(active.id),subjectSlug:slug,targetQuestions:Number(active.target_questions),answered:Number(active.answered_count||0)};
+  if(active?.status==='active'&&restart)await database.run("UPDATE training_sessions SET status='abandoned',finished_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?",active.id,userId);
 
-  const created = await database.run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)', userId, null, 'adaptive', picked.length);
-  const sessionId = Number(created.lastInsertRowid);
-  for (const [position, question] of picked.entries()) {
-    await database.run('INSERT INTO training_session_questions(session_id,question_id,position,state) VALUES(?,?,?,?)', sessionId, question.id, position, 'pending');
+  const subject=await database.row('SELECT id FROM subjects WHERE slug=? AND published=1',slug);
+  if(!subject)throw Object.assign(new Error('Предмет не найден'),{status:404});
+  const prefix=slug==='biology'?'biology-bank-v6-line%':'chemistry-bank-v2-line%';
+  const objective="COALESCE(q.question_type,'') NOT IN ('extended_answer','extended')";
+  const freshRows=await database.rows(`SELECT q.id,q.exam_line,q.difficulty,q.estimated_seconds,q.type,q.question_type,q.answer_json,q.answer_data_json,q.content_json FROM questions q
+      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND q.external_key LIKE ? AND ${objective}
+      AND NOT EXISTS(SELECT 1 FROM attempts a WHERE a.user_id=? AND a.question_id=q.id)
+      ORDER BY RANDOM() LIMIT 240`,subject.id,prefix,userId);
+  const fresh=freshRows.filter(question=>!needsManualReview(question));
+  let pool=fresh;
+  let picked=chooseDiagnosticQuestions(pool,8);
+  if(picked.length<8){
+    const fallbackRows=await database.rows(`SELECT q.id,q.exam_line,q.difficulty,q.estimated_seconds,q.type,q.question_type,q.answer_json,q.answer_data_json,q.content_json FROM questions q
+      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND ${objective}
+      ORDER BY RANDOM() LIMIT 240`,subject.id);
+    const fallback=fallbackRows.filter(question=>!needsManualReview(question));
+    pool=[...fresh,...fallback];
+    picked=chooseDiagnosticQuestions(pool,8);
   }
-  await database.run('UPDATE user_onboarding SET diagnostic_session_id=?,diagnostic_started_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?', sessionId, userId);
-  await logEvent(userId, 'diagnostic_started', 'onboarding', { subjectSlug: slug, questions: picked.length }).catch(() => {});
-  return { id: sessionId, subjectSlug: slug, targetQuestions: picked.length };
+  if(picked.length<6)throw Object.assign(new Error('Пока не хватает заданий для диагностики'),{status:409});
+
+  const sessionId=await database.transaction(async tx=>{
+    const created=await tx.run('INSERT INTO training_sessions(user_id,topic_id,mode,target_questions) VALUES(?,?,?,?)',userId,null,'adaptive',picked.length);
+    const id=Number(created.lastInsertRowid);
+    for(const [position,question]of picked.entries())await tx.run('INSERT INTO training_session_questions(session_id,question_id,position,state) VALUES(?,?,?,?)',id,question.id,position,'pending');
+    await tx.run('UPDATE user_onboarding SET diagnostic_session_id=?,diagnostic_started_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?',id,userId);
+    return id;
+  });
+  await logEvent(userId,'diagnostic_started','onboarding',{subjectSlug:slug,questions:picked.length,restart}).catch(()=>{});
+  return {id:sessionId,subjectSlug:slug,targetQuestions:picked.length,answered:0};
 }
 
-async function completeOnboarding(userId, skippedDiagnostic = false) {
-  const current = await database.row('SELECT user_id FROM user_onboarding WHERE user_id=?', userId);
-  if (!current) throw Object.assign(new Error('Сначала заполни анкету'), { status: 409 });
-  await database.run('UPDATE user_onboarding SET completed_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?', userId);
-  await logEvent(userId, 'onboarding_completed', 'onboarding', { skippedDiagnostic: Boolean(skippedDiagnostic) }).catch(() => {});
-  return onboardingState(userId);
+async function completeOnboarding(userId,skippedDiagnostic=false){
+  const current=await database.row('SELECT * FROM user_onboarding WHERE user_id=?',userId);
+  if(!current)throw Object.assign(new Error('Сначала заполни анкету'),{status:409});
+  let plan=null;
+  if(!skippedDiagnostic){
+    const diagnostic=current.diagnostic_session_id?await database.row('SELECT status FROM training_sessions WHERE id=? AND user_id=?',current.diagnostic_session_id,userId):null;
+    if(diagnostic?.status==='completed'){
+      plan=await planner.buildPlan(database,userId,{
+        subjectSlug:current.subject_slug,targetScore:current.target_score,examDate:current.exam_date,
+        daysPerWeek:current.days_per_week,minutesPerDay:current.minutes_per_day,
+      },{useAi:false}).catch(error=>{console.warn('diagnostic-plan-refresh',error?.message||error);return null});
+    }
+  }
+  await database.run('UPDATE user_onboarding SET completed_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?',userId);
+  await logEvent(userId,'onboarding_completed','onboarding',{skippedDiagnostic:Boolean(skippedDiagnostic),planRefreshed:Boolean(plan)}).catch(()=>{});
+  return {...await onboardingState(userId),plan};
 }
 
 async function analyticsPayload(userId, subjectSlug) {
@@ -179,7 +199,8 @@ async function handleProductApi(req, res, url) {
     json(res, 200, { ok: true, onboarding: result.input, plan: result.plan }); return true;
   }
   if (req.method === 'POST' && url.pathname === '/api/product/onboarding/diagnostic') {
-    json(res, 200, { ok: true, session: await startDiagnostic(user.id) }); return true;
+    const payload = await readJson(req);
+    json(res, 200, { ok: true, session: await startDiagnostic(user.id, payload) }); return true;
   }
   if (req.method === 'POST' && url.pathname === '/api/product/onboarding/complete') {
     const payload = await readJson(req);
