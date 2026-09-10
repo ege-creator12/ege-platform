@@ -2,8 +2,8 @@
 const builders=require('../../src/chemistry-line-bank');
 const registry=require('./exam-lines');
 
-const SOURCE='Авторские варианты ОСНОВЫ по структуре проекта КИМ ФИПИ ЕГЭ-2027; задания официального банка дословно не копируются.';
-const VARIANT_COUNT=3;
+const SOURCE='Авторские варианты ОСНОВЫ по структуре проекта КИМ ФИПИ ЕГЭ-2027; задания официального и коммерческих банков дословно не копируются.';
+const VARIANT_COUNT=12;
 
 function scoringModeFor(q,line){
  if(q.questionType==='extended_answer'||q.manualReview)return 'manual';
@@ -14,10 +14,17 @@ function scoringModeFor(q,line){
  return null;
 }
 
+function legacyItemNumber(line,variant){return ((line*7+variant*5+Math.floor(line/3))%20)+1;}
 function itemNumber(line,variant){
- // Stable but mixed selection: every variant uses a different authored task on every line,
- // while difficulty 1/2/3 is distributed throughout each paper instead of being uniform.
- return ((line*7+variant*5+Math.floor(line/3))%20)+1;
+ line=Number(line);variant=Number(variant);
+ if(variant<=3)return legacyItemNumber(line,variant);
+ const used=new Set([1,2,3].map(v=>legacyItemNumber(line,v)));
+ const available=[];
+ for(let step=0;step<20;step++){
+  const candidate=((line*11+step*7+Math.floor(line/3)*3)%20)+1;
+  if(!used.has(candidate)&&!available.includes(candidate))available.push(candidate);
+ }
+ return available[variant-4];
 }
 
 function variantQuestions(variant=1){

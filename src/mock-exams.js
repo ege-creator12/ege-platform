@@ -1,11 +1,11 @@
-const {variantQuestions,SOURCE} = require('../content/biology/mock-variants');
+const {variantQuestions,SOURCE,VARIANT_COUNT} = require('../content/biology/mock-variants-expanded');
 const { isCorrectAnswer } = require('./question-answer');
 const { formatAnswerForReview } = require('./answer-review');
 
 const CONFIG={
   durationSeconds:Number(process.env.BIOLOGY_MOCK_DURATION_SECONDS)||14100,
   sourceVersion:'Проект ФИПИ ЕГЭ-2027 / конфигурация платформы',
-  variantCount:3,
+  variantCount:VARIANT_COUNT,
   defaultMode:'untimed'
 };
 const parse=(value,fallback=[])=>{try{return value==null?fallback:typeof value==='string'?JSON.parse(value):value}catch{return fallback}};
@@ -30,7 +30,6 @@ function scoreAnswer(snapshot,answer){
       return Math.max(0,base-(a.length>e.length?1:0));
     }
     if(snapshot.scoringMode==='selection'){
-      // Count occurrences, so a repeated symbol cannot earn full marks.
       const rest=[...e];let extra=0;
       for(const v of a){const i=rest.indexOf(v);if(i<0)extra++;else rest.splice(i,1)}
       const errors=Math.max(extra,rest.length);
@@ -83,7 +82,7 @@ function createMockExamService(db,registry){
       prompt:v.prompt,
       instruction:v.instruction||'',
       content_json:JSON.stringify(v.content||{}),
-      media_json:v.image?JSON.stringify({path:v.image,alt:"Схема к заданию"}):null,
+      media_json:v.image?JSON.stringify({path:v.image,alt:'Схема к заданию'}):null,
       image_url:v.image||null,
       scoringMode:v.scoringMode,
       acceptedVariants:v.acceptedVariants||[],
@@ -140,7 +139,7 @@ function createMockExamService(db,registry){
     if(!['timed','untimed'].includes(mode))throw Object.assign(new Error('Неизвестный режим пробника'),{status:400,code:'INVALID_MODE'});
     variant=Number(variant||1);
     if(!Number.isInteger(variant)||variant<1||variant>CONFIG.variantCount)throw Object.assign(new Error('Неизвестный вариант пробника'),{status:400,code:'INVALID_VARIANT'});
-    const seed=`variant:${variant}:biology-2027-reviewed-v4`;
+    const seed=`variant:${variant}:biology-2027-reviewed-v5`;
     const selected=variantQuestions(variant).map(v=>({line:lineByNumber.get(v.line),q:virtualCandidate(v)}));
     return db.transaction(async tx=>{
       const made=await tx.run('INSERT INTO biology_mock_exam_attempts(user_id,exam_year,source_version,mode,duration_seconds,variant_seed) VALUES(?,?,?,?,?,?)',userId,registry.examYear,CONFIG.sourceVersion,mode,mode==='timed'?CONFIG.durationSeconds:null,seed),id=Number(made.lastInsertRowid);let max=0;

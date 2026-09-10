@@ -1,6 +1,7 @@
 process.env.PRESERVE_ADMIN_CONTENT = process.env.PRESERVE_ADMIN_CONTENT || '1';
 const database = require('./src/db');
-const { fastContentReady } = require('./src/startup-readiness');
+const { fastContentReady, BIOLOGY_MINIMUM, CHEMISTRY_MINIMUM } = require('./src/startup-readiness');
+const { ensureContentQuality2027 } = require('./src/content-quality-2027');
 const originalRun = database.run;
 database.run = (sql, ...params) => originalRun(
   sql.replace('updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP', 'updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
@@ -38,18 +39,19 @@ async function deepContentRepair(){
   const {ensureChemistryCourse}=require('./src/chemistry-course-upgrade');
   const {ensureChemistryLineBank}=require('./src/chemistry-line-bank-runner');
   await ensureExamLineBank(database,{minimum:15});
-  const biology=await ensureBiologyLineBank(database,{minimum:24});
-  if(!biology.ok)throw new Error('Biology question bank did not reach 24 unique visible questions on every exam line');
+  const biology=await ensureBiologyLineBank(database,{minimum:BIOLOGY_MINIMUM});
+  if(!biology.ok)throw new Error(`Biology question bank did not reach ${BIOLOGY_MINIMUM} unique visible questions on every exam line`);
   await ensureChemistryCourse(database);
-  const chemistry=await ensureChemistryLineBank(database,{minimum:20,mediumMinimum:20});
-  if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 20 core + 20 medium questions on every line');
+  const chemistry=await ensureChemistryLineBank(database,{minimum:CHEMISTRY_MINIMUM,mediumMinimum:CHEMISTRY_MINIMUM});
+  if(!chemistry.ok)throw new Error(`Chemistry question bank did not reach ${CHEMISTRY_MINIMUM} core + ${CHEMISTRY_MINIMUM} medium questions on every line`);
 }
 
 (async()=>{
   await database.migrate();
   await Promise.all([ensureAiUsageStorage(),ensureAiCoachStorage()]);
+  await ensureContentQuality2027(database);
   const ready=await fastContentReady(database);
-  if(ready) console.log('Fast startup: content banks already healthy; deep rebuild skipped.');
+  if(ready) console.log('Fast startup: student content is clean and line banks are healthy; deep rebuild skipped.');
   else await deepContentRepair();
   await require('./server-performance').start();
 })().catch(error=>{console.error('startup',error);process.exit(1)});

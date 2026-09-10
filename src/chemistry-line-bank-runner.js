@@ -20,14 +20,20 @@ async function insertQuestion(db,{subject,lesson,line,info,key,item,source}){
  return questionId;
 }
 
-async function ensureChemistryLineBank(db,{minimum=20,mediumMinimum=20}={}){
+async function sanitizeChemistryLineAssignments(db,subjectId){
+ const core=`chemistry-bank-${BANK_VERSION}-line%`,medium=`chemistry-medium-${MEDIUM_BANK_VERSION}-line%`;
+ const row=await db.row(`SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line BETWEEN 1 AND 34 AND COALESCE(external_key,'') NOT LIKE ? AND COALESCE(external_key,'') NOT LIKE ?`,subjectId,core,medium);
+ const changed=Number(row?.n||0);
+ if(changed)await db.run(`UPDATE questions SET exam_line=NULL WHERE subject_id=? AND exam_line BETWEEN 1 AND 34 AND COALESCE(external_key,'') NOT LIKE ? AND COALESCE(external_key,'') NOT LIKE ?`,subjectId,core,medium);
+ return changed;
+}
+
+async function ensureChemistryLineBank(db,{minimum=24,mediumMinimum=24}={}){
  const subject=await db.row("SELECT id FROM subjects WHERE slug='chemistry'");
  if(!subject)return {ok:false,inserted:0,lines:[],bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
 
- // Old compact generated banks are hidden, while teacher/admin authored content
- // remains untouched. The medium bank below is original content built from our
- // reviewed line templates; external bank wording is never copied verbatim.
  await db.run("UPDATE questions SET active=FALSE,published=FALSE WHERE subject_id=? AND external_key LIKE 'chemistry-bank-v1-line%'",subject.id);
+ const detached=await sanitizeChemistryLineAssignments(db,subject.id);
 
  let inserted=0;const lines=[];
  for(const info of registry.lines){
@@ -40,7 +46,7 @@ async function ensureChemistryLineBank(db,{minimum=20,mediumMinimum=20}={}){
    const mediumPrefix=`chemistry-medium-${MEDIUM_BANK_VERSION}-line${line}-`;
    let bankCount=Number((await db.row("SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND external_key LIKE ?",subject.id,line,`${prefix}%`))?.n||0);
    let mediumCount=Number((await db.row("SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND external_key LIKE ?",subject.id,line,`${mediumPrefix}%`))?.n||0);
-   let count=Number((await db.row('SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line=? AND active=1 AND published=1',subject.id,line))?.n||0);
+   let count=bankCount+mediumCount;
    const lessonSlug=`chemistry-line-${String(line).padStart(2,'0')}-lesson`;
    const lesson=await db.row('SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=? AND l.published=1',subject.id,lessonSlug);
    if(!lesson){lines.push({line,count,bankCount,mediumCount,added:0,mediumAdded:0,warning:'lesson-not-found'});continue;}
@@ -65,8 +71,8 @@ async function ensureChemistryLineBank(db,{minimum=20,mediumMinimum=20}={}){
    lines.push({line,count,bankCount,mediumCount,added,mediumAdded});
  }
  const ok=lines.length===34&&lines.every(x=>x.bankCount>=minimum&&x.mediumCount>=mediumMinimum);
- if(ok)console.log(`Chemistry banks ready: >=${minimum} core + >=${mediumMinimum} medium questions on all 34 lines; generated ${inserted}.`);
+ if(ok)console.log(`Chemistry banks ready: >=${minimum} core + >=${mediumMinimum} medium questions on all 34 lines; generated ${inserted}; detached ${detached} legacy line assignments.`);
  else console.warn('Chemistry line banks incomplete:',lines.filter(x=>x.bankCount<minimum||x.mediumCount<mediumMinimum));
- return {ok,inserted,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
+ return {ok,inserted,detached,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
 }
-module.exports={ensureChemistryLineBank,BANK_VERSION,MEDIUM_BANK_VERSION};
+module.exports={ensureChemistryLineBank,sanitizeChemistryLineAssignments,BANK_VERSION,MEDIUM_BANK_VERSION};
