@@ -1,1 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" role="img" aria-labelledby="t d"><title id="t">Схема клетки с обозначениями</title><desc id="d">Схема клетки: 1 ядро, 2 митохондрия, 3 аппарат Гольджи, 4 рибосомы.</desc><rect width="760" height="430" rx="28" fill="#f5fbf7"/><ellipse cx="380" cy="215" rx="300" ry="160" fill="#dff2e5" stroke="#24543b" stroke-width="8"/><circle cx="300" cy="205" r="68" fill="#b8d9ff" stroke="#274d73" stroke-width="7"/><path d="M470 130c85-48 130 32 74 80-45 39-123 0-94-55 4-8 11-17 20-25z" fill="#ffd6a5" stroke="#8a4b16" stroke-width="7"/><path d="M470 265c50-32 120-32 168 0M480 285c48-27 105-27 150 0M500 305c35-18 77-18 112 0" fill="none" stroke="#815ac0" stroke-width="12" stroke-linecap="round"/><g fill="#222"><circle cx="230" cy="105" r="8"/><circle cx="250" cy="92" r="8"/><circle cx="270" cy="108" r="8"/><circle cx="205" cy="125" r="8"/></g><g font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#10271b"><circle cx="300" cy="205" r="25" fill="#fff"/><text x="291" y="216">1</text><circle cx="510" cy="165" r="25" fill="#fff"/><text x="501" y="176">2</text><circle cx="560" cy="284" r="25" fill="#fff"/><text x="551" y="295">3</text><circle cx="235" cy="105" r="25" fill="#fff"/><text x="226" y="116">4</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-labelledby="title desc">
+<title id="title">Клетка эукариот с четырьмя обозначенными структурами</title>
+<desc id="desc">1 — ядро, 2 — митохондрия, 3 — аппарат Гольджи, 4 — рибосомы.</desc>
+<defs>
+  <style>
+    .ink{stroke:#203b34;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+    .fine{stroke:#38564d;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .leader{stroke:#172f29;stroke-width:2.5;fill:none;stroke-linecap:round}
+    .badge{fill:#173f34;stroke:#ffffff;stroke-width:4}
+    .num{font:700 24px Arial,sans-serif;fill:#ffffff;text-anchor:middle;dominant-baseline:middle}
+  </style>
+</defs>
+<rect x="7" y="7" width="886" height="546" rx="24" fill="#fbfcfa" stroke="#d8e0dc" stroke-width="2"/>
+<path d="M128 293C128 178 241 92 431 80c189-12 335 55 353 177 19 127-96 222-287 236-198 15-369-69-369-200Z" fill="#eef5f1" class="ink"/>
+<path d="M142 291C142 186 249 107 432 95c177-11 319 51 337 165 17 115-94 205-274 218-188 14-353-65-353-187Z" fill="none" stroke="#7e9d92" stroke-width="2"/>
+<ellipse cx="350" cy="276" rx="128" ry="104" fill="#dfe9f2" class="ink"/>
+<ellipse cx="350" cy="276" rx="116" ry="92" fill="#f3f7fa" stroke="#6a8190" stroke-width="3"/>
+<circle cx="382" cy="287" r="31" fill="#bccddd" stroke="#405d6f" stroke-width="3"/>
+<g fill="none" class="fine" opacity=".9">
+  <path d="M284 231c28-26 43 8 70-9 24-15 44-6 58 11"/>
+  <path d="M280 291c29-18 48 7 70-8 17-12 35-7 47 3"/>
+  <path d="M300 331c21-15 41-2 58-13 18-12 37-5 52 5"/>
+</g>
+<g fill="#627d8d"><circle cx="257" cy="250" r="4"/><circle cx="262" cy="302" r="4"/><circle cx="295" cy="190" r="4"/><circle cx="400" cy="192" r="4"/><circle cx="445" cy="256" r="4"/><circle cx="428" cy="332" r="4"/></g>
+<g transform="translate(555 155) rotate(-9)">
+  <path d="M-70 0c0-42 38-68 90-62 52 7 79 37 69 75-10 38-52 57-99 47-39-8-60-30-60-60Z" fill="#f4dcc5" class="ink"/>
+  <path d="M-49-7c17-22 33-25 45-6 14 23 26 20 41-2 13-19 28-16 39 4" fill="none" stroke="#9b6843" stroke-width="5"/>
+  <path d="M-46 16c15-18 29-19 41-3 14 19 27 18 40 0 12-16 25-15 36 1" fill="none" stroke="#9b6843" stroke-width="5"/>
+</g>
+<g transform="translate(258 415) rotate(16) scale(.72)">
+  <path d="M-70 0c0-42 38-68 90-62 52 7 79 37 69 75-10 38-52 57-99 47-39-8-60-30-60-60Z" fill="#f4dcc5" class="ink"/>
+  <path d="M-49-7c17-22 33-25 45-6 14 23 26 20 41-2 13-19 28-16 39 4" fill="none" stroke="#9b6843" stroke-width="5"/>
+  <path d="M-46 16c15-18 29-19 41-3 14 19 27 18 40 0 12-16 25-15 36 1" fill="none" stroke="#9b6843" stroke-width="5"/>
+</g>
+<g transform="translate(585 345)" fill="none" stroke="#765787" stroke-width="9" stroke-linecap="round">
+  <path d="M-84-48c54 23 113 19 164-2"/><path d="M-77-25c49 21 103 18 151-2"/><path d="M-66-3c43 18 90 16 132-1"/><path d="M-52 18c34 14 71 13 105 0"/>
+  <circle cx="-96" cy="-7" r="9" fill="#e8def0" stroke-width="4"/><circle cx="90" cy="-31" r="11" fill="#e8def0" stroke-width="4"/><circle cx="78" cy="13" r="8" fill="#e8def0" stroke-width="4"/>
+</g>
+<g fill="none" stroke="#5c7b71" stroke-width="5" stroke-linecap="round"><path d="M192 170c45-27 84-22 111 6"/><path d="M180 188c48-24 88-18 116 11"/><path d="M171 209c46-19 83-12 107 14"/></g>
+<g fill="#253f37"><circle cx="193" cy="164" r="5"/><circle cx="220" cy="158" r="5"/><circle cx="251" cy="160" r="5"/><circle cx="278" cy="169" r="5"/><circle cx="184" cy="183" r="5"/><circle cx="211" cy="180" r="5"/><circle cx="241" cy="183" r="5"/><circle cx="270" cy="193" r="5"/><circle cx="174" cy="204" r="5"/><circle cx="203" cy="199" r="5"/><circle cx="232" cy="204" r="5"/><circle cx="257" cy="215" r="5"/><circle cx="520" cy="420" r="5"/><circle cx="540" cy="433" r="5"/><circle cx="566" cy="416" r="5"/><circle cx="594" cy="427" r="5"/></g>
+<g fill="#dbe8e2" stroke="#58756c" stroke-width="2"><circle cx="690" cy="239" r="14"/><circle cx="709" cy="274" r="9"/><circle cx="474" cy="136" r="11"/></g>
+<path d="M126 94L306 250" class="leader"/><circle cx="103" cy="80" r="27" class="badge"/><text x="103" y="81" class="num">1</text>
+<path d="M781 82L650 132" class="leader"/><circle cx="806" cy="73" r="27" class="badge"/><text x="806" y="74" class="num">2</text>
+<path d="M802 418L671 370" class="leader"/><circle cx="827" cy="428" r="27" class="badge"/><text x="827" y="429" class="num">3</text>
+<path d="M104 440L176 221" class="leader"/><circle cx="86" cy="465" r="27" class="badge"/><text x="86" y="466" class="num">4</text>
+</svg>
