@@ -8,8 +8,18 @@ let pool;
 
 if (postgres) {
   const { Pool } = require('pg');
+  // The app is split into several local Node proxy layers. Every process gets
+  // its own pg Pool, while Render's session pooler has a small global client
+  // limit. Keep each process deliberately tiny so parallel API calls cannot
+  // exhaust the database with idle/session connections.
+  const configuredMax = Number(process.env.PG_POOL_MAX || 1);
+  const max = Number.isFinite(configuredMax) && configuredMax > 0 ? Math.floor(configuredMax) : 1;
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    max,
+    min: 0,
+    idleTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
   });
 } else {
