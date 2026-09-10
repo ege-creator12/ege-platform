@@ -1,0 +1,33 @@
+/* Keep the PRO coach composer from covering the last chat messages. */
+.pro-chat{
+  max-height:min(58vh,620px)!important;
+  overflow-y:auto!important;
+  padding:8px 8px 30px!important;
+  scroll-padding-bottom:30px;
+  scrollbar-gutter:stable;
+}
+.pro-coach form{
+  position:relative!important;
+  bottom:auto!important;
+  z-index:2!important;
+  margin:10px 0 0!important;
+  padding:14px 0 0!important;
+  border-top:1px solid color-mix(in srgb,var(--border) 76%,transparent);
+  background:var(--surface)!important;
+  backdrop-filter:none!important;
+}
+.pro-msg-wrap:last-child{margin-bottom:8px}
+.pro-coach{overflow:visible}
+
+@media(max-width:700px){
+  .pro-chat{
+    max-height:52vh!important;
+    padding:6px 4px 24px!important;
+    scroll-padding-bottom:24px;
+  }
+  .pro-coach form{
+    bottom:auto!important;
+    margin:8px 0 0!important;
+    padding:12px 0 0!important;
+  }
+}
