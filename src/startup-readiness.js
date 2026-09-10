@@ -8,6 +8,8 @@ const CHEMISTRY_BANK_VERSION = 'v2';
 const CHEMISTRY_MEDIUM_VERSION = 'v1';
 const CHEMISTRY_COURSE_VERSION = 'chemistry-2027-subject-course-v2-fipi-mastery-complete';
 
+const BIOLOGY_MINIMUM = 27;
+const CHEMISTRY_MINIMUM = 24;
 const numeric = value => Number(value || 0);
 
 function completeLineSet(rows, lineCount, minimum) {
@@ -19,7 +21,7 @@ function completeLineSet(rows, lineCount, minimum) {
   return true;
 }
 
-async function fastContentReady(db, { biologyMinimum = 24, chemistryMinimum = 20 } = {}) {
+async function fastContentReady(db, { biologyMinimum = BIOLOGY_MINIMUM, chemistryMinimum = CHEMISTRY_MINIMUM } = {}) {
   try {
     const [biology, chemistry, chemistryUpgrade] = await Promise.all([
       db.row("SELECT id FROM subjects WHERE slug='biology' AND published=1"),
@@ -50,8 +52,6 @@ async function fastContentReady(db, { biologyMinimum = 24, chemistryMinimum = 20
       && completeLineSet(chemistryCore, 34, chemistryMinimum)
       && completeLineSet(chemistryMedium, 34, chemistryMinimum);
   } catch (error) {
-    // A missing state table or a partially migrated database simply falls back to
-    // the deep startup repair path. Never make startup correctness depend on this gate.
     return false;
   }
 }
@@ -63,4 +63,6 @@ module.exports = {
   CHEMISTRY_BANK_VERSION,
   CHEMISTRY_MEDIUM_VERSION,
   CHEMISTRY_COURSE_VERSION,
+  BIOLOGY_MINIMUM,
+  CHEMISTRY_MINIMUM,
 };
