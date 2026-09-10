@@ -9,10 +9,10 @@ const {variantQuestions,VARIANT_COUNT}=require('../content/chemistry/mock-varian
 
 const root=join(__dirname,'..');
 
-test('chemistry has three complete 34-line, 56-point mock variants',()=>{
- assert.equal(VARIANT_COUNT,3);
+test('chemistry has twelve complete 34-line, 56-point mock variants',()=>{
+ assert.equal(VARIANT_COUNT,12);
  const selectors=new Map();
- for(let variant=1;variant<=3;variant++){
+ for(let variant=1;variant<=VARIANT_COUNT;variant++){
   const items=variantQuestions(variant);
   assert.equal(items.length,34,`variant ${variant}: 34 tasks`);
   assert.deepEqual(items.map(x=>x.line),Array.from({length:34},(_,i)=>i+1),`variant ${variant}: all lines in order`);
@@ -30,7 +30,7 @@ test('chemistry has three complete 34-line, 56-point mock variants',()=>{
    const lineSet=selectors.get(item.line)||new Set();lineSet.add(signature);selectors.set(item.line,lineSet);
   }
  }
- for(const [line,set] of selectors)assert.equal(set.size,3,`line ${line}: all three variants use different authored tasks`);
+ for(const [line,set] of selectors)assert.equal(set.size,VARIANT_COUNT,`line ${line}: all mock variants use different authored tasks`);
 });
 
 test('chemistry mock UI is loaded after stable chemistry and has no observer loop',()=>{
