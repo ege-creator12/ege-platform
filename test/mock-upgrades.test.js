@@ -6,8 +6,8 @@ const { join } = require('node:path');
 const hardBank=require('../content/biology/mock-hard-questions.json');
 const { CONFIG }=require('../src/mock-exams');
 
-test('biology mock upgrade exposes three variants with untimed default',()=>{
-  assert.equal(CONFIG.variantCount,3);
+test('biology mock upgrade exposes twelve variants with untimed default',()=>{
+  assert.equal(CONFIG.variantCount,12);
   assert.equal(CONFIG.defaultMode,'untimed');
 });
 
