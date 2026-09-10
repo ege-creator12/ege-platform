@@ -5,13 +5,27 @@ const { formatAnswerForReview } = require('./answer-review');
 const CONFIG={
   durationSeconds:Number(process.env.BIOLOGY_MOCK_DURATION_SECONDS)||14100,
   sourceVersion:'Проект ФИПИ ЕГЭ-2027 / конфигурация платформы',
-  variantCount:3,
+  variantCount:12,
   defaultMode:'untimed'
 };
 const parse=(value,fallback=[])=>{try{return value==null?fallback:typeof value==='string'?JSON.parse(value):value}catch{return fallback}};
 const normalize=value=>String(value??'').trim().toLocaleLowerCase('ru-RU').replace(/\s+/g,' ');
 const isExtended=q=>(q.question_type||q.questionType)==='extended_answer';
 const variantFromSeed=seed=>Math.min(CONFIG.variantCount,Math.max(1,Number(String(seed||'').match(/^variant:(\d+)/)?.[1])||1));
+const MIX_PATTERNS=[
+  [0],[1],[2],
+  [0,1,2],[1,2,0],[2,0,1],
+  [0,2,1],[1,0,2],[2,1,0],
+  [0,0,1,1,2,2],[1,1,2,2,0,0],[2,2,0,0,1,1]
+];
+function questionsForVariant(variant){
+  if(variant<=3)return variantQuestions(variant);
+  const banks=[variantQuestions(1),variantQuestions(2),variantQuestions(3)],pattern=MIX_PATTERNS[variant-1];
+  return banks[0].map((_,index)=>{
+    const picked=banks[pattern[index%pattern.length]][index];
+    return {...picked,key:`biology-2027-mixed-v${variant}-line${picked.line}`};
+  });
+}
 
 function scoreAnswer(snapshot,answer){
   const expected=parse(snapshot.answerJson),given=Array.isArray(answer)?answer:[answer];
@@ -30,7 +44,6 @@ function scoreAnswer(snapshot,answer){
       return Math.max(0,base-(a.length>e.length?1:0));
     }
     if(snapshot.scoringMode==='selection'){
-      // Count occurrences, so a repeated symbol cannot earn full marks.
       const rest=[...e];let extra=0;
       for(const v of a){const i=rest.indexOf(v);if(i<0)extra++;else rest.splice(i,1)}
       const errors=Math.max(extra,rest.length);
@@ -140,8 +153,8 @@ function createMockExamService(db,registry){
     if(!['timed','untimed'].includes(mode))throw Object.assign(new Error('Неизвестный режим пробника'),{status:400,code:'INVALID_MODE'});
     variant=Number(variant||1);
     if(!Number.isInteger(variant)||variant<1||variant>CONFIG.variantCount)throw Object.assign(new Error('Неизвестный вариант пробника'),{status:400,code:'INVALID_VARIANT'});
-    const seed=`variant:${variant}:biology-2027-reviewed-v4`;
-    const selected=variantQuestions(variant).map(v=>({line:lineByNumber.get(v.line),q:virtualCandidate(v)}));
+    const seed=`variant:${variant}:biology-2027-reviewed-v5`;
+    const selected=questionsForVariant(variant).map(v=>({line:lineByNumber.get(v.line),q:virtualCandidate(v)}));
     return db.transaction(async tx=>{
       const made=await tx.run('INSERT INTO biology_mock_exam_attempts(user_id,exam_year,source_version,mode,duration_seconds,variant_seed) VALUES(?,?,?,?,?,?)',userId,registry.examYear,CONFIG.sourceVersion,mode,mode==='timed'?CONFIG.durationSeconds:null,seed),id=Number(made.lastInsertRowid);let max=0;
       for(const [index,{line,q}] of selected.entries()){
