@@ -4,11 +4,12 @@
 const fine=()=>matchMedia('(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference)').matches&&innerWidth>900;
 const selectors=[
   '.premium-hero','.premium-quick-card','.premium-continue','.premium-week','.premium-calendar','.premium-quote','.premium-metric',
-  '.quick-continue','.topics>.card','.grid3>.card','.question-card','.view-switch','.line-card','.mock-variant-card'
+  '.quick-continue','.topics>.card','.grid3>.card','.view-switch','.line-card','.mock-variant-card'
 ].join(',');
 let frame=0,enabled=false;
 
 function bindCard(el){
+  if(el.closest('.question-card,.training,.options,.result'))return;
   if(el.dataset.motionBound)return;
   el.dataset.motionBound='1';
   el.classList.add('premium-motion');
@@ -18,7 +19,7 @@ function bindCard(el){
     const {event,rect}=pending,pctX=(event.clientX-rect.left)/rect.width,pctY=(event.clientY-rect.top)/rect.height;
     const nx=Math.max(-1,Math.min(1,(pctX-.5)*2));
     const ny=Math.max(-1,Math.min(1,(pctY-.5)*2));
-    const subtle=el.matches('.premium-hero,.quick-continue,.view-switch,.question-card');
+    const subtle=el.matches('.premium-hero,.quick-continue,.view-switch');
     const max=el.classList.contains('premium-hero')?2.0:subtle?2.6:3.6;
     el.style.setProperty('--mx',`${Math.round(pctX*100)}%`);
     el.style.setProperty('--my',`${Math.round(pctY*100)}%`);
