@@ -1,0 +1,98 @@
+/* Final sidebar stability layer. Loaded after all previous theme/motion files. */
+.sidebar nav{
+  display:block!important;
+  overflow-anchor:none!important;
+}
+.sidebar nav button,
+.sidebar nav button:hover,
+.sidebar nav button:focus,
+.sidebar nav button:active,
+.sidebar nav button.active,
+.sidebar [data-moderator-nav],
+.sidebar [data-moderator-nav]:hover,
+.sidebar [data-moderator-nav]:active,
+.sidebar [data-moderator-nav].active{
+  transform:none!important;
+  translate:none!important;
+  scale:1!important;
+  animation:none!important;
+  will-change:auto!important;
+  transition:background-color .14s ease,color .14s ease,border-color .14s ease,box-shadow .14s ease!important;
+}
+.sidebar nav button::before,
+.sidebar nav button::after,
+.sidebar nav button:hover::before,
+.sidebar nav button:hover::after,
+.sidebar [data-moderator-nav]::before,
+.sidebar [data-moderator-nav]::after{
+  transform:none!important;
+  animation:none!important;
+  transition:none!important;
+  content:none!important;
+  display:none!important;
+}
+.sidebar nav button .nav-icon,
+.sidebar nav button:hover .nav-icon,
+.sidebar nav button:active .nav-icon,
+.sidebar nav button span,
+.sidebar nav button:hover span,
+.sidebar nav button:active span,
+.sidebar [data-moderator-nav] .nav-icon,
+.sidebar [data-moderator-nav]:hover .nav-icon{
+  transform:none!important;
+  translate:none!important;
+  scale:1!important;
+  animation:none!important;
+}
+.sidebar nav button{
+  width:100%!important;
+  min-height:46px!important;
+  height:46px!important;
+  margin:4px 0!important;
+  box-sizing:border-box!important;
+}
+.sidebar nav button>span:last-child{
+  min-width:0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.sidebar nav .subject-search,
+.sidebar nav [data-bio-search-nav],
+.sidebar nav [data-chem-search-nav]{
+  min-height:42px!important;
+  height:42px!important;
+  margin-top:1px!important;
+  margin-bottom:5px!important;
+  padding-left:18px!important;
+  background:rgba(74,215,136,.035)!important;
+  border-color:rgba(116,244,173,.07)!important;
+  color:rgba(226,242,233,.72)!important;
+}
+.sidebar nav .subject-search .nav-icon,
+.sidebar nav [data-bio-search-nav] .nav-icon,
+.sidebar nav [data-chem-search-nav] .nav-icon{
+  width:25px!important;
+  min-width:25px!important;
+  height:25px!important;
+  font-size:13px!important;
+  background:rgba(91,232,151,.07)!important;
+}
+.sidebar nav .subject-search>span:last-child,
+.sidebar nav [data-bio-search-nav]>span:last-child,
+.sidebar nav [data-chem-search-nav]>span:last-child{
+  font-size:12.5px!important;
+  font-weight:650!important;
+}
+.sidebar nav [data-analytics-placeholder][hidden]{display:none!important}
+.sidebar nav [data-product-analytics],
+.sidebar nav [data-analytics-placeholder]{
+  min-height:46px!important;
+  height:46px!important;
+}
+@media(max-width:900px){
+  .sidebar nav button,
+  .sidebar nav .subject-search,
+  .sidebar nav [data-bio-search-nav],
+  .sidebar nav [data-chem-search-nav]{height:auto!important;min-height:44px!important}
+}
