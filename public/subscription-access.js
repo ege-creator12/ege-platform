@@ -30,8 +30,20 @@
     if(!hub.isConnected)return;
     hub.classList.toggle('pro-locked',!s.active);
     let banner=hub.querySelector('[data-pro-access-banner]');
-    if(!banner){banner=document.createElement('div');banner.dataset.proAccessBanner='1';const hero=hub.querySelector('.aihub-hero');hero?.insertAdjacentElement('afterend',banner)}
+    if(!banner){
+      banner=document.createElement('div');
+      banner.dataset.proAccessBanner='1';
+      const hero=hub.querySelector('.aihub-hero');
+      hero?.insertAdjacentElement('afterend',banner);
+    }
     if(!banner)return;
+
+    const signature=s.active
+      ? `active:${s.permanent?'permanent':s.expiresAt||'open'}`
+      : 'locked';
+    if(banner.dataset.proAccessState===signature)return;
+    banner.dataset.proAccessState=signature;
+
     if(s.active){
       banner.className='pro-access-banner';
       banner.innerHTML=`<div><b>ОСНОВА PRO активна</b><small>Все AI-инструменты доступны ${s.permanent||!s.expiresAt?'без ограничения по сроку':dateLabel(s.expiresAt)}.</small></div><span class="pro-access-pill">✦ PRO</span>`;
@@ -64,6 +76,6 @@
   const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;decorate();guardRoute()})};
   new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
   addEventListener('hashchange',schedule);
-  window.OsnovaSubscription={getStatus,refresh:()=>getStatus(true)};
+  window.OsnovaSubscription={getStatus,refresh:async()=>{const next=await getStatus(true);schedule();return next}};
   schedule();
 })();
