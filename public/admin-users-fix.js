@@ -1,6 +1,7 @@
 (function(){
-  const escUser=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+  const escUser=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   let moderatorStatus=null,moderatorStatusAt=0,moderatorUserId=null;
+  let enhancing=false,enhanceScheduled=false;
 
   const style=document.createElement('style');
   style.textContent=`
@@ -27,21 +28,37 @@
   }
 
   async function enhanceShell(){
-    const status=await getModeratorStatus();
-    document.documentElement.classList.toggle('osnova-moderator',status.moderator&&!status.admin);
-    if(!status.moderator||status.admin)return;
-    const nav=document.querySelector('.sidebar nav');
-    if(nav&&!nav.querySelector('[data-moderator-nav]')){
-      const btn=document.createElement('button');
-      btn.type='button';btn.dataset.moderatorNav='1';btn.dataset.nav='admin';
-      if(location.hash.slice(1)==='admin')btn.classList.add('active');
-      btn.innerHTML='<span class="nav-icon" aria-hidden="true">◇</span><span>Модерация</span>';
-      btn.onclick=()=>{location.hash='admin'};
-      nav.appendChild(btn);
-    }
-    const chip=document.querySelector('.user-chip small');if(chip)chip.textContent='Модератор';
-    document.querySelectorAll('[data-admin-tab="users"],[data-admin-tab="site"],[data-open-tab="users"],[data-open-tab="site"],[data-delete-block]').forEach(x=>x.style.display='none');
-    const eyebrow=document.querySelector('.admin-console header .eyebrow');if(eyebrow)eyebrow.textContent='Модератор';
+    if(enhancing)return;
+    enhancing=true;
+    try{
+      const status=await getModeratorStatus();
+      const moderatorOnly=status.moderator&&!status.admin;
+      document.documentElement.classList.toggle('osnova-moderator',moderatorOnly);
+      if(!moderatorOnly)return;
+      const nav=document.querySelector('.sidebar nav');
+      if(nav&&!nav.querySelector('[data-moderator-nav]')){
+        const btn=document.createElement('button');
+        btn.type='button';btn.dataset.moderatorNav='1';btn.dataset.nav='admin';
+        if(location.hash.slice(1)==='admin')btn.classList.add('active');
+        btn.innerHTML='<span class="nav-icon" aria-hidden="true">◇</span><span>Модерация</span>';
+        btn.onclick=()=>{location.hash='admin'};
+        nav.appendChild(btn);
+      }
+      const chip=document.querySelector('.user-chip small');
+      if(chip&&chip.textContent!=='Модератор')chip.textContent='Модератор';
+      document.querySelectorAll('[data-admin-tab="users"],[data-admin-tab="site"],[data-open-tab="users"],[data-open-tab="site"],[data-delete-block]').forEach(x=>{if(x.style.display!=='none')x.style.display='none'});
+      const eyebrow=document.querySelector('.admin-console header .eyebrow');
+      if(eyebrow&&eyebrow.textContent!=='Модератор')eyebrow.textContent='Модератор';
+    }finally{enhancing=false}
+  }
+
+  function scheduleEnhance(){
+    if(enhanceScheduled)return;
+    enhanceScheduled=true;
+    requestAnimationFrame(()=>{
+      enhanceScheduled=false;
+      enhanceShell().catch(()=>{});
+    });
   }
 
   window.adminUsers=async function(){
@@ -91,8 +108,8 @@
     }
   };
 
-  const observer=new MutationObserver(()=>{enhanceShell().catch(()=>{})});
+  const observer=new MutationObserver(scheduleEnhance);
   const appRoot=document.querySelector('#app');if(appRoot)observer.observe(appRoot,{childList:true,subtree:true});
-  addEventListener('hashchange',()=>setTimeout(()=>enhanceShell().catch(()=>{}),0));
-  setTimeout(()=>enhanceShell().catch(()=>{}),500);
+  addEventListener('hashchange',scheduleEnhance);
+  setTimeout(scheduleEnhance,500);
 })();
