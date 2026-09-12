@@ -11,6 +11,7 @@ const moderatorAi = require('./server-moderator-ai');
 const problemReports = require('./server-problem-reports');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
+const subscriptions = require('./server-subscriptions');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -43,6 +44,21 @@ async function userFor(req) {
     'SELECT u.id,u.name,u.email,u.role,u.xp FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP',
     token,
   );
+}
+
+async function requireProForAi(req, res, pathname) {
+  const protectedAi = pathname.startsWith('/api/ai-pro/') || pathname.startsWith('/api/answer-expert/');
+  if (!protectedAi) return false;
+  const user = await userFor(req);
+  if (!user) {
+    json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
+    return true;
+  }
+  if (!(await subscriptions.hasActiveSubscription(user))) {
+    json(res, 403, { error: 'Эта AI-функция доступна по подписке ОСНОВА PRO', code: 'PRO_REQUIRED' });
+    return true;
+  }
+  return false;
 }
 
 async function fastTopics(userId) {
@@ -155,6 +171,7 @@ async function start() {
   await moderator.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
+  await subscriptions.ensureSchema();
   await answerExpert.ensureSchema();
   const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
     cwd: __dirname,
@@ -167,6 +184,8 @@ async function start() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     try {
+      if (await subscriptions.handle(req, res, url)) return;
+      if (await requireProForAi(req, res, url.pathname)) return;
       if (await problemReports.handle(req, res, url)) return;
       if (await moderatorAi.handle(req, res, url)) return;
       if (await answerExpert.handle(req, res, url)) return;
@@ -195,4 +214,4 @@ if (require.main === module) start().catch(error => {
   process.exit(1);
 });
 
-module.exports = { start, fastTopics, handleFastApi, staticCandidate, cacheControl };
+module.exports = { start, fastTopics, handleFastApi, staticCandidate, cacheControl, requireProForAi };
