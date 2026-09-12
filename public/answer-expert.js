@@ -12,6 +12,7 @@
     .answer-expert-auto.checking .answer-expert-auto-icon{animation:answerExpertPulse 1.15s ease-in-out infinite}
     .answer-expert-auto.error{border-color:rgba(255,120,110,.18);background:rgba(135,51,48,.08)}
     .answer-expert-auto.error .answer-expert-auto-icon{background:rgba(255,120,110,.1)}
+    .answer-expert-auto.locked{border-color:rgba(215,177,83,.18);background:linear-gradient(135deg,rgba(126,91,30,.09),rgba(71,68,137,.06))}.answer-expert-auto.locked .answer-expert-auto-icon{background:rgba(215,177,83,.11)}
     .answer-expert-ai-score{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:rgba(74,181,119,.1);font-size:11px;font-weight:800;margin-left:8px;white-space:nowrap}
     .mock-self-score-row[data-ai-graded="1"]{opacity:.72}.mock-self-score-row[data-ai-graded="1"] input{pointer-events:none}
     @keyframes answerExpertPulse{0%,100%{transform:scale(1);opacity:.72}50%{transform:scale(1.08);opacity:1}}
@@ -49,7 +50,7 @@
     try{
       const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
       const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||`Ошибка ${response.status}`);
+      if(!response.ok){const error=new Error(data.error||`Ошибка ${response.status}`);error.status=response.status;error.code=data.code;throw error}
       return data;
     }finally{clearTimeout(timer)}
   }
@@ -67,7 +68,7 @@
   function setBanner(kind,title,text){
     const banner=ensureBanner();if(!banner)return;
     banner.className=`answer-expert-auto ${kind||''}`.trim();
-    const icon=kind==='checking'?'✦':kind==='error'?'!':'✓';
+    const icon=kind==='checking'?'✦':kind==='error'?'!':kind==='locked'?'✦':'✓';
     banner.innerHTML=`<span class="answer-expert-auto-icon">${icon}</span><div><b>${safe(title)}</b><small>${safe(text)}</small></div>`;
   }
 
@@ -114,7 +115,12 @@
       setBanner('done','✓ AI проверил вторую часть',`Проверено ответов: ${Number(data.checked||0)}. Баллы уже добавлены к результату.`);
       rerenderResult();
     }catch(error){
-      states.set(key,'failed');
+      const proRequired=error?.code==='PRO_REQUIRED'||error?.status===403||/подписк|PRO/i.test(error?.message||'');
+      states.set(key,proRequired?'locked':'failed');
+      if(proRequired){
+        setBanner('locked','AI-проверка второй части доступна в ОСНОВА PRO','Без PRO результат остаётся доступным, а развёрнутые ответы можно оценить вручную по критериям.');
+        return;
+      }
       const message=error?.name==='AbortError'?'Проверка заняла слишком много времени. Обнови результаты чуть позже.':(error?.message||'Не удалось проверить вторую часть');
       setBanner('error','AI-проверка второй части временно не завершена',message);
     }
@@ -128,6 +134,10 @@
     if(state==='done'){
       markReadOnlyScores();
       setBanner('done','✓ Вторая часть проверена AI','Баллы за развёрнутые ответы уже учтены в результате пробника.');
+      return;
+    }
+    if(state==='locked'){
+      setBanner('locked','AI-проверка второй части доступна в ОСНОВА PRO','Без PRO результат остаётся доступным, а развёрнутые ответы можно оценить вручную по критериям.');
       return;
     }
     if(state==='failed')return;
