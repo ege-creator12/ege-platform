@@ -41,12 +41,14 @@
     }
   }
 
-  document.addEventListener('click',async event=>{
+  document.addEventListener('click',event=>{
     const button=event.target.closest('[data-ai-route]');if(!button)return;
-    const s=await getStatus();
-    if(s.active)return;
+    const target=button.dataset.aiRoute;
     event.preventDefault();event.stopImmediatePropagation();
-    if(typeof notify==='function')notify('Для AI-инструментов нужна подписка ОСНОВА PRO');
+    getStatus().then(s=>{
+      if(s.active){if(typeof go==='function')go(target);else location.hash=target;return}
+      if(typeof notify==='function')notify('Для AI-инструментов нужна подписка ОСНОВА PRO');
+    });
   },true);
 
   async function guardRoute(){
