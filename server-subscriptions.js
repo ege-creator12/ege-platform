@@ -84,6 +84,7 @@ async function grant(adminId, userId, body) {
     return { user: target, subscription: null };
   }
 
+  const existing = await subscriptionForUser(userId);
   let expiresAt = null;
   if (!body.permanent) {
     if (body.expiresAt) {
@@ -93,7 +94,8 @@ async function grant(adminId, userId, body) {
     } else {
       const days = Number(body.days || 30);
       if (!Number.isInteger(days) || days < 1 || days > 3650) throw Object.assign(new Error('Срок подписки должен быть от 1 до 3650 дней'), { status: 400 });
-      const existing = await subscriptionForUser(userId);
+      // A quick "+N days" action must never silently turn permanent PRO into a timed plan.
+      if (existing?.active && existing.permanent) return { user: target, subscription: existing };
       const base = existing?.active && existing.expiresAt ? Math.max(Date.now(), new Date(existing.expiresAt).getTime()) : Date.now();
       expiresAt = new Date(base + days * 86400000);
     }
