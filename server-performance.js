@@ -72,13 +72,13 @@ function shouldSanitizeAi(pathname) {
 
 function sanitizeAiString(value) {
   return String(value ?? '')
-    .replace(/\bgemini(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
+    .replace(/\b(?:google\s+)?gemini(?:[-\s]?\d+(?:\.\d+)*)?(?:[-\s]?(?:flash|pro|lite|ultra))?\b/gi, 'ОСНОВА AI')
     .replace(/\bcerebras\b/gi, 'ОСНОВА AI')
-    .replace(/\bgpt[-\s]?oss(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
-    .replace(/\bdeepseek(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
-    .replace(/\bchatgpt\b|\bopenai\b/gi, 'ОСНОВА AI')
-    .replace(/\bclaude\b|\banthropic\b/gi, 'ОСНОВА AI')
-    .replace(/\bgoogle\s+ai\b/gi, 'ОСНОВА AI');
+    .replace(/\bgpt[-\s]?oss(?:[-\s]?\d+[a-z]?)?\b/gi, 'ОСНОВА AI')
+    .replace(/\bdeepseek(?:[-\s]?[\w.]+){0,3}\b/gi, 'ОСНОВА AI')
+    .replace(/\bchatgpt(?:[-\s]?[\w.]+)?\b|\bopenai\b/gi, 'ОСНОВА AI')
+    .replace(/\bclaude(?:[-\s]?[\w.]+)?\b|\banthropic\b/gi, 'ОСНОВА AI')
+    .replace(/\bgoogle(?:\s+deepmind|\s+ai)?\b/gi, 'ОСНОВА AI');
 }
 
 function sanitizeAiPayload(value) {
@@ -94,10 +94,16 @@ function sanitizeAiPayload(value) {
   return typeof value === 'string' ? sanitizeAiString(value) : value;
 }
 
+function chunkBuffer(chunk, encoding) {
+  if (chunk == null) return null;
+  if (Buffer.isBuffer(chunk)) return chunk;
+  const enc = typeof encoding === 'string' ? encoding : undefined;
+  return Buffer.from(String(chunk), enc);
+}
+
 function installAiResponseGuard(res, pathname) {
   if (!shouldSanitizeAi(pathname)) return;
   const originalWriteHead = res.writeHead.bind(res);
-  const originalWrite = res.write.bind(res);
   const originalEnd = res.end.bind(res);
   let statusCode = 200;
   let statusMessage = null;
@@ -116,13 +122,17 @@ function installAiResponseGuard(res, pathname) {
   };
 
   res.write = (chunk, encoding, callback) => {
-    if (chunk != null) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), encoding));
-    if (typeof callback === 'function') callback();
+    const cb = typeof encoding === 'function' ? encoding : callback;
+    const buffered = chunkBuffer(chunk, encoding);
+    if (buffered) chunks.push(buffered);
+    if (typeof cb === 'function') queueMicrotask(cb);
     return true;
   };
 
   res.end = (chunk, encoding, callback) => {
-    if (chunk != null) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), encoding));
+    const cb = typeof encoding === 'function' ? encoding : callback;
+    const buffered = chunkBuffer(chunk, encoding);
+    if (buffered) chunks.push(buffered);
     let body = Buffer.concat(chunks);
     const contentType = String(responseHeaders['content-type'] || responseHeaders['Content-Type'] || res.getHeader('content-type') || '');
     const text = body.toString('utf8');
@@ -140,11 +150,8 @@ function installAiResponseGuard(res, pathname) {
     headers['content-length'] = body.length;
     if (statusMessage) originalWriteHead(statusCode, statusMessage, headers);
     else originalWriteHead(statusCode, headers);
-    return originalEnd(body, undefined, callback);
+    return originalEnd(body, cb);
   };
-
-  // Kept only to make it explicit that non-AI responses still stream normally.
-  res.__osnovaAiGuardOriginalWrite = originalWrite;
 }
 
 async function fastTopics(userId) {
