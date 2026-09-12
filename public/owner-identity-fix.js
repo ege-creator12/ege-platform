@@ -13,19 +13,8 @@ const isOwnerQuestion=value=>{
 
 const isModelQuestion=value=>{
   const q=String(value||'').toLowerCase().replace(/ё/g,'е');
-  return /(какая|какой|что\s+за|на\s+какой|кто\s+ты).{0,30}(модел|нейросет|ии|ai)|ты\s+(gemini|gpt|deepseek|chatgpt|claude)|кто\s+тебя\s+разработал|чья\s+ты\s+нейросет/i.test(q);
+  return /(какая|какой|что\s+за|что\s+ты\s+за|на\s+какой|кто\s+ты).{0,40}(модел|нейросет|ии|ai)|кто\s+тебя\s+(разработал|создал)|чья\s+ты\s+нейросет/i.test(q);
 };
-
-function sanitizeBrand(value){
-  return String(value??'')
-    .replace(/\bgemini(?:[-\w.]*)?\b/gi,'AI ОСНОВЫ')
-    .replace(/\bcerebras\b/gi,'AI ОСНОВЫ')
-    .replace(/\bgpt[-\s]?oss(?:[-\w.]*)?\b/gi,'AI ОСНОВЫ')
-    .replace(/\bdeepseek(?:[-\w.]*)?\b/gi,'AI ОСНОВЫ')
-    .replace(/\bchatgpt\b|\bopenai\b/gi,'AI ОСНОВЫ')
-    .replace(/\bclaude\b|\banthropic\b/gi,'AI ОСНОВЫ')
-    .replace(/\bgoogle\s+ai\b/gi,'AI ОСНОВЫ');
-}
 
 function repairHistory(key){
   try{
@@ -34,11 +23,10 @@ function repairHistory(key){
     let changed=false;
     for(let j=0;j<history.length;j++){
       const item=history[j],prev=history[j-1];
-      if(item?.role!=='assistant')continue;
+      if(item?.role!=='assistant'||prev?.role!=='user')continue;
       let text=String(item.text||'');
-      if(prev?.role==='user'&&isOwnerQuestion(prev.text))text=OWNER_REPLY;
-      else if(prev?.role==='user'&&isModelQuestion(prev.text))text=MODEL_REPLY;
-      else text=sanitizeBrand(text);
+      if(isOwnerQuestion(prev.text))text=OWNER_REPLY;
+      else if(isModelQuestion(prev.text))text=MODEL_REPLY;
       if(text!==item.text){item.text=text;item.actions=[];changed=true}
     }
     if(changed)localStorage.setItem(key,JSON.stringify(history));
@@ -57,7 +45,7 @@ function repairStoredHistory(){
 function replaceAssistant(userText,assistant){
   if(!assistant)return;
   const current=assistant.textContent||'';
-  const next=isOwnerQuestion(userText)?OWNER_REPLY:isModelQuestion(userText)?MODEL_REPLY:sanitizeBrand(current);
+  const next=isOwnerQuestion(userText)?OWNER_REPLY:isModelQuestion(userText)?MODEL_REPLY:current;
   if(next!==current)assistant.textContent=next;
 }
 
@@ -70,11 +58,6 @@ function repairVisibleMessages(){
   document.querySelectorAll('.ai-msg.user').forEach(user=>{
     const next=user.nextElementSibling;
     if(next?.classList?.contains('assistant'))replaceAssistant(user.textContent||'',next);
-  });
-
-  document.querySelectorAll('.ai-answer,[data-coach-status],.answer-expert-auto small,.answer-expert-auto b').forEach(node=>{
-    const current=node.textContent||'',next=sanitizeBrand(current);
-    if(next!==current)node.textContent=next;
   });
 }
 
