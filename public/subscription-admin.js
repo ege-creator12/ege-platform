@@ -1,6 +1,5 @@
 (()=>{
   'use strict';
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   let cache=null,cacheAt=0;
 
   const style=document.createElement('style');
@@ -52,8 +51,13 @@
       table.querySelectorAll('tbody tr').forEach(row=>{
         const edit=row.querySelector('[data-edit-user]');if(!edit||row.querySelector('[data-subscription-cell]'))return;
         const id=Number(edit.dataset.editUser),sub=subs.get(id),td=document.createElement('td');td.className='admin-sub-cell';td.dataset.subscriptionCell='1';
-        const active=Boolean(sub?.active);
-        td.innerHTML=`<div>${label(sub)}<button type="button" class="link" data-sub-quick="${id}">${active?'+30 дней':'Выдать 30 дней'}</button></div>`;
+        const isAdmin=String(row.children?.[1]?.textContent||'').includes('Администратор');
+        if(isAdmin){
+          td.innerHTML='<div><span class="admin-sub-badge">✦ PRO · админ</span></div>';
+        }else{
+          const active=Boolean(sub?.active);
+          td.innerHTML=`<div>${label(sub)}<button type="button" class="link" data-sub-quick="${id}">${active?'+30 дней':'Выдать 30 дней'}</button></div>`;
+        }
         row.insertBefore(td,row.lastElementChild||null);
       });
       table.querySelectorAll('[data-sub-quick]').forEach(btn=>btn.onclick=async()=>{
@@ -74,7 +78,7 @@
       const sub=subs.get(Number(u.id));
       const box=document.createElement('section');box.className='admin-subscription-box';
       if(u.role==='admin'){
-        box.innerHTML=`<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Администратор имеет полный PRO-доступ автоматически.</small></div><span class="admin-sub-badge">✦ PRO · навсегда</span></div>`;
+        box.innerHTML='<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Администратор имеет полный PRO-доступ автоматически.</small></div><span class="admin-sub-badge">✦ PRO · навсегда</span></div>';
       }else{
         box.innerHTML=`<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Выдаётся вручную. Никакой оплаты и привязки карты нет.</small></div>${label(sub)}</div>
           <div class="admin-subscription-actions">
