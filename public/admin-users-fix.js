@@ -61,6 +61,13 @@
     });
   }
 
+  async function moderatorOverview(){
+    const d=await adminApi('/overview'),c=d.counts||{};
+    const metrics=[['Предметы',c.subjects],['Разделы',c.sections],['Темы',c.topics],['Уроки',c.lessons],['Задания',c.questions]];
+    adminFrame(`<div class="admin-note">Доступ модератора ограничен учебным контентом: теория, уроки и задания. Данные пользователей, активность учеников и настройки сайта недоступны.</div><div class="admin-metrics">${metrics.map(([n,v])=>`<div class="card metric"><span>${n}</span><strong>${Number(v)||0}</strong></div>`).join('')}</div><div class="admin-grid"><button class="card admin-action" data-moderator-open="content"><b>Редактировать курс</b><span>Темы, уроки и содержимое уроков</span></button><button class="card admin-action" data-moderator-open="questions"><b>База заданий</b><span>Добавлять и исправлять вопросы</span></button></div>`,'Модерация контента');
+    document.querySelectorAll('[data-moderator-open]').forEach(x=>x.onclick=()=>{adminTab=x.dataset.moderatorOpen;admin()});
+  }
+
   window.adminUsers=async function(){
     try{
       const [d,mods]=await Promise.all([adminApi('/overview'),api('/moderator-admin/list')]);
@@ -91,10 +98,13 @@
   const originalAdmin=window.admin;
   window.admin=async function(){
     const status=await getModeratorStatus();
-    if(status.moderator&&!status.admin&&['users','site'].includes(adminTab))adminTab='overview';
+    const moderatorOnly=status.moderator&&!status.admin;
+    if(moderatorOnly&&['users','site'].includes(adminTab))adminTab='overview';
     adminLoading();
     try{
-      if(adminTab==='overview')await adminOverview();
+      if(adminTab==='overview'){
+        if(moderatorOnly)await moderatorOverview();else await adminOverview();
+      }
       else if(adminTab==='content')await adminContent();
       else if(adminTab==='questions')await adminQuestions();
       else if(adminTab==='users')await adminUsers();
@@ -102,7 +112,7 @@
       else await originalAdmin();
       await enhanceShell();
     }catch(e){
-      adminFrame(`<div class="card"><h2>Не удалось открыть панель</h2><p class="subtitle">${escUser(e.message)}</p><button class="btn" id="admin-retry">Повторить</button></div>`,status.moderator&&!status.admin?'Модерация':'Управление платформой');
+      adminFrame(`<div class="card"><h2>Не удалось открыть панель</h2><p class="subtitle">${escUser(e.message)}</p><button class="btn" id="admin-retry">Повторить</button></div>`,moderatorOnly?'Модерация':'Управление платформой');
       document.querySelector('#admin-retry').onclick=()=>admin();
       await enhanceShell();
     }
