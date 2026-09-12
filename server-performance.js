@@ -6,6 +6,7 @@ const { spawn } = require('node:child_process');
 const { createReadStream, existsSync, statSync } = require('node:fs');
 const { join, resolve, extname, sep } = require('node:path');
 const database = require('./src/db');
+const moderator = require('./server-moderator');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -147,6 +148,7 @@ function waitForUpstream(left = 220) {
 }
 
 async function start() {
+  await moderator.ensureSchema();
   const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
     cwd: __dirname,
     env: { ...process.env, PORT: String(UPSTREAM_PORT) },
@@ -158,12 +160,13 @@ async function start() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     try {
+      if (await moderator.handle(req, res, url)) return;
       if (await handleFastApi(req, res, url.pathname)) return;
       if (serveStatic(req, res, url)) return;
       proxy(req, res);
     } catch (error) {
       console.error('performance-api', error);
-      if (!res.headersSent) json(res, 500, { error: 'Не удалось загрузить данные' });
+      if (!res.headersSent) json(res, Number(error?.status || 500), { error: error?.message || 'Не удалось загрузить данные' });
     }
   });
 
