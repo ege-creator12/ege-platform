@@ -123,3 +123,59 @@ main>header,.topics,.lesson,.admin-console,.course-page{animation:none!important
 @media(max-width:900px){
   .sidebar nav button,.sidebar [data-moderator-nav]{height:auto!important;min-height:44px!important}
 }
+
+/* Sidebar motion: subtle scale + slide only for desktop pointer hover. */
+@media (hover:hover) and (pointer:fine) and (min-width:901px){
+  .sidebar nav button,
+  .sidebar [data-moderator-nav]{
+    position:relative!important;
+    overflow:hidden!important;
+    transform-origin:left center!important;
+    will-change:transform!important;
+    transition:transform .18s cubic-bezier(.2,.75,.2,1),background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+  }
+  .sidebar nav button:hover,
+  .sidebar [data-moderator-nav]:hover{
+    transform:translateX(5px) scale(1.025)!important;
+    translate:none!important;
+    scale:1!important;
+    border-color:rgba(112,255,177,.34)!important;
+    background:linear-gradient(135deg,rgba(81,232,148,.18),rgba(117,184,255,.075))!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 10px 26px rgba(0,0,0,.14),0 0 22px rgba(65,226,139,.07)!important;
+  }
+  .sidebar nav button:active,
+  .sidebar [data-moderator-nav]:active{
+    transform:translateX(3px) scale(.992)!important;
+  }
+  .sidebar nav button.active:not(:hover),
+  .sidebar [data-moderator-nav].active:not(:hover){
+    transform:translateX(2px)!important;
+  }
+  .sidebar .nav-icon,
+  .sidebar nav button span:last-child,
+  .sidebar [data-moderator-nav] span:last-child{
+    transition:transform .18s cubic-bezier(.2,.75,.2,1),background-color .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+  }
+  .sidebar nav button:hover .nav-icon,
+  .sidebar [data-moderator-nav]:hover .nav-icon{
+    transform:translateX(1px) scale(1.08)!important;
+  }
+  .sidebar nav button:hover span:last-child,
+  .sidebar [data-moderator-nav]:hover span:last-child{
+    transform:translateX(2px)!important;
+  }
+  .sidebar nav button::before,
+  .sidebar [data-moderator-nav]::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.07) 45%,transparent 70%);
+    transform:translateX(-125%);
+    transition:transform .42s ease;
+  }
+  .sidebar nav button:hover::before,
+  .sidebar [data-moderator-nav]:hover::before{
+    transform:translateX(125%);
+  }
+}
