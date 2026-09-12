@@ -56,7 +56,28 @@
     <div class="premium-focus-actions"><button class="btn" data-premium-nav="biology">Выбрать тему →</button><button class="btn ghost" data-premium-nav="pro">Спросить AI-куратора</button></div>
   </section>`;
  }
- function quickCard(kind,title,text,hash){return `<button class="premium-quick-card" data-premium-nav="${esc(hash)}"><span class="premium-quick-icon">${icon(kind)}</span><span><b>${esc(title)}</b><small>${esc(text)}</small></span><span class="premium-quick-arrow">→</span></button>`;}
+ function subjectMenuHtml(){
+  return `<section class="premium-subject-menu" aria-label="Главные разделы">
+    <button type="button" class="premium-subject-card premium-subject-card--biology" data-premium-nav="biology">
+      <span class="premium-subject-kicker">Основной предмет</span>
+      <strong>Биология</strong>
+      <small>Теория, темы, линии ЕГЭ и практика по биологии — всё в одном разделе.</small>
+      <span class="premium-subject-arrow">Открыть биологию →</span>
+    </button>
+    <button type="button" class="premium-subject-card premium-subject-card--chemistry" data-premium-nav="chemistry">
+      <span class="premium-subject-kicker">Подготовка к ЕГЭ</span>
+      <strong>Химия</strong>
+      <small>Теория, задания и подготовка по химии без переходов в чужие разделы.</small>
+      <span class="premium-subject-arrow">Открыть химию →</span>
+    </button>
+    <button type="button" class="premium-subject-card premium-subject-card--pro" data-premium-nav="pro">
+      <span class="premium-subject-kicker">Персональная подготовка</span>
+      <strong>AI PRO</strong>
+      <small>AI-куратор, личный план, аналитика и разбор ошибок.</small>
+      <span class="premium-subject-arrow">Перейти к AI PRO →</span>
+    </button>
+  </section>`;
+ }
  function metric(kind,label,value,sub=''){return `<article class="premium-metric"><div class="premium-metric-top"><span class="premium-metric-icon">${icon(kind)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`;}
  function leaderboardHtml(){
   return `<section class="premium-leaderboard" aria-labelledby="leaderboard-title">
@@ -88,8 +109,6 @@
  function dashboardHtml(data){
   const user=data.user||{},stats=data.stats||{};
   const progress=Array.isArray(stats.progress)?[...stats.progress]:[];
-  const examDate=data.examDate?new Date(data.examDate):null;
-  const days=examDate&&!Number.isNaN(examDate.getTime())?Math.max(0,Math.ceil((examDate-new Date())/86400000)):0;
   const mastered=progress.filter(x=>(Number(x.mastery)||0)>=80).length;
   const total=Math.max(progress.length,28);
   return `<section id="${ROOT}" class="premium-dashboard-v2">
@@ -98,16 +117,11 @@
         <div class="premium-kicker">Знания · дисциплина · результат</div>
         <h1>Больше, чем<br>подготовка <em>к ЕГЭ</em></h1>
         <p>Понятная теория. Реальные задания. Твой результат — в одном спокойном и красивом пространстве.</p>
-        <div class="premium-hero-actions"><button class="btn" data-premium-nav="biology">Продолжить обучение →</button><button class="btn ghost" data-premium-nav="progress-map/biology">К карте ЕГЭ</button></div>
+        <div class="premium-hero-actions"><button class="btn" data-premium-nav="biology">Биология →</button><button class="btn ghost" data-premium-nav="chemistry">Химия →</button></div>
       </div>
       <aside class="premium-hero-note"><span>ОСНОВА · ЕГЭ</span><strong>Маленькие шаги к большим результатам</strong><small>${esc(user.name||'Ученик')}, главное — продолжать регулярно.</small></aside>
     </section>
-    <div class="premium-quick-grid">
-      ${quickCard('book','Вся теория в одном месте','Структурированные уроки, схемы и разборы','biology')}
-      ${quickCard('target','Реальные задания ЕГЭ','Линии, практика и работа над ошибками','progress-map/biology')}
-      ${quickCard('chart','Пробники как на экзамене','Проверяй уровень и следи за прогрессом','mocks')}
-      ${quickCard('crown','ОСНОВА PRO','Личный план, AI-репетитор и аналитика','pro')}
-    </div>
+    ${subjectMenuHtml()}
     <div class="premium-main-grid">
       <div class="premium-left-stack">
         <section class="premium-continue">
