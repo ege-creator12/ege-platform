@@ -57,16 +57,19 @@ test('account changes and writes cannot repopulate the cache with an older pendi
   assert.deepEqual(await data.request('/api/me'),{user:3});
 });
 
-test('errors are retried and a failed biology request does not block chemistry', async () => {
+test('transient errors are retried and a failed biology request does not block chemistry', async () => {
   const wait=deferred();let biologyCalls=0;
   const data=createStudyData({origin,fetch:async path=>{
     if(path===biology&&++biologyCalls===1){await wait.promise;return response({error:'offline'},503);}
     return response({subject:path===biology?'biology':'chemistry'});
   }});
-  const bio=data.request(biology);const rejected=assert.rejects(bio,/offline/);
+  const bio=data.request(biology);
   assert.deepEqual(await data.request(chemistry),{subject:'chemistry'});
-  wait.resolve();await rejected;
+  wait.resolve();
+  assert.deepEqual(await bio,{subject:'biology'});
+  assert.equal(biologyCalls,2);
   assert.deepEqual(await data.request(biology),{subject:'biology'});
+  assert.equal(biologyCalls,2);
 });
 
 test('explicit credentials, abortable reads and unlisted routes are never shared', async () => {
