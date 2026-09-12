@@ -46,9 +46,14 @@ async function userFor(req) {
   );
 }
 
+function isStudentAiPath(pathname) {
+  return pathname.startsWith('/api/ai/')
+    || pathname.startsWith('/api/ai-pro/')
+    || pathname.startsWith('/api/answer-expert/');
+}
+
 async function requireProForAi(req, res, pathname) {
-  const protectedAi = pathname.startsWith('/api/ai-pro/') || pathname.startsWith('/api/answer-expert/');
-  if (!protectedAi) return false;
+  if (!isStudentAiPath(pathname)) return false;
   const user = await userFor(req);
   if (!user) {
     json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
@@ -59,6 +64,87 @@ async function requireProForAi(req, res, pathname) {
     return true;
   }
   return false;
+}
+
+function shouldSanitizeAi(pathname) {
+  return isStudentAiPath(pathname) || pathname === '/api/moderator-ai';
+}
+
+function sanitizeAiString(value) {
+  return String(value ?? '')
+    .replace(/\bgemini(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
+    .replace(/\bcerebras\b/gi, 'ОСНОВА AI')
+    .replace(/\bgpt[-\s]?oss(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
+    .replace(/\bdeepseek(?:[-\w.]*)?\b/gi, 'ОСНОВА AI')
+    .replace(/\bchatgpt\b|\bopenai\b/gi, 'ОСНОВА AI')
+    .replace(/\bclaude\b|\banthropic\b/gi, 'ОСНОВА AI')
+    .replace(/\bgoogle\s+ai\b/gi, 'ОСНОВА AI');
+}
+
+function sanitizeAiPayload(value) {
+  if (Array.isArray(value)) return value.map(sanitizeAiPayload);
+  if (value && typeof value === 'object') {
+    const clean = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (/^(model|modelUsed|aiModel|provider|providerName|source)$/i.test(key)) continue;
+      clean[key] = sanitizeAiPayload(item);
+    }
+    return clean;
+  }
+  return typeof value === 'string' ? sanitizeAiString(value) : value;
+}
+
+function installAiResponseGuard(res, pathname) {
+  if (!shouldSanitizeAi(pathname)) return;
+  const originalWriteHead = res.writeHead.bind(res);
+  const originalWrite = res.write.bind(res);
+  const originalEnd = res.end.bind(res);
+  let statusCode = 200;
+  let statusMessage = null;
+  let responseHeaders = {};
+  const chunks = [];
+
+  res.writeHead = (code, second, third) => {
+    statusCode = Number(code) || 200;
+    if (typeof second === 'string') {
+      statusMessage = second;
+      responseHeaders = { ...(third || {}) };
+    } else {
+      responseHeaders = { ...(second || {}) };
+    }
+    return res;
+  };
+
+  res.write = (chunk, encoding, callback) => {
+    if (chunk != null) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), encoding));
+    if (typeof callback === 'function') callback();
+    return true;
+  };
+
+  res.end = (chunk, encoding, callback) => {
+    if (chunk != null) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), encoding));
+    let body = Buffer.concat(chunks);
+    const contentType = String(responseHeaders['content-type'] || responseHeaders['Content-Type'] || res.getHeader('content-type') || '');
+    const text = body.toString('utf8');
+    if (/json/i.test(contentType) || /^[\s]*[\[{]/.test(text)) {
+      try { body = Buffer.from(JSON.stringify(sanitizeAiPayload(JSON.parse(text)))); }
+      catch { body = Buffer.from(sanitizeAiString(text)); }
+    } else if (text) {
+      body = Buffer.from(sanitizeAiString(text));
+    }
+
+    const headers = { ...responseHeaders };
+    for (const key of Object.keys(headers)) {
+      if (/^(content-length|transfer-encoding)$/i.test(key)) delete headers[key];
+    }
+    headers['content-length'] = body.length;
+    if (statusMessage) originalWriteHead(statusCode, statusMessage, headers);
+    else originalWriteHead(statusCode, headers);
+    return originalEnd(body, undefined, callback);
+  };
+
+  // Kept only to make it explicit that non-AI responses still stream normally.
+  res.__osnovaAiGuardOriginalWrite = originalWrite;
 }
 
 async function fastTopics(userId) {
@@ -183,6 +269,7 @@ async function start() {
   await waitForUpstream();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    installAiResponseGuard(res, url.pathname);
     try {
       if (await subscriptions.handle(req, res, url)) return;
       if (await requireProForAi(req, res, url.pathname)) return;
@@ -214,4 +301,4 @@ if (require.main === module) start().catch(error => {
   process.exit(1);
 });
 
-module.exports = { start, fastTopics, handleFastApi, staticCandidate, cacheControl, requireProForAi };
+module.exports = { start, fastTopics, handleFastApi, staticCandidate, cacheControl, requireProForAi, sanitizeAiPayload };
