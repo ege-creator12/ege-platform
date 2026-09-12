@@ -1,0 +1,128 @@
+/* Final interface polish: lively, borderless sidebar and integrated problem report action. */
+
+.sidebar nav[data-stable-sidebar] button,
+.sidebar nav button,
+.sidebar [data-moderator-nav]{
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:rgba(235,247,240,.76)!important;
+  transform:translateX(0) scale(1)!important;
+  transform-origin:left center!important;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s ease,color .2s ease,box-shadow .2s ease!important;
+}
+
+.sidebar nav[data-stable-sidebar] button.active,
+.sidebar nav button.active,
+.sidebar [data-moderator-nav].active{
+  border-color:transparent!important;
+  background:linear-gradient(90deg,rgba(67,224,137,.20),rgba(76,190,132,.08),transparent)!important;
+  color:#f3fff8!important;
+  box-shadow:inset 3px 0 0 rgba(103,246,166,.72),0 8px 24px rgba(13,104,60,.08)!important;
+}
+
+.sidebar nav .subject-search,
+.sidebar nav [data-bio-search-nav],
+.sidebar nav [data-chem-search-nav]{
+  border-color:transparent!important;
+  background:transparent!important;
+  opacity:.88;
+}
+
+.sidebar nav button .nav-icon,
+.sidebar [data-moderator-nav] .nav-icon{
+  border-color:transparent!important;
+  background:rgba(92,226,151,.08)!important;
+  box-shadow:none!important;
+  transform:translateX(0) scale(1) rotate(0)!important;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s ease,color .2s ease,box-shadow .2s ease!important;
+}
+
+.sidebar nav button>span:last-child,
+.sidebar [data-moderator-nav]>span:last-child{
+  transform:translateX(0)!important;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s ease!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .sidebar nav[data-stable-sidebar] button:hover,
+  .sidebar nav button:hover,
+  .sidebar [data-moderator-nav]:hover{
+    border-color:transparent!important;
+    background:linear-gradient(90deg,rgba(73,232,145,.15),rgba(65,168,121,.055),transparent)!important;
+    color:#f6fff9!important;
+    box-shadow:0 9px 24px rgba(0,0,0,.10)!important;
+    transform:translateX(5px) scale(1.025)!important;
+  }
+  .sidebar nav button:hover .nav-icon,
+  .sidebar [data-moderator-nav]:hover .nav-icon{
+    transform:translateX(1px) scale(1.09) rotate(-2deg)!important;
+    background:rgba(90,235,151,.18)!important;
+    color:#f3fff8!important;
+    box-shadow:0 6px 18px rgba(60,218,130,.10)!important;
+  }
+  .sidebar nav button:hover>span:last-child,
+  .sidebar [data-moderator-nav]:hover>span:last-child{
+    transform:translateX(2px)!important;
+  }
+  .sidebar nav button:active,
+  .sidebar [data-moderator-nav]:active{
+    transform:translateX(3px) scale(.99)!important;
+  }
+}
+
+/* The report action lives in the sidebar on desktop instead of floating over content. */
+.sidebar .problem-report-fab,
+.sidebar #problem-report-fab{
+  position:static!important;
+  inset:auto!important;
+  width:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  margin:9px 0 10px!important;
+  padding:10px 12px!important;
+  border:0!important;
+  border-radius:13px!important;
+  background:rgba(255,255,255,.035)!important;
+  color:rgba(230,244,236,.72)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  font-size:11.5px!important;
+  font-weight:700!important;
+  letter-spacing:-.01em!important;
+  transition:transform .18s ease,background .18s ease,color .18s ease!important;
+}
+.sidebar .problem-report-fab::first-letter{color:#75eeaa}
+@media (hover:hover) and (pointer:fine){
+  .sidebar .problem-report-fab:hover{
+    background:rgba(80,224,143,.11)!important;
+    color:#f1fff7!important;
+    transform:translateX(3px)!important;
+  }
+}
+
+@media(max-width:900px){
+  body>.problem-report-fab{
+    position:fixed!important;
+    right:14px!important;
+    bottom:132px!important;
+    width:auto!important;
+    border:0!important;
+    background:rgba(7,16,12,.90)!important;
+    color:#eaf8f0!important;
+    border-radius:999px!important;
+    padding:9px 11px!important;
+    box-shadow:0 10px 30px rgba(0,0,0,.2)!important;
+    backdrop-filter:blur(12px)!important;
+  }
+  body>.problem-report-fab span{display:none!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .sidebar nav button,
+  .sidebar nav button .nav-icon,
+  .sidebar nav button>span:last-child,
+  .sidebar .problem-report-fab{transition:none!important;transform:none!important}
+}
