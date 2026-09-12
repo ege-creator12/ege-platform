@@ -8,6 +8,7 @@ const { join, resolve, extname, sep } = require('node:path');
 const database = require('./src/db');
 const moderator = require('./server-moderator');
 const moderatorAi = require('./server-moderator-ai');
+const problemReports = require('./server-problem-reports');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -151,6 +152,7 @@ function waitForUpstream(left = 220) {
 async function start() {
   await moderator.ensureSchema();
   await moderatorAi.ensureSchema();
+  await problemReports.ensureSchema();
   const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
     cwd: __dirname,
     env: { ...process.env, PORT: String(UPSTREAM_PORT) },
@@ -162,6 +164,7 @@ async function start() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     try {
+      if (await problemReports.handle(req, res, url)) return;
       if (await moderatorAi.handle(req, res, url)) return;
       if (await moderator.handle(req, res, url)) return;
       if (await handleFastApi(req, res, url.pathname)) return;
