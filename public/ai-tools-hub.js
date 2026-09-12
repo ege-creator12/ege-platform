@@ -4,7 +4,6 @@
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const style=document.createElement('style');
   style.textContent=`
-    [data-student-pro]{display:none!important}
     .sidebar nav [data-ai-tools-nav]{margin-top:13px!important;position:relative}
     .sidebar nav [data-ai-tools-nav]::before{content:"AI";position:absolute;left:8px;top:-15px;font-size:9px;font-weight:800;letter-spacing:.16em;opacity:.42;pointer-events:none}
     .aihub{max-width:1180px;margin:0 auto 48px}.aihub-hero{padding:26px!important;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(27,104,69,.16),rgba(75,79,178,.12))!important}.aihub-hero:after{content:"✦";position:absolute;right:28px;top:2px;font-size:120px;line-height:1;opacity:.04;pointer-events:none}.aihub-hero h1{font-size:clamp(30px,4vw,48px);margin:7px 0 10px}.aihub-hero p{max-width:760px;line-height:1.6;margin:0;color:var(--muted)}
