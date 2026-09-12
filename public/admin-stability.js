@@ -57,4 +57,18 @@
       document.querySelector('#admin-home').onclick=()=>{adminTab='overview';admin()};
     }
   };
+
+  if(typeof showQuestionForm==='function'){
+    const originalShowQuestionForm=showQuestionForm;
+    showQuestionForm=function(){
+      originalShowQuestionForm();
+      const form=document.querySelector('#qform');
+      const card=form?.closest('.card');
+      const back=card?.previousElementSibling;
+      if(back?.classList?.contains('back')){
+        back.removeAttribute('onclick');
+        back.onclick=()=>{adminTab='questions';admin()};
+      }
+    };
+  }
 })();
