@@ -24,20 +24,12 @@
   for(let d=1;d<=days;d++)cells.push(`<span class="day ${d===today?'today':''}">${d}</span>`);
   return `<section class="premium-calendar"><div class="premium-cal-head"><b>${esc(title)}</b><span>← →</span></div><div class="premium-cal-grid">${cells.join('')}</div></section>`;
  }
- function weekHtml(weak){
+ function weekHtml(){
   const labels=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const now=new Date();
   const currentDay=(now.getDay()+6)%7;
   const weekStart=new Date(now);weekStart.setHours(0,0,0,0);weekStart.setDate(weekStart.getDate()-currentDay);
-  const tasks=[];
-  const names=weak.length?weak.map(x=>x.title):['Биология','Химия'];
-  tasks.push(names[0]||'Повторение слабой темы');
-  tasks.push(names[1]||'Задания первой части');
-  tasks.push('Разбор ошибок');
-  tasks.push(names[2]||'Теория и закрепление');
-  tasks.push('Пробник ЕГЭ');
-  tasks.push(names[3]||'Повторение формул и терминов');
-  tasks.push('Отдых и лёгкое повторение');
+  const tasks=['Биология','Практика по биологии','Разбор ошибок','Теория по биологии','Пробник ЕГЭ','Повторение по биологии','Отдых и лёгкое повторение'];
   const items=tasks.map((t,i)=>{
     const dayDate=new Date(weekStart);dayDate.setDate(weekStart.getDate()+i);
     const cls=i<currentDay?'done':i===currentDay?'today':'';
@@ -47,21 +39,21 @@
   }).join('');
   return `<section class="premium-week"><div class="premium-week-head"><h3>Мой план на неделю</h3><small>Сегодня · ${labels[currentDay]}</small></div><div class="premium-week-list">${items}</div></section>`;
  }
- function focusHtml(current,stats){
+ function focusHtml(stats){
   const accuracy=Math.max(0,Math.min(100,Number(stats.accuracy)||0));
   const solved=Math.max(0,Number(stats.solved)||0);
   const streak=Math.max(0,Number(stats.streak)||0);
   const count=accuracy<50?10:8;
   return `<section class="premium-focus">
-    <div class="premium-focus-head"><div><span>Фокус на сегодня</span><h2>${esc(current.title||'Слабая тема')}</h2></div><b>≈ 35 мин</b></div>
-    <p>Не распыляйся: коротко повтори теорию по самой слабой теме, реши ${count} заданий и сразу разбери ошибки.</p>
+    <div class="premium-focus-head"><div><span>Фокус на сегодня</span><h2>Биология</h2></div><b>≈ 35 мин</b></div>
+    <p>Выбери тему по биологии, повтори теорию, реши ${count} заданий и разбери ошибки.</p>
     <div class="premium-focus-steps">
       <div><span>01</span><b>Теория</b><small>10–12 мин</small></div>
       <div><span>02</span><b>Практика</b><small>${count} заданий</small></div>
       <div><span>03</span><b>Разбор</b><small>ошибки + повтор</small></div>
     </div>
     <div class="premium-focus-stats"><span>Точность <b>${accuracy}%</b></span><span>Решено <b>${solved}</b></span><span>Серия <b>${streak} ${plural(streak,'день','дня','дней')}</b></span></div>
-    <div class="premium-focus-actions"><button class="btn" data-premium-train="${Number(current.id)||0}">Начать фокус →</button><button class="btn ghost" data-premium-nav="pro">Спросить AI-куратора</button></div>
+    <div class="premium-focus-actions"><button class="btn" data-premium-nav="biology">Выбрать тему →</button><button class="btn ghost" data-premium-nav="pro">Спросить AI-куратора</button></div>
   </section>`;
  }
  function quickCard(kind,title,text,hash){return `<button class="premium-quick-card" data-premium-nav="${esc(hash)}"><span class="premium-quick-icon">${icon(kind)}</span><span><b>${esc(title)}</b><small>${esc(text)}</small></span><span class="premium-quick-arrow">→</span></button>`;}
@@ -96,20 +88,17 @@
  function dashboardHtml(data){
   const user=data.user||{},stats=data.stats||{};
   const progress=Array.isArray(stats.progress)?[...stats.progress]:[];
-  const weak=progress.sort((a,b)=>(Number(a.mastery)||0)-(Number(b.mastery)||0));
-  const current=weak[0]||{id:0,title:'Биология',mastery:0};
   const examDate=data.examDate?new Date(data.examDate):null;
   const days=examDate&&!Number.isNaN(examDate.getTime())?Math.max(0,Math.ceil((examDate-new Date())/86400000)):0;
   const mastered=progress.filter(x=>(Number(x.mastery)||0)>=80).length;
   const total=Math.max(progress.length,28);
-  const pct=Math.max(0,Math.min(100,Number(current.mastery)||0));
   return `<section id="${ROOT}" class="premium-dashboard-v2">
     <section class="premium-hero">
       <div class="premium-hero-copy">
         <div class="premium-kicker">Знания · дисциплина · результат</div>
         <h1>Больше, чем<br>подготовка <em>к ЕГЭ</em></h1>
         <p>Понятная теория. Реальные задания. Твой результат — в одном спокойном и красивом пространстве.</p>
-        <div class="premium-hero-actions"><button class="btn" data-premium-train="${Number(current.id)||0}">Продолжить обучение →</button><button class="btn ghost" data-premium-nav="progress-map/biology">К карте ЕГЭ</button></div>
+        <div class="premium-hero-actions"><button class="btn" data-premium-nav="biology">Продолжить обучение →</button><button class="btn ghost" data-premium-nav="progress-map/biology">К карте ЕГЭ</button></div>
       </div>
       <aside class="premium-hero-note"><span>ОСНОВА · ЕГЭ</span><strong>Маленькие шаги к большим результатам</strong><small>${esc(user.name||'Ученик')}, главное — продолжать регулярно.</small></aside>
     </section>
@@ -125,8 +114,8 @@
           <div class="premium-section-title"><h2>Продолжить обучение</h2><span>→</span></div>
           <div class="premium-continue-body">
             <div class="premium-cover" aria-hidden="true"></div>
-            <div class="premium-course-copy"><div class="premium-course-meta">Биология · слабая тема</div><h3>${esc(current.title||'Биология')}</h3><p>Продолжи с места, где сейчас можно быстрее всего поднять результат.</p><div class="premium-progress-row"><div class="progress"><i style="width:${pct}%"></i></div><b>${pct}%</b></div></div>
-            <button class="btn" data-premium-train="${Number(current.id)||0}">Продолжить →</button>
+            <div class="premium-course-copy"><div class="premium-course-meta">Подготовка к ЕГЭ</div><h3>Биология</h3><p>Открой темы по биологии, выбери урок и переходи к практике.</p></div>
+            <button class="btn" data-premium-nav="biology">К темам →</button>
           </div>
         </section>
         <div class="premium-results">
@@ -135,10 +124,10 @@
           ${metric('task','Решено заданий',Number(stats.solved)||0,'всего')}
           ${metric('flame','Серия дней',Number(stats.streak)||0,`${plural(stats.streak,'день','дня','дней')} подряд`)}
         </div>
-        ${focusHtml(current,stats)}
+        ${focusHtml(stats)}
         <aside class="premium-quote"><strong>«Дисциплина превращает цели в реальность»</strong><span></span></aside>
       </div>
-      <div class="premium-side-stack">${leaderboardHtml()}${weekHtml(weak)}${calendarHtml()}</div>
+      <div class="premium-side-stack">${leaderboardHtml()}${weekHtml()}${calendarHtml()}</div>
     </div>
   </section>`;
  }
@@ -152,11 +141,6 @@
  }
  function bind(root){
   root.querySelectorAll('[data-premium-nav]').forEach(b=>b.onclick=()=>goTo(b.dataset.premiumNav));
-  root.querySelectorAll('[data-premium-train]').forEach(b=>b.onclick=()=>{
-    const id=Number(b.dataset.premiumTrain)||0;
-    if(typeof window.startTraining==='function')window.startTraining(id,'topic');
-    else goTo(id?`topic/${id}`:'biology');
-  });
  }
  async function mount(){
   if(mounting||route()!=='dashboard'||document.getElementById(ROOT))return;
@@ -176,8 +160,7 @@
   if(route()!=='dashboard')return;
   const root=document.getElementById(ROOT);if(!root)return;
   const old=$('.premium-week',root);if(!old)return;
-  const progress=[];
-  old.outerHTML=weekHtml(progress);
+  old.outerHTML=weekHtml();
  },60000);
  setTimeout(()=>{mount();sidePro()},0);
 })();
