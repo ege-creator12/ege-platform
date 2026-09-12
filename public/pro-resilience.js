@@ -1,6 +1,7 @@
 (()=>{
 'use strict';
 
+const CHAT_PREFIX='osnova-pro-coach-v3:';
 const parseBody=value=>{
   if(!value)return{};
   if(typeof value==='string'){try{return JSON.parse(value)}catch{return{}}}
@@ -28,6 +29,26 @@ function localCoachReply(message,mode='coach'){
     return 'Подсказка: сначала выдели, что именно дано в условии, а затем назови одно правило из теории, которое напрямую связывает данные с ответом. Готовый ответ пока не бери.';
   }
   return 'По текущему плану сейчас выгоднее закончить ближайший учебный шаг и сразу закрепить его практикой. Если вопрос про конкретную тему — напиши её название или номер линии, и разберём точечно.';
+}
+
+function cleanStoredHistory(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(!key||!key.startsWith(CHAT_PREFIX))continue;
+      const history=JSON.parse(localStorage.getItem(key)||'[]');
+      if(!Array.isArray(history))continue;
+      const cleaned=[];
+      for(const item of history){
+        const text=String(item?.text||'');
+        if(item?.role==='assistant'&&/(не получилось получить ответ|сервер временно недоступен|сервис временно недоступен|ошибка соединения|не удалось соединиться)/i.test(text))continue;
+        const prev=cleaned[cleaned.length-1];
+        if(item?.role==='user'&&prev?.role==='user'&&String(prev.text||'').trim()===text.trim())continue;
+        cleaned.push(item);
+      }
+      if(cleaned.length!==history.length)localStorage.setItem(key,JSON.stringify(cleaned));
+    }
+  }catch{}
 }
 
 function install(){
@@ -58,6 +79,7 @@ function install(){
   return true;
 }
 
+cleanStoredHistory();
 install();
 let attempts=0;
 const timer=setInterval(()=>{if(install()||++attempts>20)clearInterval(timer)},250);
