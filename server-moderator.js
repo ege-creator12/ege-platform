@@ -67,14 +67,12 @@ async function questionDetail(id) {
 async function handleModeratorConsole(req, res, path, user) {
   if (path === '/api/admin-console/overview' && req.method === 'GET') {
     const counts = await row(`SELECT
-      (SELECT COUNT(*) FROM users WHERE role='student') students,
       (SELECT COUNT(*) FROM subjects) subjects,
       (SELECT COUNT(*) FROM sections) sections,
       (SELECT COUNT(*) FROM topics) topics,
       (SELECT COUNT(*) FROM lessons) lessons,
-      (SELECT COUNT(*) FROM questions) questions,
-      (SELECT COUNT(*) FROM attempts) attempts`);
-    json(res, 200, { counts, users: [], settings: {}, moderator: true }); return true;
+      (SELECT COUNT(*) FROM questions) questions`);
+    json(res, 200, { counts, moderator: true }); return true;
   }
 
   if (path === '/api/admin-console/content' && req.method === 'GET') {
