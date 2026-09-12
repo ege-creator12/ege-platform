@@ -11,6 +11,20 @@
   const route=()=>location.hash.slice(1)||'dashboard';
   const cacheKey=id=>`${CACHE_PREFIX}${id}`;
 
+  const style=document.createElement('style');
+  style.textContent=`
+    .sidebar nav button,
+    .sidebar nav button:hover,
+    .sidebar nav button:active{
+      transform:none!important;
+    }
+    .sidebar nav button{
+      transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease!important;
+    }
+    .sidebar nav button::after{display:none!important}
+  `;
+  document.head.appendChild(style);
+
   function cachedModerator(id){
     if(!id)return false;
     try{return sessionStorage.getItem(cacheKey(id))==='1'}catch{return false}
@@ -27,8 +41,29 @@
   function isModeratorOnly(){
     const u=user(),id=userId();
     if(!u||!id||u.role==='admin')return false;
+    if(u.isModerator===true)return true;
     if(status&&statusUserId===id)return Boolean(status.moderator&&!status.admin);
     return cachedModerator(id);
+  }
+
+  function moderatorButtonHtml(){
+    const active=route()==='admin';
+    return `<button type="button" data-moderator-nav="1" data-nav="admin" class="${active?'active':''}" ${active?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">◇</span><span>Модерация</span></button>`;
+  }
+
+  /* Put the moderator item into the sidebar HTML before the shell is mounted.
+     That prevents the rest of the menu from moving after every route change. */
+  if(typeof shell==='function'){
+    const baseShell=shell;
+    shell=function(content){
+      let html=baseShell(content);
+      if(isModeratorOnly()&&!html.includes('data-moderator-nav')){
+        const marker='</nav><div class="side-bottom">';
+        const pos=html.indexOf(marker);
+        if(pos!==-1)html=html.slice(0,pos)+moderatorButtonHtml()+html.slice(pos);
+      }
+      return html;
+    };
   }
 
   function syncModeratorNav(){
@@ -89,6 +124,9 @@
       }catch{
         status={moderator:cachedModerator(id),admin:false};
         statusUserId=id;
+        if(typeof state!=='undefined'&&state.user&&Number(state.user.id)===id&&status.moderator){
+          state.user.isModerator=true;
+        }
       }finally{
         request=null;
         syncModeratorNav();
@@ -100,6 +138,9 @@
   function syncAndRefresh(){
     const id=userId();
     if(statusUserId&&id!==statusUserId){status=null;statusUserId=0}
+    if(id&&user()?.role!=='admin'&&cachedModerator(id)&&user()?.isModerator!==true){
+      user().isModerator=true;
+    }
     syncModeratorNav();
     if(id&&user()?.role!=='admin'&&(!status||statusUserId!==id))refreshModeratorStatus();
   }
