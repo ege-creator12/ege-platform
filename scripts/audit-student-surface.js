@@ -16,13 +16,15 @@ const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1].split
 const duplicates=scripts.filter((x,i,a)=>a.indexOf(x)!==i);
 if(duplicates.length)errors.push(`duplicate script references: ${[...new Set(duplicates)].join(', ')}`);
 
-for(const required of ['/student-dialogs.js','/student-runtime-hardening.js','/answer-expert.js','/subscription-access.js','/pro-student-ai-gate.js']){
+for(const required of ['/student-dialogs.js','/student-runtime-hardening.js','/answer-expert.js','/subscription-access.js','/pro-student-ai-gate.js','/pro-nav-visible.js']){
   if(!scripts.includes(required))errors.push(`required student runtime missing: ${required}`);
 }
 if(html.includes('chemistry-finish-no-confirm.js'))errors.push('obsolete global confirm patch is still loaded');
 
-const proRuntime=fs.readFileSync(path.join(publicDir,'student-pro.js'),'utf8');
-if(!proRuntime.includes('dataset.studentPro')&&!proRuntime.includes('data-student-pro'))errors.push('PRO navigation button is not created by student runtime');
+const proNav=fs.readFileSync(path.join(publicDir,'pro-nav-visible.js'),'utf8');
+for(const marker of ['dataset.studentPro','dataset.nav',"go('pro')",'[data-student-pro]{display:flex!important}']){
+  if(!proNav.includes(marker))errors.push(`persistent PRO navigation marker missing: ${marker}`);
+}
 const aiTools=fs.readFileSync(path.join(publicDir,'ai-tools-hub.js'),'utf8');
 if(/\[data-student-pro\][^{]*\{[^}]*display\s*:\s*none/i.test(aiTools))errors.push('AI tools hide the PRO navigation item');
 
@@ -46,7 +48,7 @@ for(const id of ['chem-check-answer','chem-get-hint','chem-show-review']){
 
 const chemistryMocks=fs.readFileSync(path.join(root,'src','chemistry-mock-exams.js'),'utf8');
 if(!chemistryMocks.includes("code:'MOCK_HELP_DISABLED'"))errors.push('chemistry mock help is not blocked server-side');
-if(!chemistryMocks.includes("Во время пробника подсказки и разбор недоступны"))errors.push('chemistry mock help block has no student-safe message');
+if(!chemistryMocks.includes('Во время пробника подсказки и разбор недоступны'))errors.push('chemistry mock help block has no student-safe message');
 
 const answerExpert=fs.readFileSync(path.join(publicDir,'answer-expert.js'),'utf8');
 if(/\.provider\b|\.model\b|provider\s*:|model\s*:/i.test(answerExpert))errors.push('answer expert exposes provider/model metadata in student runtime');
