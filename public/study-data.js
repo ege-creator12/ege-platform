@@ -24,6 +24,7 @@
   const copy = value => typeof structuredClone === 'function'
     ? structuredClone(value)
     : JSON.parse(JSON.stringify(value));
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   function ttlFor(url) {
     const p = url.pathname;
@@ -58,17 +59,88 @@
     }
   }
 
-  async function read(path, options) {
-    const response = await fetch(path, {
-      credentials: 'same-origin',
-      headers: { 'content-type': 'application/json' },
-      ...options
-    });
-    let data;
-    try { data = await response.json(); }
-    catch { throw new Error('Сервер временно недоступен. Попробуйте ещё раз.'); }
-    if (!response.ok) throw new Error(data.error || `Ошибка ${response.status}`);
-    return data;
+  function appError(message, status = 0, transient = false) {
+    const error = new Error(message);
+    error.status = Number(status) || 0;
+    error.transient = Boolean(transient);
+    return error;
+  }
+
+  function canRetry(path, method) {
+    if (method === 'GET' || method === 'HEAD') return true;
+    try {
+      return method === 'POST' && new URL(path, origin).pathname === '/api/ai-pro/coach';
+    } catch {
+      return false;
+    }
+  }
+
+  function transientStatus(status) {
+    return status === 408 || status === 425 || status === 429 || status === 502 || status === 503 || status === 504;
+  }
+
+  async function read(path, options = {}) {
+    const method = String(options.method || 'GET').toUpperCase();
+    const retryable = canRetry(path, method);
+    const maxAttempts = retryable ? 3 : 1;
+    let lastError = null;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      let response;
+      try {
+        response = await fetch(path, {
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          ...options
+        });
+      } catch (error) {
+        lastError = appError('Не удалось соединиться с сервисом.', 0, true);
+        if (attempt + 1 < maxAttempts) {
+          await sleep(300 * Math.pow(2, attempt));
+          continue;
+        }
+        throw lastError;
+      }
+
+      let raw = '';
+      try { raw = await response.text(); }
+      catch {
+        lastError = appError('Ответ сервиса не удалось прочитать.', response.status, true);
+        if (attempt + 1 < maxAttempts) {
+          await sleep(300 * Math.pow(2, attempt));
+          continue;
+        }
+        throw lastError;
+      }
+
+      let data = {};
+      if (raw) {
+        try { data = JSON.parse(raw); }
+        catch {
+          const transient = response.status >= 500 || response.status === 0;
+          lastError = appError('Сервис возвращает временный ответ.', response.status, transient);
+          if (transient && attempt + 1 < maxAttempts) {
+            await sleep(300 * Math.pow(2, attempt));
+            continue;
+          }
+          throw lastError;
+        }
+      }
+
+      if (!response.ok) {
+        const transient = transientStatus(response.status);
+        lastError = appError(data.error || `Ошибка ${response.status}`, response.status, transient);
+        if (transient && attempt + 1 < maxAttempts) {
+          await sleep(300 * Math.pow(2, attempt));
+          continue;
+        }
+        throw lastError;
+      }
+
+      return data;
+    }
+
+    throw lastError || appError('Не удалось выполнить запрос.', 0, true);
   }
 
   async function request(path, options = {}) {
