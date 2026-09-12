@@ -21,6 +21,11 @@ for(const required of ['/student-dialogs.js','/student-runtime-hardening.js','/a
 }
 if(html.includes('chemistry-finish-no-confirm.js'))errors.push('obsolete global confirm patch is still loaded');
 
+const proRuntime=fs.readFileSync(path.join(publicDir,'student-pro.js'),'utf8');
+if(!proRuntime.includes('dataset.studentPro')&&!proRuntime.includes('data-student-pro'))errors.push('PRO navigation button is not created by student runtime');
+const aiTools=fs.readFileSync(path.join(publicDir,'ai-tools-hub.js'),'utf8');
+if(/\[data-student-pro\][^{]*\{[^}]*display\s*:\s*none/i.test(aiTools))errors.push('AI tools hide the PRO navigation item');
+
 const forbidden=/\b(?:Gemini|Cerebras|DeepSeek|OpenAI)\b|gpt-oss-\d+b/ig;
 for(const name of fs.readdirSync(publicDir).filter(x=>x.endsWith('.js'))){
   const text=fs.readFileSync(path.join(publicDir,name),'utf8');
@@ -56,4 +61,4 @@ if(errors.length){
   errors.forEach(x=>console.error('ERROR',x));
   process.exit(1);
 }
-console.log(`STUDENT SURFACE AUDIT PASSED: ${localRefs.length} local assets checked, provider/model branding hidden, PRO profile and mock integrity guards present on client and server.`);
+console.log(`STUDENT SURFACE AUDIT PASSED: ${localRefs.length} local assets checked, provider/model branding hidden, PRO navigation visible, PRO profile and mock integrity guards present on client and server.`);
