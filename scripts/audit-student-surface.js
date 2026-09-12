@@ -39,12 +39,21 @@ for(const id of ['chem-check-answer','chem-get-hint','chem-show-review']){
   if(!hardening.includes(id))errors.push(`chemistry mock integrity guard missing: ${id}`);
 }
 
+const chemistryMocks=fs.readFileSync(path.join(root,'src','chemistry-mock-exams.js'),'utf8');
+if(!chemistryMocks.includes("code:'MOCK_HELP_DISABLED'"))errors.push('chemistry mock help is not blocked server-side');
+if(!chemistryMocks.includes("Во время пробника подсказки и разбор недоступны"))errors.push('chemistry mock help block has no student-safe message');
+
 const answerExpert=fs.readFileSync(path.join(publicDir,'answer-expert.js'),'utf8');
 if(/\.provider\b|\.model\b|provider\s*:|model\s*:/i.test(answerExpert))errors.push('answer expert exposes provider/model metadata in student runtime');
+
+const gateway=fs.readFileSync(path.join(root,'server-performance.js'),'utf8');
+for(const marker of ['requireProForAi','sanitizeAiPayload','providerName','ОСНОВА AI']){
+  if(!gateway.includes(marker))errors.push(`student AI gateway protection missing: ${marker}`);
+}
 
 if(errors.length){
   console.error(`STUDENT SURFACE AUDIT FAILED (${errors.length})`);
   errors.forEach(x=>console.error('ERROR',x));
   process.exit(1);
 }
-console.log(`STUDENT SURFACE AUDIT PASSED: ${localRefs.length} local assets checked, provider/model branding hidden, PRO profile and mock integrity guards present.`);
+console.log(`STUDENT SURFACE AUDIT PASSED: ${localRefs.length} local assets checked, provider/model branding hidden, PRO profile and mock integrity guards present on client and server.`);
