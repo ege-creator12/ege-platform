@@ -6,6 +6,7 @@ const { row } = database;
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY || '';
 const CEREBRAS_MODEL = process.env.CEREBRAS_ANSWER_MODEL || 'gpt-oss-120b';
 const CEREBRAS_URL = 'https://api.cerebras.ai/v1/chat/completions';
+const recentChecks = new Map();
 
 const json = (res, status, data) => {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
@@ -28,11 +29,19 @@ async function userFor(req) {
   return row('SELECT u.id,u.name,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP', token);
 }
 
+function enforceRateLimit(userId) {
+  const now = Date.now();
+  const fresh = (recentChecks.get(userId) || []).filter(ts => now - ts < 60_000);
+  if (fresh.length >= 8) throw Object.assign(new Error('Слишком много AI-проверок подряд. Подожди минуту'), { status: 429 });
+  fresh.push(now);
+  recentChecks.set(userId, fresh);
+}
+
 function clean(value, max) { return String(value || '').trim().slice(0, max); }
 
 function parseResult(text) {
   const raw = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  try { return JSON.parse(raw); } catch { return { verdict: raw, score: null, maxScore: null, found: [], missing: [], mistakes: [], improvedAnswer: '' }; }
+  try { return JSON.parse(raw); } catch { return { verdict: raw, score: null, maxScore: null, found: [], missing: [], mistakes: [], improvedAnswer: '', confidence: 'low' }; }
 }
 
 async function evaluate(body) {
@@ -46,8 +55,23 @@ async function evaluate(body) {
   const maxScore = Math.max(1, Math.min(20, Number(body.maxScore) || 3));
   if (!question || !answer) throw Object.assign(new Error('Нужны условие задания и ответ ученика'), { status: 400 });
 
-  const system = `Ты — строгий эксперт ЕГЭ по ${subject === 'biology' ? 'биологии' : 'химии'}. Проверяй развёрнутый ответ только по данному условию и критериям. Не засчитывай смысловой элемент, если он фактически не написан учеником. Не придумывай официальные критерии, которых нет во входных данных. Если критерии/эталон неполные, прямо учитывай неопределённость. Верни ТОЛЬКО валидный JSON без markdown: {"score":number,"maxScore":number,"verdict":string,"found":[string],"missing":[string],"mistakes":[string],"improvedAnswer":string,"confidence":"high|medium|low"}. score должен быть целым от 0 до maxScore.`;
+  const system = `Ты — строгий эксперт ЕГЭ по ${subject === 'biology' ? 'биологии' : 'химии'}. Проверяй развёрнутый ответ только по данному условию и критериям. Не засчитывай смысловой элемент, если он фактически не написан учеником. Не придумывай официальные критерии, которых нет во входных данных. Если критерии или эталон неполные, снижай confidence и прямо учитывай неопределённость. score должен быть целым от 0 до maxScore. Кратко объясняй решение проверки на русском языке.`;
   const prompt = `УСЛОВИЕ:\n${question}\n\nМАКСИМУМ: ${maxScore}\n\nКРИТЕРИИ:\n${criteria || 'Не переданы'}\n\nЭТАЛОН/ПОЯСНЕНИЕ:\n${referenceAnswer || 'Не передан'}\n\nОТВЕТ УЧЕНИКА:\n${answer}`;
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['score', 'maxScore', 'verdict', 'found', 'missing', 'mistakes', 'improvedAnswer', 'confidence'],
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: maxScore },
+      maxScore: { type: 'integer', minimum: maxScore, maximum: maxScore },
+      verdict: { type: 'string' },
+      found: { type: 'array', items: { type: 'string' } },
+      missing: { type: 'array', items: { type: 'string' } },
+      mistakes: { type: 'array', items: { type: 'string' } },
+      improvedAnswer: { type: 'string' },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    },
+  };
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
@@ -56,7 +80,14 @@ async function evaluate(body) {
     response = await fetch(CEREBRAS_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${CEREBRAS_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: CEREBRAS_MODEL, messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }], temperature: 0.1, max_completion_tokens: 1800 }),
+      body: JSON.stringify({
+        model: CEREBRAS_MODEL,
+        messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+        temperature: 0.1,
+        reasoning_effort: 'medium',
+        max_completion_tokens: 1800,
+        response_format: { type: 'json_schema', json_schema: { name: 'ege_answer_check', strict: true, schema } },
+      }),
       signal: controller.signal,
     });
   } catch (error) {
@@ -81,8 +112,12 @@ async function handle(req, res, url) {
   if (req.method !== 'POST') { json(res, 405, { error: 'Метод не поддерживается' }); return true; }
   const user = await userFor(req);
   if (!user) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
-  try { json(res, 200, { ok: true, result: await evaluate(await readJson(req)) }); }
-  catch (error) { json(res, Number(error?.status || 500), { error: error?.message || 'Не удалось проверить ответ' }); }
+  try {
+    enforceRateLimit(Number(user.id));
+    json(res, 200, { ok: true, result: await evaluate(await readJson(req)) });
+  } catch (error) {
+    json(res, Number(error?.status || 500), { error: error?.message || 'Не удалось проверить ответ' });
+  }
   return true;
 }
 
