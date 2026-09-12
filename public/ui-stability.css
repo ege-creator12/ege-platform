@@ -1,0 +1,87 @@
+/* UI stability patch: remove layout/transform jitter while preserving visual hover feedback. */
+
+/* Sidebar navigation must never move when hovered/activated or when moderator entry is restored. */
+.sidebar nav button,
+.sidebar nav button:hover,
+.sidebar nav button:focus,
+.sidebar nav button:active,
+.sidebar nav button.active,
+.sidebar [data-moderator-nav]{
+  min-height:44px!important;
+  height:44px!important;
+  margin:3px 0!important;
+  padding:12px!important;
+  border:1px solid transparent!important;
+  transform:none!important;
+  translate:none!important;
+  scale:1!important;
+  animation:none!important;
+  transition:background-color .14s ease,color .14s ease,border-color .14s ease,box-shadow .14s ease!important;
+}
+.sidebar nav button.active,
+.sidebar [data-moderator-nav].active{border-color:rgba(84,242,153,.25)!important}
+.sidebar nav button::after,
+.sidebar nav button:hover::after{display:none!important;content:none!important;transform:none!important;animation:none!important;transition:none!important}
+.sidebar .nav-icon,
+.sidebar nav button span{transform:none!important;animation:none!important;transition:none!important}
+
+/* Remove transform-based "jump" effects from cards/widgets. Keep only color/shadow feedback. */
+.premium-motion,
+.premium-motion:hover,
+.premium-hero.premium-motion,
+.premium-hero.premium-motion:hover,
+.premium-quick-card,
+.premium-quick-card:hover,
+.premium-metric,
+.premium-metric:hover,
+.premium-week,
+.premium-week:hover,
+.premium-calendar,
+.premium-calendar:hover,
+.premium-quote,
+.premium-quote:hover,
+.premium-continue,
+.premium-continue:hover,
+.quick-continue,
+.quick-continue:hover,
+.view-switch,
+.view-switch:hover,
+.line-card,
+.line-card:hover,
+.mock-variant-card,
+.mock-variant-card:hover,
+.topics>.card,
+.topics>.card:hover,
+.grid3>.card,
+.grid3>.card:hover,
+.card:hover,
+.section-card:hover,
+.btn:hover,
+.icon-btn:hover,
+.search-shortcut:hover{
+  transform:none!important;
+  translate:none!important;
+  scale:1!important;
+}
+.premium-motion{will-change:auto!important;transform-style:flat!important}
+.premium-motion::before{transition:opacity .14s ease!important}
+.premium-motion::after{display:none!important;content:none!important}
+.premium-motion:hover .premium-quick-icon,
+.premium-motion:hover .premium-metric-icon,
+.premium-motion:hover .btn,
+.premium-hero.is-pointer-active .premium-hero-copy,
+.premium-hero.is-pointer-active .premium-hero-note{
+  transform:none!important;
+}
+
+/* Prevent page content from visibly sliding in after every route change. */
+main>header,.topics,.lesson,.admin-console,.course-page{animation:none!important}
+
+/* Avoid size changes caused by border/transition during state switches. */
+.card,.section-card,.topic,.premium-subject-card,.premium-leaderboard-row{
+  box-sizing:border-box!important;
+}
+
+@media(max-width:900px){
+  .sidebar nav button,.sidebar [data-moderator-nav]{height:auto!important;min-height:44px!important}
+}
