@@ -5,7 +5,12 @@ const createStudyData = require('../public/study-data');
 const origin = 'https://example.test';
 const biology = '/api/subjects/biology/exam-lines';
 const chemistry = '/api/subjects/chemistry/exam-lines';
-const response = data => ({ ok: true, json: async () => data });
+const response = (data, status = 200) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  text: async () => JSON.stringify(data),
+  json: async () => data,
+});
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve=done; }); return {promise,resolve}; };
 
 test('concurrent widgets share one read per subject and receive independent data', async () => {
@@ -55,7 +60,7 @@ test('account changes and writes cannot repopulate the cache with an older pendi
 test('errors are retried and a failed biology request does not block chemistry', async () => {
   const wait=deferred();let biologyCalls=0;
   const data=createStudyData({origin,fetch:async path=>{
-    if(path===biology&&++biologyCalls===1){await wait.promise;return {ok:false,json:async()=>({error:'offline'})};}
+    if(path===biology&&++biologyCalls===1){await wait.promise;return response({error:'offline'},503);}
     return response({subject:path===biology?'biology':'chemistry'});
   }});
   const bio=data.request(biology);const rejected=assert.rejects(bio,/offline/);
