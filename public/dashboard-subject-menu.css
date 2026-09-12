@@ -17,4 +17,83 @@
 .premium-subject-card--pro:before{background:radial-gradient(circle at 80% 50%,rgba(117,255,178,.18),transparent 28%)}
 .premium-subject-card--pro .premium-subject-kicker{color:#b6ffcf}
 .premium-subject-card--pro .premium-subject-arrow{background:linear-gradient(135deg,rgba(88,239,151,.2),rgba(58,202,119,.13));border-color:rgba(124,255,185,.24)}
-@media(max-width:760px){.premium-subject-card{grid-template-columns:1fr;grid-template-areas:'kicker' 'title' 'text' 'arrow';padding:21px;min-height:0}.premium-subject-card--biology{padding:25px;min-height:185px}.premium-subject-card--biology strong{font-size:34px}.premium-subject-card strong{font-size:26px}.premium-subject-arrow{justify-self:start;margin-top:14px}}
+
+/* Dashboard cleanup: biology and chemistry already have primary actions in the hero. */
+[data-page="dashboard"] .premium-subject-card--biology,
+[data-page="dashboard"] .premium-subject-card--chemistry{display:none!important}
+
+/* Leaderboard — slightly stronger visual hierarchy without turning it into a neon block. */
+[data-page="dashboard"] .premium-leaderboard{
+  position:relative;
+  overflow:hidden;
+  padding:22px 21px 20px;
+  border-color:rgba(104,247,167,.3)!important;
+  background:
+    radial-gradient(circle at 88% 0%,rgba(94,245,159,.16),transparent 34%),
+    linear-gradient(145deg,rgba(8,29,18,.98),rgba(4,16,11,.95))!important;
+  box-shadow:0 22px 58px rgba(0,0,0,.28),0 0 0 1px rgba(75,222,137,.04),0 0 34px rgba(42,209,118,.08)!important;
+}
+[data-page="dashboard"] .premium-leaderboard:before{
+  content:"";
+  position:absolute;
+  left:18px;right:18px;top:0;
+  height:2px;
+  border-radius:0 0 999px 999px;
+  background:linear-gradient(90deg,transparent,rgba(105,247,169,.75),transparent);
+  box-shadow:0 0 16px rgba(79,232,143,.35);
+  pointer-events:none;
+}
+[data-page="dashboard"] .premium-leaderboard-head{position:relative;z-index:1}
+[data-page="dashboard"] .premium-leaderboard-head h2{
+  font-size:19px;
+  letter-spacing:-.025em;
+  color:#f3fff7;
+  text-shadow:0 0 20px rgba(82,239,151,.12);
+}
+[data-page="dashboard"] .premium-leaderboard-head h2:before{
+  content:"♛";
+  display:inline-grid;
+  place-items:center;
+  width:28px;height:28px;
+  margin-right:8px;
+  border-radius:9px;
+  color:#8bffc0;
+  background:rgba(76,224,137,.11);
+  border:1px solid rgba(106,249,169,.17);
+  font-size:14px;
+  vertical-align:-3px;
+}
+[data-page="dashboard"] .premium-leaderboard-head .pill{
+  color:#eafff2!important;
+  background:rgba(77,226,140,.14)!important;
+  border-color:rgba(111,255,176,.2)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+}
+[data-page="dashboard"] .premium-leaderboard-caption{color:#b9cec0;margin:9px 0 15px}
+[data-page="dashboard"] .premium-leaderboard-list{gap:7px}
+[data-page="dashboard"] .premium-leaderboard-row{
+  padding:10px 9px;
+  border-color:rgba(255,255,255,.025);
+  background:rgba(255,255,255,.015);
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+[data-page="dashboard"] .premium-leaderboard-row:hover{
+  transform:translateX(2px);
+  background:rgba(80,229,143,.055);
+  border-color:rgba(104,247,167,.12);
+}
+[data-page="dashboard"] .premium-leaderboard-row:nth-child(1){
+  background:linear-gradient(90deg,rgba(255,205,92,.075),rgba(77,224,137,.035));
+  border-color:rgba(255,211,112,.11);
+}
+[data-page="dashboard"] .premium-leaderboard-row:nth-child(2){background:linear-gradient(90deg,rgba(205,224,239,.045),rgba(77,224,137,.02))}
+[data-page="dashboard"] .premium-leaderboard-row:nth-child(3){background:linear-gradient(90deg,rgba(226,163,114,.05),rgba(77,224,137,.018))}
+[data-page="dashboard"] .premium-leaderboard-row.is-you{
+  background:linear-gradient(90deg,rgba(75,229,139,.14),rgba(51,174,106,.07))!important;
+  border-color:rgba(111,255,176,.28)!important;
+  box-shadow:inset 0 0 22px rgba(64,220,128,.035);
+}
+[data-page="dashboard"] .premium-leaderboard-name{font-size:13.5px}
+[data-page="dashboard"] .premium-leaderboard-xp{color:#effff5;font-size:13.5px}
+
+@media(max-width:760px){.premium-subject-card{grid-template-columns:1fr;grid-template-areas:'kicker' 'title' 'text' 'arrow';padding:21px;min-height:0}.premium-subject-card--biology{padding:25px;min-height:185px}.premium-subject-card--biology strong{font-size:34px}.premium-subject-card strong{font-size:26px}.premium-subject-arrow{justify-self:start;margin-top:14px}[data-page="dashboard"] .premium-leaderboard{padding:20px 18px}}
