@@ -52,11 +52,9 @@ async function canUse(user) {
 }
 
 function dayKey() { return new Date().toISOString().slice(0, 10); }
-
 async function reserveQuota(userId) {
   const now = Date.now();
-  const minute = minuteUsage.get(userId) || [];
-  const recent = minute.filter(ts => now - ts < 60000);
+  const recent = (minuteUsage.get(userId) || []).filter(ts => now - ts < 60000);
   if (recent.length >= MINUTE_LIMIT) throw Object.assign(new Error('Слишком много запросов подряд. Подожди немного.'), { status: 429 });
   const day = dayKey();
   let count = 0;
@@ -110,12 +108,13 @@ async function sourceContext(type, id) {
 }
 
 const actionInstruction = {
-  audit: 'Проверь материал на фактические ошибки, противоречия, двусмысленности, пропуски важных для ЕГЭ пунктов и плохие формулировки. Не переписывай всё без необходимости.',
-  improve: 'Улучши текст: сделай его точным, понятным школьнику, компактным и пригодным для подготовки к ЕГЭ. Сохрани смысл и терминологическую корректность.',
-  ege: 'Оцени пригодность материала для ЕГЭ: что обязательно знать, чего не хватает, что лишнее или может запутать, какие формулировки стоит исправить.',
+  chat: 'Отвечай как рабочий помощник модератора. Помогай с задачами по платформе: контентом, структурой курса, формулировками, приоритизацией, разбором найденных ошибок, идеями интерфейса, организацией проверки материалов и рабочими решениями. На обычный вопрос отвечай обычным человеческим ответом без искусственного шаблона.',
+  audit: 'Проверь материал на фактические ошибки, противоречия, двусмысленности, пропуски важных пунктов и плохие формулировки. Коротко перечисли проблемы и предложи исправление.',
+  improve: 'Улучши текст: сделай его точным, понятным школьнику, компактным и естественным. Дай готовую улучшенную версию без лишней воды.',
+  ege: 'Оцени пригодность материала для ЕГЭ: что обязательно знать, чего не хватает, что лишнее или может запутать. Если нужны свежие требования ФИПИ, прямо отметь необходимость ручной сверки.',
   question: 'Проверь задание как методист: однозначность условия, корректность вариантов, правильность ответа, объяснение, сложность и соответствие школьной программе/ЕГЭ.',
-  explanation: 'Составь качественное объяснение ответа: коротко, по шагам, без воды, с причиной каждого ключевого вывода и типичной ошибкой ученика.',
-  variants: 'Предложи 3 новых варианта задания по той же проверяемой идее. Не копируй исходный текст; ответы должны быть однозначными. Отдельно укажи правильные ответы и краткие объяснения.',
+  explanation: 'Составь качественное объяснение ответа: понятно, по шагам, без воды, с причиной ключевого вывода и типичной ошибкой ученика.',
+  variants: 'Предложи 3 новых варианта задания по той же проверяемой идее. Не копируй исходный текст. Для каждого укажи однозначный правильный ответ и короткое объяснение.',
 };
 
 function historyContext(payload) {
@@ -129,10 +128,14 @@ function historyContext(payload) {
 }
 
 function buildPrompt(payload, source) {
-  const action = actionInstruction[payload.action] || actionInstruction.audit;
+  const mode = actionInstruction[payload.action] ? payload.action : 'chat';
+  const instruction = actionInstruction[mode];
   const message = clip(payload.message, 12000).trim();
   const history = historyContext(payload);
-  return `Ты — AI-помощник модератора образовательной платформы ОСНОВА для подготовки к ЕГЭ по биологии и химии.\n\nЗадача: ${action}\n\nПравила:\n- Работай только с биологией, химией и качеством учебного контента ЕГЭ.\n- Не выдумывай требования ФИПИ и не утверждай, что проверял свежие документы в интернете. Если нужна сверка с актуальной спецификацией — прямо напиши это.\n- Не меняй данные сайта сам: только анализируй и предлагай готовый вариант модератору.\n- Если исходных данных недостаточно, скажи, чего не хватает.\n- Отмечай потенциально спорные места отдельно.\n- Учитывай предыдущий диалог только как рабочий контекст; текущий запрос имеет приоритет.\n- Пиши по-русски, конкретно, без лишней болтовни.\n\nФормат ответа:\n1. Вердикт\n2. Что исправить\n3. Готовая улучшенная версия (если уместно)\n4. Что проверить вручную\n\n${history ? `Предыдущий диалог:\n${history}\n\n` : ''}${source ? `Материал с сайта:\n${source}\n\n` : ''}${message ? `Комментарий модератора:\n${message}` : ''}`;
+  const structureRule = mode === 'chat'
+    ? 'Отвечай естественно и по делу. Не используй обязательные разделы вроде «Вердикт / Что исправить», если они не нужны.'
+    : 'Структурируй ответ только настолько, насколько это помогает быстро применить результат.';
+  return `Ты — рабочий AI-помощник модератора образовательной платформы ОСНОВА для подготовки к ЕГЭ.\n\nТекущий режим: ${instruction}\n\nПравила:\n- Ты помогаешь модератору с рабочими задачами платформы, а не только с биологией и химией.\n- Можно обсуждать контент, структуру курса, задания, оформление, пользовательские жалобы, найденные ошибки, план работы и идеи улучшения интерфейса.\n- У тебя НЕТ доступа к пользователям, их личным данным, ролям, настройкам сайта, базе данных, GitHub, Render, ключам API и серверной инфраструктуре. Никогда не утверждай обратное.\n- Не выполняй и не обещай системные изменения сам: предлагай решение, текст, чек-лист или понятный следующий шаг.\n- Для биологии и химии соблюдай фактическую точность и школьную программу.\n- Не выдумывай свежие требования ФИПИ и не утверждай, что проверял интернет. Если актуальность важна — попроси сверить официальный документ.\n- Учитывай предыдущий диалог как контекст, но текущий запрос важнее.\n- Пиши по-русски, конкретно, нормальным рабочим языком.\n- ${structureRule}\n\n${history ? `Предыдущий диалог:\n${history}\n\n` : ''}${source ? `Прикреплённый материал с сайта:\n${source}\n\n` : ''}${message ? `Сообщение модератора:\n${message}` : ''}`;
 }
 
 async function askGemini(prompt) {
@@ -145,7 +148,7 @@ async function askGemini(prompt) {
         headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2600, temperature: 0.25 },
+          generationConfig: { maxOutputTokens: 2600, temperature: modeTemperature(prompt) },
         }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
@@ -158,12 +161,14 @@ async function askGemini(prompt) {
       const answer = (data?.candidates || []).flatMap(c => c?.content?.parts || []).map(p => p?.text || '').join('\n').trim();
       if (answer) return { answer, model };
       lastError = Object.assign(new Error('AI вернул пустой ответ'), { status: 502 });
-    } catch (error) {
-      lastError = error;
-    }
+    } catch (error) { lastError = error; }
   }
   if (lastError?.name === 'TimeoutError' || lastError?.name === 'AbortError') throw Object.assign(new Error('AI слишком долго отвечает. Попробуй ещё раз.'), { status: 504 });
   throw Object.assign(new Error('AI-помощник временно недоступен'), { status: Number(lastError?.status || 503) });
+}
+
+function modeTemperature(prompt) {
+  return prompt.includes('Текущий режим: Отвечай как рабочий помощник') ? 0.45 : 0.25;
 }
 
 async function handle(req, res, url) {
@@ -174,7 +179,7 @@ async function handle(req, res, url) {
   if (req.method !== 'POST') { json(res, 405, { error: 'Метод не поддерживается' }); return true; }
   const payload = await readJson(req);
   const source = await sourceContext(String(payload.targetType || ''), payload.targetId);
-  if (!source && !String(payload.message || '').trim()) { json(res, 400, { error: 'Добавь материал или напиши, что нужно проверить' }); return true; }
+  if (!source && !String(payload.message || '').trim()) { json(res, 400, { error: 'Напиши сообщение или прикрепи материал' }); return true; }
   const remaining = await reserveQuota(user.id);
   const result = await askGemini(buildPrompt(payload, source));
   json(res, 200, { ...result, remaining, sourceAttached: Boolean(source) });
