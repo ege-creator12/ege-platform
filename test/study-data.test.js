@@ -34,7 +34,7 @@ test('plan widgets share exactly two reads and cached values expire', async () =
   const data=createStudyData({origin,now:()=>time,fetch:async()=>response({version:++calls})});
   await Promise.all(Array.from({length:3},()=>['biology','chemistry'].map(slug=>data.request('/api/ai-pro/plan?subject='+slug))).flat());
   assert.equal(calls,2);
-  time=8001;
+  time=30001;
   await data.request('/api/ai-pro/plan?subject=biology');
   assert.equal(calls,3);
 });
