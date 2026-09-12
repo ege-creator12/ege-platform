@@ -14,8 +14,11 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: npm run check
+      - run: node --check public/student-runtime-hardening.js
       - run: npm test
       - run: npm run audit:biology-theory
       - run: npm run audit:biology-questions
       - run: npm run audit:biology-exam-lines
       - run: npm run audit:biology-mocks
+      - run: npm run audit:chemistry-quality
+      - run: node scripts/audit-student-surface.js
