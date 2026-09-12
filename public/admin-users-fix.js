@@ -9,7 +9,14 @@
     html.osnova-moderator [data-admin-tab="site"],
     html.osnova-moderator [data-open-tab="users"],
     html.osnova-moderator [data-open-tab="site"],
-    html.osnova-moderator [data-delete-block]{display:none!important}
+    html.osnova-moderator [data-delete-block],
+    html.osnova-moderator [data-delete-user]{display:none!important}
+    .admin-user-actions{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+    .admin-user-delete{color:#ff9b9b!important;opacity:.84}
+    .admin-user-delete:hover{color:#ffc0c0!important;opacity:1}
+    .admin-danger-zone{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,120,120,.16);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .admin-danger-zone strong{display:block;color:#ffc0c0;margin-bottom:4px}.admin-danger-zone small{display:block;color:var(--muted);max-width:520px;line-height:1.45}
+    .admin-delete-account{background:rgba(198,66,66,.13)!important;color:#ffc0c0!important;border:1px solid rgba(255,128,128,.24)!important}
   `;
   document.head.appendChild(style);
 
@@ -46,7 +53,7 @@
       }
       const chip=document.querySelector('.user-chip small');
       if(chip&&chip.textContent!=='Модератор')chip.textContent='Модератор';
-      document.querySelectorAll('[data-admin-tab="users"],[data-admin-tab="site"],[data-open-tab="users"],[data-open-tab="site"],[data-delete-block]').forEach(x=>{if(x.style.display!=='none')x.style.display='none'});
+      document.querySelectorAll('[data-admin-tab="users"],[data-admin-tab="site"],[data-open-tab="users"],[data-open-tab="site"],[data-delete-block],[data-delete-user]').forEach(x=>{if(x.style.display!=='none')x.style.display='none'});
       const eyebrow=document.querySelector('.admin-console header .eyebrow');
       if(eyebrow&&eyebrow.textContent!=='Модератор')eyebrow.textContent='Модератор';
     }finally{enhancing=false}
@@ -68,14 +75,36 @@
     document.querySelectorAll('[data-moderator-open]').forEach(x=>x.onclick=()=>{adminTab=x.dataset.moderatorOpen;admin()});
   }
 
+  window.deleteUserAccount=async function(u,trigger){
+    if(!u)return;
+    const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
+    if(Number(u.id)===currentId)return notify('Текущий аккаунт администратора удалить нельзя');
+    const role=u.role==='admin'?'администратора':u.role==='moderator'?'модератора':'ученика';
+    const ok=confirm(`Удалить аккаунт ${role} «${u.name}» (${u.email})?\n\nАккаунт, сессии, прогресс, попытки, пробники и связанные данные будут удалены из базы. Отменить это действие нельзя.`);
+    if(!ok)return;
+    if(trigger){trigger.disabled=true;trigger.textContent='Удаляем…'}
+    try{
+      const result=await adminApi(`/users/${u.id}`,{method:'DELETE'});
+      adminCache.overview=null;
+      notify(`Аккаунт ${result?.deleted?.name||u.name} удалён`);
+      adminTab='users';
+      await adminUsers();
+    }catch(e){
+      notify(e.message||'Не удалось удалить аккаунт');
+      if(trigger){trigger.disabled=false;trigger.textContent='Удалить'}
+    }
+  };
+
   window.adminUsers=async function(){
     try{
       const [d,mods]=await Promise.all([adminApi('/overview'),api('/moderator-admin/list')]);
       const moderatorIds=new Set((mods.userIds||[]).map(Number));
       const users=(d.users||[]).map(u=>({...u,role:u.role==='admin'?'admin':moderatorIds.has(Number(u.id))?'moderator':'student'}));
       const roleLabel=r=>r==='admin'?'Администратор':r==='moderator'?'Модератор':'Ученик';
-      adminFrame(`<div class="admin-note">Модератор может редактировать теорию, уроки и задания, но не имеет доступа к пользователям, настройкам сайта, удалению контента и технической части.</div><div class="card admin-table-wrap"><table class="admin-table"><thead><tr><th>Пользователь</th><th>Роль</th><th>XP</th><th>Решено</th><th></th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${escUser(u.name)}</b><small>${escUser(u.email)}</small></td><td>${roleLabel(u.role)}</td><td>${Number(u.xp)||0}</td><td>${u.solved??0}</td><td><button class="link" data-edit-user="${u.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>`,'Пользователи');
+      const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
+      adminFrame(`<div class="admin-note">Только администратор может управлять аккаунтами. Удаление окончательное: пользователь и связанные с ним данные удаляются из базы.</div><div class="card admin-table-wrap"><table class="admin-table"><thead><tr><th>Пользователь</th><th>Роль</th><th>XP</th><th>Решено</th><th></th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${escUser(u.name)}</b><small>${escUser(u.email)}</small></td><td>${roleLabel(u.role)}</td><td>${Number(u.xp)||0}</td><td>${u.solved??0}</td><td><div class="admin-user-actions"><button class="link" data-edit-user="${u.id}">Изменить</button>${Number(u.id)!==currentId?`<button class="link admin-user-delete" data-delete-user="${u.id}">Удалить</button>`:'<small>Текущий аккаунт</small>'}</div></td></tr>`).join('')}</tbody></table></div>`,'Пользователи');
       document.querySelectorAll('[data-edit-user]').forEach(x=>x.onclick=()=>window.editUser(users.find(u=>Number(u.id)===Number(x.dataset.editUser))));
+      document.querySelectorAll('[data-delete-user]').forEach(x=>x.onclick=()=>window.deleteUserAccount(users.find(u=>Number(u.id)===Number(x.dataset.deleteUser)),x));
     }catch(e){
       adminFrame(`<div class="card"><h2>Не удалось загрузить пользователей</h2><p class="subtitle">${escUser(e.message)}</p><button class="btn" id="users-retry">Повторить</button></div>`,'Пользователи');
       document.querySelector('#users-retry').onclick=()=>adminUsers();
@@ -83,8 +112,11 @@
   };
 
   window.editUser=function(u){
-    adminFrame(`<button class="back" id="admin-back">← Пользователи</button><form class="card admin-editor" id="user-edit"><h2>${escUser(u.name)}</h2><p class="subtitle">${escUser(u.email)}</p><div class="field"><label>ИМЯ</label><input name="name" value="${escUser(u.name)}"></div><div class="field"><label>XP</label><input name="xp" type="number" min="0" value="${Number(u.xp)||0}"></div><div class="field"><label>РОЛЬ</label><select name="role"><option value="student" ${u.role==='student'?'selected':''}>Ученик</option><option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option><option value="admin" ${u.role==='admin'?'selected':''}>Администратор</option></select></div><div class="admin-note">Модератор: контент + задания + проверка сайта. Без пользователей, оформления, удаления и системных настроек.</div><button class="btn">Сохранить</button></form>`,'Пользователь');
+    const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
+    const danger=Number(u.id)!==currentId?`<div class="admin-danger-zone"><div><strong>Удалить аккаунт</strong><small>Удалит пользователя, активные сессии, прогресс, попытки, данные пробников и другие связанные записи из базы.</small></div><button type="button" class="btn admin-delete-account" id="admin-delete-account">Удалить аккаунт</button></div>`:'';
+    adminFrame(`<button class="back" id="admin-back">← Пользователи</button><form class="card admin-editor" id="user-edit"><h2>${escUser(u.name)}</h2><p class="subtitle">${escUser(u.email)}</p><div class="field"><label>ИМЯ</label><input name="name" value="${escUser(u.name)}"></div><div class="field"><label>XP</label><input name="xp" type="number" min="0" value="${Number(u.xp)||0}"></div><div class="field"><label>РОЛЬ</label><select name="role"><option value="student" ${u.role==='student'?'selected':''}>Ученик</option><option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option><option value="admin" ${u.role==='admin'?'selected':''}>Администратор</option></select></div><div class="admin-note">Модератор: контент + задания + проверка сайта. Без пользователей, оформления, удаления и системных настроек.</div><button class="btn">Сохранить</button>${danger}</form>`,'Пользователь');
     document.querySelector('#admin-back').onclick=()=>{adminTab='users';admin()};
+    const deleteButton=document.querySelector('#admin-delete-account');if(deleteButton)deleteButton.onclick=()=>window.deleteUserAccount(u,deleteButton);
     document.querySelector('#user-edit').onsubmit=async e=>{
       e.preventDefault();
       const b=Object.fromEntries(new FormData(e.target));
