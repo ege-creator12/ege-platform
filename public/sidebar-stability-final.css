@@ -3,6 +3,12 @@
   display:block!important;
   overflow-anchor:none!important;
 }
+.sidebar nav[data-stable-sidebar] button,
+.sidebar nav[data-stable-sidebar] button:hover,
+.sidebar nav[data-stable-sidebar] button:focus,
+.sidebar nav[data-stable-sidebar] button:active,
+.sidebar nav[data-stable-sidebar] button.active,
+.sidebar nav[data-stable-sidebar] button.active:not(:hover),
 .sidebar nav button,
 .sidebar nav button:hover,
 .sidebar nav button:focus,
@@ -11,7 +17,8 @@
 .sidebar [data-moderator-nav],
 .sidebar [data-moderator-nav]:hover,
 .sidebar [data-moderator-nav]:active,
-.sidebar [data-moderator-nav].active{
+.sidebar [data-moderator-nav].active,
+.sidebar [data-moderator-nav].active:not(:hover){
   transform:none!important;
   translate:none!important;
   scale:1!important;
@@ -19,6 +26,29 @@
   will-change:auto!important;
   transition:background-color .14s ease,color .14s ease,border-color .14s ease,box-shadow .14s ease!important;
 }
+.sidebar nav[data-stable-sidebar] button *,
+.sidebar nav[data-stable-sidebar] button:hover *,
+.sidebar nav[data-stable-sidebar] button:active *,
+.sidebar nav[data-stable-sidebar] button.active *,
+.sidebar nav button .nav-icon,
+.sidebar nav button:hover .nav-icon,
+.sidebar nav button:active .nav-icon,
+.sidebar nav button span,
+.sidebar nav button:hover span,
+.sidebar nav button:active span,
+.sidebar nav button:hover span:last-child,
+.sidebar [data-moderator-nav] .nav-icon,
+.sidebar [data-moderator-nav]:hover .nav-icon,
+.sidebar [data-moderator-nav]:hover span:last-child{
+  transform:none!important;
+  translate:none!important;
+  scale:1!important;
+  animation:none!important;
+}
+.sidebar nav[data-stable-sidebar] button::before,
+.sidebar nav[data-stable-sidebar] button::after,
+.sidebar nav[data-stable-sidebar] button:hover::before,
+.sidebar nav[data-stable-sidebar] button:hover::after,
 .sidebar nav button::before,
 .sidebar nav button::after,
 .sidebar nav button:hover::before,
@@ -30,19 +60,6 @@
   transition:none!important;
   content:none!important;
   display:none!important;
-}
-.sidebar nav button .nav-icon,
-.sidebar nav button:hover .nav-icon,
-.sidebar nav button:active .nav-icon,
-.sidebar nav button span,
-.sidebar nav button:hover span,
-.sidebar nav button:active span,
-.sidebar [data-moderator-nav] .nav-icon,
-.sidebar [data-moderator-nav]:hover .nav-icon{
-  transform:none!important;
-  translate:none!important;
-  scale:1!important;
-  animation:none!important;
 }
 .sidebar nav button{
   width:100%!important;
