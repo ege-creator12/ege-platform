@@ -10,6 +10,7 @@ const moderator = require('./server-moderator');
 const moderatorAi = require('./server-moderator-ai');
 const problemReports = require('./server-problem-reports');
 const adminUserDelete = require('./server-admin-user-delete');
+const answerExpert = require('./server-answer-expert');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -167,6 +168,7 @@ async function start() {
     try {
       if (await problemReports.handle(req, res, url)) return;
       if (await moderatorAi.handle(req, res, url)) return;
+      if (await answerExpert.handle(req, res, url)) return;
       if (await adminUserDelete.handle(req, res, url)) return;
       if (await moderator.handle(req, res, url)) return;
       if (await handleFastApi(req, res, url.pathname)) return;
