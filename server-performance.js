@@ -155,6 +155,7 @@ async function start() {
   await moderator.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
+  await answerExpert.ensureSchema();
   const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
     cwd: __dirname,
     env: { ...process.env, PORT: String(UPSTREAM_PORT) },
