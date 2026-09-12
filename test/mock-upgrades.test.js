@@ -6,8 +6,8 @@ const { join } = require('node:path');
 const hardBank=require('../content/biology/mock-hard-questions.json');
 const { CONFIG }=require('../src/mock-exams');
 
-test('biology mock upgrade exposes three variants with untimed default',()=>{
-  assert.equal(CONFIG.variantCount,3);
+test('biology mock upgrade exposes twelve variants with untimed default',()=>{
+  assert.equal(CONFIG.variantCount,12);
   assert.equal(CONFIG.defaultMode,'untimed');
 });
 
@@ -32,7 +32,7 @@ test('hard mock supplement is original, difficult and has teaching help',()=>{
   for(const line of [2,3,4,21,22,23,24,25,26,27,28])assert.ok(hardBank.questions.some(q=>q.line===line),`missing hard line ${line}`);
 });
 
-test('each reviewed variant has all 28 lines, 57 maximum points and seven manual answers',()=>{
+test('each reviewed source variant has all 28 lines, 57 maximum points and seven manual answers',()=>{
   const {variantQuestions}=require('../content/biology/mock-variants');
   for(let v=1;v<=3;v++){
     const questions=variantQuestions(v);
