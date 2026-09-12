@@ -54,6 +54,8 @@
         const isAdmin=String(row.children?.[1]?.textContent||'').includes('Администратор');
         if(isAdmin){
           td.innerHTML='<div><span class="admin-sub-badge">✦ PRO · админ</span></div>';
+        }else if(sub?.active&&sub?.permanent){
+          td.innerHTML=`<div>${label(sub)}</div>`;
         }else{
           const active=Boolean(sub?.active);
           td.innerHTML=`<div>${label(sub)}<button type="button" class="link" data-sub-quick="${id}">${active?'+30 дней':'Выдать 30 дней'}</button></div>`;
@@ -62,7 +64,7 @@
       });
       table.querySelectorAll('[data-sub-quick]').forEach(btn=>btn.onclick=async()=>{
         btn.disabled=true;const old=btn.textContent;btn.textContent='…';
-        try{await setSub(btn.dataset.subQuick,{enabled:true,days:30});notify('PRO выдан на 30 дней');await window.adminUsers()}
+        try{await setSub(btn.dataset.subQuick,{enabled:true,days:30});notify(old.includes('+')?'PRO продлён на 30 дней':'PRO выдан на 30 дней');await window.adminUsers()}
         catch(e){notify(e.message);btn.disabled=false;btn.textContent=old}
       });
     };
@@ -79,6 +81,10 @@
       const box=document.createElement('section');box.className='admin-subscription-box';
       if(u.role==='admin'){
         box.innerHTML='<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Администратор имеет полный PRO-доступ автоматически.</small></div><span class="admin-sub-badge">✦ PRO · навсегда</span></div>';
+      }else if(sub?.active&&sub?.permanent){
+        box.innerHTML=`<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Подписка выдана навсегда. Продлевать её не нужно.</small></div>${label(sub)}</div>
+          <div class="admin-subscription-actions"><button type="button" class="btn ghost admin-subscription-off" data-sub-off>Отключить PRO</button></div>
+          <div class="admin-subscription-date"><div class="field"><label>ИЗМЕНИТЬ НА ПОДПИСКУ ДО ДАТЫ</label><input type="date" data-sub-date></div><button type="button" class="btn ghost" data-sub-until>Изменить срок</button></div>`;
       }else{
         box.innerHTML=`<div class="admin-subscription-head"><div><h3>ОСНОВА PRO</h3><small>Выдаётся вручную. Никакой оплаты и привязки карты нет.</small></div>${label(sub)}</div>
           <div class="admin-subscription-actions">
@@ -98,7 +104,7 @@
       box.querySelectorAll('[data-sub-days]').forEach(btn=>btn.onclick=async()=>{busy();try{await setSub(u.id,{enabled:true,days:Number(btn.dataset.subDays)});await done(`PRO продлён на ${btn.dataset.subDays} дней`)}catch(e){notify(e.message);window.editUser(u)}});
       box.querySelector('[data-sub-permanent]')?.addEventListener('click',async()=>{busy();try{await setSub(u.id,{enabled:true,permanent:true});await done('PRO выдан навсегда')}catch(e){notify(e.message);window.editUser(u)}});
       box.querySelector('[data-sub-off]')?.addEventListener('click',async()=>{busy();try{await setSub(u.id,{enabled:false});await done('PRO отключён')}catch(e){notify(e.message);window.editUser(u)}});
-      box.querySelector('[data-sub-until]')?.addEventListener('click',async()=>{const input=box.querySelector('[data-sub-date]');if(!input?.value)return notify('Выбери дату окончания');busy();try{const end=new Date(`${input.value}T23:59:59`);await setSub(u.id,{enabled:true,expiresAt:end.toISOString()});await done('Срок PRO установлен')}catch(e){notify(e.message);window.editUser(u)}});
+      box.querySelector('[data-sub-until]')?.addEventListener('click',async()=>{const input=box.querySelector('[data-sub-date]');if(!input?.value)return notify('Выбери дату окончания');busy();try{const end=new Date(`${input.value}T23:59:59`);await setSub(u.id,{enabled:true,expiresAt:end.toISOString()});await done(sub?.permanent?'Срок PRO изменён':'Срок PRO установлен')}catch(e){notify(e.message);window.editUser(u)}});
     };
   }
 })();
