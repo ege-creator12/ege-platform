@@ -39,6 +39,33 @@
  }
  function quickCard(kind,title,text,hash){return `<button class="premium-quick-card" data-premium-nav="${esc(hash)}"><span class="premium-quick-icon">${icon(kind)}</span><span><b>${esc(title)}</b><small>${esc(text)}</small></span><span class="premium-quick-arrow">→</span></button>`;}
  function metric(kind,label,value,sub=''){return `<article class="premium-metric"><div class="premium-metric-top"><span class="premium-metric-icon">${icon(kind)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`;}
+ function leaderboardHtml(){
+  return `<section class="premium-leaderboard" aria-labelledby="leaderboard-title">
+    <div class="premium-leaderboard-head"><h2 id="leaderboard-title">Таблица лидеров</h2><span class="pill">Топ-5</span></div>
+    <p class="premium-leaderboard-caption">По общему количеству XP за задания</p>
+    <div data-leaderboard-content aria-live="polite" aria-busy="true"><p class="premium-leaderboard-message">Загружаем лидеров…</p></div>
+  </section>`;
+ }
+ async function loadLeaderboard(root){
+  const host=$('[data-leaderboard-content]',root);
+  if(!host||host.dataset.loading==='true')return;
+  host.dataset.loading='true';host.setAttribute('aria-busy','true');
+  try{
+    const data=await api('/leaderboard');
+    if(!root.isConnected)return;
+    if(!Array.isArray(data.leaders))throw new Error('Некорректный рейтинг');
+    const leaders=data.leaders.slice(0,5);
+    host.innerHTML=leaders.length?`<ol class="premium-leaderboard-list" aria-label="Пять лидеров по XP">${leaders.map((leader,index)=>`<li class="premium-leaderboard-row ${leader.isYou?'is-you':''}">
+      <span class="premium-leaderboard-rank" aria-hidden="true">${index+1}</span>
+      <span class="premium-leaderboard-name">${esc(leader.name||'Ученик')}${leader.isYou?'<small>Вы</small>':''}</span>
+      <span class="premium-leaderboard-xp">${esc((Number(leader.xp)||0).toLocaleString('ru-RU'))}<small>XP</small></span>
+    </li>`).join('')}</ol>`:'<p class="premium-leaderboard-message">Пока нет участников. Здесь появятся первые ученики.</p>';
+  }catch{
+    if(!root.isConnected)return;
+    host.innerHTML='<p class="premium-leaderboard-message">Не удалось загрузить лидеров.</p><button type="button" class="btn ghost" data-leaderboard-retry>Повторить</button>';
+    $('[data-leaderboard-retry]',host).onclick=()=>loadLeaderboard(root);
+  }finally{host.dataset.loading='false';host.setAttribute('aria-busy','false');}
+ }
  function dashboardHtml(data){
   const user=data.user||{},stats=data.stats||{};
   const progress=Array.isArray(stats.progress)?[...stats.progress]:[];
@@ -83,7 +110,7 @@
         </div>
         <aside class="premium-quote"><strong>«Дисциплина превращает цели в реальность»</strong><span></span></aside>
       </div>
-      <div class="premium-side-stack">${weekHtml(weak)}${calendarHtml()}</div>
+      <div class="premium-side-stack">${leaderboardHtml()}${weekHtml(weak)}${calendarHtml()}</div>
     </div>
   </section>`;
  }
@@ -112,7 +139,7 @@
     if(route()!=='dashboard'||!main.isConnected)return;
     const holder=document.createElement('div');holder.innerHTML=dashboardHtml(data);const node=holder.firstElementChild;
     const top=$('.topbar',main);if(top)top.insertAdjacentElement('afterend',node);else main.prepend(node);
-    bind(node);sidePro();
+    bind(node);sidePro();loadLeaderboard(node);
   }catch(error){console.warn('premium-dashboard-v2',error?.message||error)}finally{mounting=false;}
  }
  const app=$('#app');if(app)new MutationObserver(()=>{if(route()==='dashboard')queueMicrotask(mount);sidePro();}).observe(app,{childList:true,subtree:true});

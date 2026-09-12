@@ -117,7 +117,25 @@ main{max-width:none!important;padding:18px 30px 58px!important;background:linear
 .premium-course-meta{font-size:12px;color:#6cefa2;margin-bottom:7px}.premium-course-copy h3{font-size:20px;margin:0 0 9px}.premium-course-copy p{color:#9caf9f;margin:0 0 13px}.premium-progress-row{display:flex;align-items:center;gap:12px}.premium-progress-row .progress{flex:1;margin:0}.premium-progress-row b{font-size:12px;color:#dff7e8}
 .premium-continue .btn{white-space:nowrap}
 
-.premium-week,.premium-calendar,.premium-quote{border-radius:20px;background:linear-gradient(145deg,rgba(6,21,14,.94),rgba(4,15,10,.9));border:1px solid rgba(109,255,171,.13);box-shadow:0 18px 46px rgba(0,0,0,.2)}
+.premium-week,.premium-calendar,.premium-quote,.premium-leaderboard{border-radius:20px;background:linear-gradient(145deg,rgba(6,21,14,.94),rgba(4,15,10,.9));border:1px solid rgba(109,255,171,.13);box-shadow:0 18px 46px rgba(0,0,0,.2)}
+.premium-leaderboard{padding:20px;min-width:0}
+.premium-leaderboard-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.premium-leaderboard-head h2{margin:0;font-size:17px;line-height:1.35}
+.premium-leaderboard-head .pill{white-space:nowrap;font-size:11px}
+.premium-leaderboard-caption,.premium-leaderboard-message{font-size:12px;line-height:1.5;color:#a7beb0;margin:8px 0 14px}
+.premium-leaderboard-message{margin-bottom:0}
+.premium-leaderboard-list{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.premium-leaderboard-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 8px;border:1px solid transparent;border-radius:12px}
+.premium-leaderboard-row.is-you{background:rgba(76,224,137,.08);border-color:rgba(109,255,171,.18)}
+.premium-leaderboard-rank{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:rgba(132,169,145,.1);font-size:13px;font-weight:800;color:#bdd1c5;font-variant-numeric:tabular-nums}
+.premium-leaderboard-row:nth-child(1) .premium-leaderboard-rank{background:rgba(255,206,93,.15);color:#ffd77e}
+.premium-leaderboard-row:nth-child(2) .premium-leaderboard-rank{background:rgba(207,224,239,.12);color:#dce8f2}
+.premium-leaderboard-row:nth-child(3) .premium-leaderboard-rank{background:rgba(226,163,114,.15);color:#f3bd94}
+.premium-leaderboard-name{min-width:0;overflow-wrap:anywhere;font-size:13px;line-height:1.45;font-weight:700;color:#edf9f1}
+.premium-leaderboard-name small{display:inline-block;margin-left:7px;font-size:10px;color:#73f4ab}
+.premium-leaderboard-xp{text-align:right;white-space:nowrap;color:#dcf8e7;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.premium-leaderboard-xp small{display:block;color:#95ad9e;font-size:9px;font-weight:600;margin-top:1px}
+.premium-leaderboard [data-leaderboard-retry]{margin-top:12px;min-height:40px;font-size:12px}
 .premium-week{padding:20px}.premium-week-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.premium-week-head h3{margin:0;font-size:16px}.premium-week-head small{color:#83a08e}.premium-week-list{display:grid;gap:1px}
 .premium-week-item{display:grid;grid-template-columns:28px 1fr 20px;gap:9px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.045);font-size:12px}.premium-week-item:last-child{border:0}.premium-week-day{color:#8ba092}.premium-week-item span:nth-child(2){color:#d6e4db;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.premium-week-check{width:16px;height:16px;border-radius:50%;border:1px solid rgba(112,255,174,.25);display:grid;place-items:center;color:#072014;font-size:10px}.premium-week-item.done .premium-week-check{background:#61efa0;border-color:#61efa0}
 
@@ -134,6 +152,7 @@ main{max-width:none!important;padding:18px 30px 58px!important;background:linear
  .premium-quick-grid{grid-template-columns:repeat(2,1fr)}
  .premium-main-grid{grid-template-columns:1fr}
  .premium-side-stack{grid-template-columns:1fr 1fr}
+ .premium-leaderboard{grid-column:1/-1}
  .premium-results{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:900px){

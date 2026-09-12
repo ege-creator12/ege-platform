@@ -118,6 +118,12 @@ async function api(req,res,path){
   if(path==='/api/login'&&req.method==='POST'){const b=await body(req),u=await row('SELECT * FROM users WHERE email=?',(b.email||'').toLowerCase());if(!u||!verify(b.password||'',u.password_hash))return json(res,401,{error:'Неверная почта или пароль'});return await login(res,u.id)}
   if(path==='/api/logout'&&req.method==='POST'){const token=(req.headers.cookie||'').match(/session=([^;]+)/)?.[1];if(token)await run('DELETE FROM sessions WHERE token=?',token);res.setHeader('set-cookie','session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');return json(res,200,{ok:true})}
   if(path==='/api/me'){const u=await auth(req,res);if(u)return json(res,200,{user:safeUser(u),stats:await stats(u.id),examDate:process.env.EXAM_DATE||'2027-06-05'})}
+  if(path==='/api/leaderboard'&&req.method==='GET'){
+    res.setHeader('cache-control','no-store');
+    const u=await auth(req,res);if(!u)return;
+    const leaders=await rows("SELECT id,name,xp FROM users WHERE role='student' ORDER BY xp DESC,id ASC LIMIT 5");
+    return json(res,200,{leaders:leaders.map((leader,index)=>({rank:index+1,name:leader.name,xp:Number(leader.xp)||0,isYou:String(leader.id)===String(u.id)}))});
+  }
   if(path==='/api/subjects'){const u=await auth(req,res);if(u)return json(res,200,{subjects:await rows('SELECT * FROM subjects WHERE published=1 ORDER BY position,id')})}
   if(path==='/api/subjects/biology/search'&&req.method==='GET'){
     const u=await auth(req,res);if(!u)return;
