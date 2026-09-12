@@ -26,6 +26,9 @@
  }
  function weekHtml(weak){
   const labels=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const now=new Date();
+  const currentDay=(now.getDay()+6)%7;
+  const weekStart=new Date(now);weekStart.setHours(0,0,0,0);weekStart.setDate(weekStart.getDate()-currentDay);
   const tasks=[];
   const names=weak.length?weak.map(x=>x.title):['Биология','Химия'];
   tasks.push(names[0]||'Повторение слабой темы');
@@ -35,7 +38,31 @@
   tasks.push('Пробник ЕГЭ');
   tasks.push(names[3]||'Повторение формул и терминов');
   tasks.push('Отдых и лёгкое повторение');
-  return `<section class="premium-week"><div class="premium-week-head"><h3>Мой план на неделю</h3><small>7 дней</small></div><div class="premium-week-list">${tasks.map((t,i)=>`<div class="premium-week-item ${i<2?'done':''}"><span class="premium-week-day">${labels[i]}</span><span>${esc(t)}</span><span class="premium-week-check">${i<2?'✓':''}</span></div>`).join('')}</div></section>`;
+  const items=tasks.map((t,i)=>{
+    const dayDate=new Date(weekStart);dayDate.setDate(weekStart.getDate()+i);
+    const cls=i<currentDay?'done':i===currentDay?'today':'';
+    const mark=i<currentDay?'✓':i===currentDay?'•':'';
+    const date=dayDate.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+    return `<div class="premium-week-item ${cls}" data-week-index="${i}" title="${esc(date)}"><span class="premium-week-day">${labels[i]}</span><span>${esc(t)}</span><span class="premium-week-check">${mark}</span></div>`;
+  }).join('');
+  return `<section class="premium-week"><div class="premium-week-head"><h3>Мой план на неделю</h3><small>Сегодня · ${labels[currentDay]}</small></div><div class="premium-week-list">${items}</div></section>`;
+ }
+ function focusHtml(current,stats){
+  const accuracy=Math.max(0,Math.min(100,Number(stats.accuracy)||0));
+  const solved=Math.max(0,Number(stats.solved)||0);
+  const streak=Math.max(0,Number(stats.streak)||0);
+  const count=accuracy<50?10:8;
+  return `<section class="premium-focus">
+    <div class="premium-focus-head"><div><span>Фокус на сегодня</span><h2>${esc(current.title||'Слабая тема')}</h2></div><b>≈ 35 мин</b></div>
+    <p>Не распыляйся: коротко повтори теорию по самой слабой теме, реши ${count} заданий и сразу разбери ошибки.</p>
+    <div class="premium-focus-steps">
+      <div><span>01</span><b>Теория</b><small>10–12 мин</small></div>
+      <div><span>02</span><b>Практика</b><small>${count} заданий</small></div>
+      <div><span>03</span><b>Разбор</b><small>ошибки + повтор</small></div>
+    </div>
+    <div class="premium-focus-stats"><span>Точность <b>${accuracy}%</b></span><span>Решено <b>${solved}</b></span><span>Серия <b>${streak} ${plural(streak,'день','дня','дней')}</b></span></div>
+    <div class="premium-focus-actions"><button class="btn" data-premium-train="${Number(current.id)||0}">Начать фокус →</button><button class="btn ghost" data-premium-nav="pro">Спросить AI-куратора</button></div>
+  </section>`;
  }
  function quickCard(kind,title,text,hash){return `<button class="premium-quick-card" data-premium-nav="${esc(hash)}"><span class="premium-quick-icon">${icon(kind)}</span><span><b>${esc(title)}</b><small>${esc(text)}</small></span><span class="premium-quick-arrow">→</span></button>`;}
  function metric(kind,label,value,sub=''){return `<article class="premium-metric"><div class="premium-metric-top"><span class="premium-metric-icon">${icon(kind)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`;}
@@ -108,6 +135,7 @@
           ${metric('task','Решено заданий',Number(stats.solved)||0,'всего')}
           ${metric('flame','Серия дней',Number(stats.streak)||0,`${plural(stats.streak,'день','дня','дней')} подряд`)}
         </div>
+        ${focusHtml(current,stats)}
         <aside class="premium-quote"><strong>«Дисциплина превращает цели в реальность»</strong><span></span></aside>
       </div>
       <div class="premium-side-stack">${leaderboardHtml()}${weekHtml(weak)}${calendarHtml()}</div>
@@ -144,5 +172,12 @@
  }
  const app=$('#app');if(app)new MutationObserver(()=>{if(route()==='dashboard')queueMicrotask(mount);sidePro();}).observe(app,{childList:true,subtree:true});
  addEventListener('hashchange',()=>setTimeout(mount,0));
+ setInterval(()=>{
+  if(route()!=='dashboard')return;
+  const root=document.getElementById(ROOT);if(!root)return;
+  const old=$('.premium-week',root);if(!old)return;
+  const progress=[];
+  old.outerHTML=weekHtml(progress);
+ },60000);
  setTimeout(()=>{mount();sidePro()},0);
 })();
