@@ -8,6 +8,13 @@ function dueAt(value){
   const time=value instanceof Date?value.getTime():Date.parse(value);
   return Number.isFinite(time)&&time<=Date.now();
 }
+function parseExamLines(value){
+  try{
+    const parsed=typeof value==='string'?JSON.parse(value||'[]'):value;
+    if(!Array.isArray(parsed))return[];
+    return [...new Set(parsed.map(Number).filter(n=>Number.isInteger(n)&&n>=1&&n<=34))];
+  }catch{return[];}
+}
 
 async function recentPresentedIds(db,userId){
   if(!userId)return new Set();
@@ -23,28 +30,36 @@ async function lessonPracticePool(db,{userId=0,lessonId,limit=MIN_LESSON_QUESTIO
   const lesson=await db.row(`SELECT l.id,l.topic_id,l.codifier_code,l.exam_lines_json,t.section_id,t.subject_id,s.slug subject_slug FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN subjects s ON s.id=t.subject_id WHERE l.id=? AND l.published=1 AND t.published=1 AND s.published=1`,id);
   if(!lesson)return {lesson:null,ids:[],candidates:[]};
 
-  const candidateLimit=Math.min(500,Math.max(target*30,120));
+  const candidateLimit=Math.min(700,Math.max(target*40,160));
   const codifier=String(lesson.codifier_code||'');
+  const examLines=parseExamLines(lesson.exam_lines_json);
+  const lineMarks=examLines.map(()=>'?').join(',');
+  const lineCase=examLines.length?`q.exam_line IN (${lineMarks})`:'1=0';
+  const lineWhere=examLines.length?`q.exam_line IN (${lineMarks})`:'1=0';
+  const caseLineParams=examLines.length?[...examLines]:[];
+  const whereLineParams=examLines.length?[...examLines]:[];
+
   const candidates=await db.rows(`WITH latest AS (
       SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn
       FROM attempts a WHERE user_id=?
     )
-    SELECT q.id,q.external_key,q.difficulty,q.lesson_id,q.topic_id,q.codifier_code,
+    SELECT q.id,q.external_key,q.difficulty,q.lesson_id,q.topic_id,q.codifier_code,q.exam_line,
       a.id attempt_id,a.correct,a.next_review_at,
       CASE
         WHEN q.lesson_id=? THEN 0
         WHEN q.topic_id=? THEN 1
         WHEN ?<>'' AND q.codifier_code=? THEN 2
-        WHEN qt.section_id=? THEN 3
+        WHEN ${lineCase} THEN 3
+        WHEN qt.section_id=? THEN 4
         ELSE 9
       END relevance
     FROM questions q
     JOIN topics qt ON qt.id=q.topic_id
     LEFT JOIN latest a ON a.question_id=q.id AND a.rn=1
     WHERE q.subject_id=? AND q.active=1 AND q.published=1
-      AND (q.lesson_id=? OR q.topic_id=? OR (?<>'' AND q.codifier_code=?) OR qt.section_id=?)
+      AND (q.lesson_id=? OR q.topic_id=? OR (?<>'' AND q.codifier_code=?) OR ${lineWhere} OR qt.section_id=?)
     ORDER BY relevance,RANDOM()
-    LIMIT ?`,userId,id,lesson.topic_id,codifier,codifier,lesson.section_id,lesson.subject_id,id,lesson.topic_id,codifier,codifier,lesson.section_id,candidateLimit);
+    LIMIT ?`,userId,id,lesson.topic_id,codifier,codifier,...caseLineParams,lesson.section_id,lesson.subject_id,id,lesson.topic_id,codifier,codifier,...whereLineParams,lesson.section_id,candidateLimit);
 
   const recent=await recentPresentedIds(db,userId);
   const scored=candidates.map((candidate,randomIndex)=>{
@@ -57,18 +72,18 @@ async function lessonPracticePool(db,{userId=0,lessonId,limit=MIN_LESSON_QUESTIO
   });
   scored.sort((a,b)=>Number(a.relevance)-Number(b.relevance)||a.recentPenalty-b.recentPenalty||a.learningPriority-b.learningPriority||Number(a.difficulty||1)-Number(b.difficulty||1)||a.randomIndex-b.randomIndex);
   const ids=[...new Set(scored.map(x=>Number(x.id)))].slice(0,target);
-  return {lesson,ids,candidates:scored};
+  return {lesson:{...lesson,examLines},ids,candidates:scored};
 }
 
 async function auditLessonPractice(db,{minimum=MIN_LESSON_QUESTIONS}={}){
-  const lessons=await db.rows(`SELECT l.id,l.slug,l.title,t.title topic,s.slug subject FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN subjects s ON s.id=t.subject_id WHERE l.published=1 AND t.published=1 AND s.published=1 ORDER BY s.slug,l.id`);
+  const lessons=await db.rows(`SELECT l.id,l.slug,l.title,t.title topic,s.slug subject FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections sec ON sec.id=t.section_id JOIN subjects s ON s.id=t.subject_id WHERE l.published=1 AND t.published=1 AND sec.published=1 AND s.published=1 ORDER BY s.slug,l.id`);
   const failures=[];
   let directReady=0,topicReady=0,fallbackReady=0;
   for(const lesson of lessons){
     const direct=Number((await db.row('SELECT COUNT(*) n FROM questions WHERE lesson_id=? AND active=1 AND published=1',lesson.id))?.n||0);
     const sameTopic=Number((await db.row(`SELECT COUNT(*) n FROM questions q JOIN lessons l ON l.id=? WHERE q.topic_id=l.topic_id AND q.active=1 AND q.published=1`,lesson.id))?.n||0);
     const resolved=await lessonPracticePool(db,{lessonId:lesson.id,limit:minimum});
-    if(resolved.ids.length<minimum)failures.push({...lesson,direct,sameTopic,resolved:resolved.ids.length});
+    if(resolved.ids.length<minimum)failures.push({...lesson,direct,sameTopic,examLines:resolved.lesson?.examLines||[],resolved:resolved.ids.length});
     else if(direct>=minimum)directReady++;
     else if(sameTopic>=minimum)topicReady++;
     else fallbackReady++;
@@ -76,4 +91,4 @@ async function auditLessonPractice(db,{minimum=MIN_LESSON_QUESTIONS}={}){
   return {minimum,total:lessons.length,directReady,topicReady,fallbackReady,failures};
 }
 
-module.exports={MIN_LESSON_QUESTIONS,lessonPracticePool,auditLessonPractice};
+module.exports={MIN_LESSON_QUESTIONS,parseExamLines,lessonPracticePool,auditLessonPractice};
