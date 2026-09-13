@@ -9,7 +9,7 @@ let unread=0;
 let timer=null;
 let alertTimer=null;
 
-const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[ch]));
 const seenId=()=>Math.max(0,Number(localStorage.getItem(SEEN_KEY)||0)||0);
 const chatOpen=()=>Boolean(document.querySelector('.community-chat-overlay'));
 const appOpen=()=>Boolean(document.querySelector('.app'));
@@ -32,9 +32,12 @@ function updateBadges(){
   document.querySelectorAll('[data-community-chat-launch],.community-chat-mobile-launch').forEach(button=>{
     let badge=button.querySelector('.community-chat-unread-badge');
     if(!badge){badge=document.createElement('span');badge.className='community-chat-unread-badge';badge.setAttribute('aria-hidden','true');button.appendChild(badge)}
-    badge.textContent=badgeText();
+    const label=badgeText();
+    if(badge.textContent!==label)badge.textContent=label;
     badge.classList.toggle('show',unread>0);
     if(unread>0)button.setAttribute('aria-label',`Общий чат, новых сообщений: ${unread}`);
+    else if(button.classList.contains('community-chat-mobile-launch'))button.setAttribute('aria-label','Открыть общий чат');
+    else button.removeAttribute('aria-label');
   });
 }
 
