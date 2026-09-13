@@ -7,6 +7,8 @@ database.run = (sql, ...params) => originalRun(
   ...params
 );
 
+require('./server-problem-moderation-patch');
+
 async function ensureAiUsageStorage(){
   const userIdType=database.dialect==='postgresql'?'BIGINT':'INTEGER';
   const dateType=database.dialect==='postgresql'?'DATE':'TEXT';
