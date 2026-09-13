@@ -42,13 +42,12 @@ function writeEvent(client, event, data) {
     client.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     return true;
   } catch {
-    client.closed = true;
     return false;
   }
 }
 
 function cleanupClient(client) {
-  if (!client || client.closed) return;
+  if (!client) return;
   client.closed = true;
   clients.delete(client);
   if (!clients.size) stopLoops();
@@ -161,8 +160,8 @@ async function handle(req, res, url) {
 
   const cleanup = () => cleanupClient(client);
   req.once('aborted', cleanup);
-  req.once('close', cleanup);
   res.once('close', cleanup);
+  res.once('error', cleanup);
   return true;
 }
 
