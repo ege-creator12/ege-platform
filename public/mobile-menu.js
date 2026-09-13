@@ -45,6 +45,24 @@
     });
   };
 
+  const triggerLauncher=selector=>{
+    closeMenu();
+    const open=()=>{
+      const launcher=document.querySelector(selector);
+      if(!launcher)return false;
+      launcher.click();
+      return true;
+    };
+    if(open())return;
+    requestAnimationFrame(()=>{
+      if(open())return;
+      setTimeout(open,80);
+    });
+  };
+
+  const openCommunityChat=()=>triggerLauncher('[data-community-chat-launch],.community-chat-mobile-launch');
+  const openProblemReport=()=>triggerLauncher('#problem-report-fab');
+
   const ensureContainers=()=>{
     let overlay=document.querySelector('.mobile-menu-overlay');
     if(!overlay){
@@ -74,8 +92,13 @@
         <div class="mobile-menu-foot">Выбери раздел — меню закроется автоматически.</div>`;
       panel.querySelector('.mobile-menu-close').addEventListener('click',closeMenu);
       panel.addEventListener('click',e=>{
-        const aiButton=e.target.closest('button[data-mobile-action="ai"]');
-        if(aiButton){openAiTutor();return;}
+        const actionButton=e.target.closest('button[data-mobile-action]');
+        if(actionButton){
+          if(actionButton.dataset.mobileAction==='ai')openAiTutor();
+          if(actionButton.dataset.mobileAction==='community-chat')openCommunityChat();
+          if(actionButton.dataset.mobileAction==='problem-report')openProblemReport();
+          return;
+        }
         const button=e.target.closest('button[data-nav]');
         if(button)navigate(button.dataset.nav);
       });
@@ -86,13 +109,16 @@
 
   const mapButtonHtml=active=>`<button type="button" data-nav="progress-map/biology" class="${active?'active':''}" ${active?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">▦</span><span>Карта ЕГЭ</span></button>`;
   const aiButtonHtml=()=>`<button type="button" data-mobile-action="ai"><span class="nav-icon" aria-hidden="true">✦</span><span>ИИ-репетитор</span></button>`;
+  const communityChatButtonHtml=()=>`<button type="button" data-mobile-action="community-chat"><span class="nav-icon" aria-hidden="true">💬</span><span>Общий чат</span></button>`;
+  const problemReportButtonHtml=()=>`<button type="button" data-mobile-action="problem-report"><span class="nav-icon" aria-hidden="true">⚑</span><span>Сообщить о проблеме</span></button>`;
+  const actionButtonsHtml=()=>aiButtonHtml()+communityChatButtonHtml()+problemReportButtonHtml();
 
   const syncLinks=(panel,sourceNav)=>{
     const target=panel.querySelector('.mobile-menu-links');
     if(!target||!sourceNav)return;
     const sourceButtons=[...sourceNav.querySelectorAll('button[data-nav]')];
     const current=location.hash.slice(1)||'dashboard';
-    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|')+`|route:${current}|extras:v4`;
+    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|')+`|route:${current}|extras:v5`;
     if(target.dataset.signature===signature)return;
     target.dataset.signature=signature;
 
@@ -104,17 +130,21 @@
     const mapActive=current.startsWith('progress-map');
     const hasMap=regular.some(item=>item.route.startsWith('progress-map'));
     let mapInserted=hasMap;
+    let actionsInserted=false;
     let html='';
     for(const item of regular){
       if(item.route==='mocks'&&!mapInserted){
         html+=mapButtonHtml(mapActive);
         mapInserted=true;
       }
-      if(item.route==='profile')html+=aiButtonHtml();
+      if(item.route==='profile'&&!actionsInserted){
+        html+=actionButtonsHtml();
+        actionsInserted=true;
+      }
       html+=`<button type="button" data-nav="${item.route}" class="${item.active?'active':''}" ${item.active?'aria-current="page"':''}>${item.html}</button>`;
     }
     if(!mapInserted)html+=mapButtonHtml(mapActive);
-    if(!regular.some(item=>item.route==='profile'))html+=aiButtonHtml();
+    if(!actionsInserted)html+=actionButtonsHtml();
     target.innerHTML=html;
   };
 
