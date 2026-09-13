@@ -9,6 +9,7 @@ const database = require('./src/db');
 const moderator = require('./server-moderator');
 const moderatorAi = require('./server-moderator-ai');
 const problemReports = require('./server-problem-reports');
+const communityChat = require('./server-community-chat');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
@@ -264,6 +265,7 @@ async function start() {
   await moderator.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
+  await communityChat.ensureSchema();
   await subscriptions.ensureSchema();
   await answerExpert.ensureSchema();
   const child = spawn(process.execPath, [join(__dirname, 'server-product.js')], {
@@ -280,6 +282,7 @@ async function start() {
     try {
       if (await subscriptions.handle(req, res, url)) return;
       if (await requireProForAi(req, res, url.pathname)) return;
+      if (await communityChat.handle(req, res, url)) return;
       if (await problemReports.handle(req, res, url)) return;
       if (await moderatorAi.handle(req, res, url)) return;
       if (await answerExpert.handle(req, res, url)) return;
