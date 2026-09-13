@@ -4,6 +4,7 @@
 let overlay=null;
 let poller=null;
 let loading=false;
+let renderSignature='';
 let me={staff:false,admin:false,mutedUntil:null};
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
@@ -29,7 +30,11 @@ document.head.appendChild(style);
 function fmtTime(value){try{return new Date(value).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
 function fmtMute(value){const until=Number(value||0);if(!until)return '';const d=new Date(until);if(d.getUTCFullYear()>2900)return 'Вам выдан мут без срока.';return `Вам выдан мут до ${d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.`}
 
-function closeChat(){overlay?.remove();overlay=null;if(poller){clearInterval(poller);poller=null}}
+function closeChat(){overlay?.remove();overlay=null;renderSignature='';if(poller){clearInterval(poller);poller=null}}
+
+function messagesSignature(messages){
+  return messages.map(m=>[m.id,m.body,m.name,m.badge,m.mine?1:0,m.moderatable?1:0].join('\u0001')).join('\u0002');
+}
 
 function renderMessages(data,initial=false){
   if(!overlay)return;
@@ -37,9 +42,20 @@ function renderMessages(data,initial=false){
   const feed=overlay.querySelector('.community-chat-feed');
   const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<90;
   const messages=Array.isArray(data.messages)?data.messages:[];
-  feed.innerHTML=messages.length?messages.map(m=>`<article class="community-chat-message ${m.mine?'mine':''}" data-chat-message="${Number(m.id)}"><div class="community-chat-meta"><span class="community-chat-name">${esc(m.name)}</span>${m.badge?`<span class="community-chat-badge">${esc(m.badge)}</span>`:''}<span class="community-chat-time">${esc(fmtTime(m.createdAt))}</span>${m.moderatable?'<button type="button" class="community-chat-more" data-chat-more aria-label="Модерация">⋯</button>':''}</div><div class="community-chat-text">${esc(m.body)}</div></article>`).join(''):'<div class="community-chat-empty"><b>Пока тихо</b><span>Напиши первым — можно обсудить задание, тему или подготовку.</span></div>';
-  feed.querySelectorAll('[data-chat-more]').forEach(btn=>btn.onclick=()=>toggleMuteMenu(btn.closest('[data-chat-message]')));
-  if(initial||nearBottom)feed.scrollTop=feed.scrollHeight;
+  const signature=messagesSignature(messages);
+  const openMenuCard=feed.querySelector('.community-chat-mute-menu')?.closest('[data-chat-message]');
+  const openMenuId=Number(openMenuCard?.dataset.chatMessage||0);
+
+  if(initial||signature!==renderSignature){
+    renderSignature=signature;
+    feed.innerHTML=messages.length?messages.map(m=>`<article class="community-chat-message ${m.mine?'mine':''}" data-chat-message="${Number(m.id)}"><div class="community-chat-meta"><span class="community-chat-name">${esc(m.name)}</span>${m.badge?`<span class="community-chat-badge">${esc(m.badge)}</span>`:''}<span class="community-chat-time">${esc(fmtTime(m.createdAt))}</span>${m.moderatable?'<button type="button" class="community-chat-more" data-chat-more aria-label="Модерация">⋯</button>':''}</div><div class="community-chat-text">${esc(m.body)}</div></article>`).join(''):'<div class="community-chat-empty"><b>Пока тихо</b><span>Напиши первым — можно обсудить задание, тему или подготовку.</span></div>';
+    feed.querySelectorAll('[data-chat-more]').forEach(btn=>btn.onclick=()=>toggleMuteMenu(btn.closest('[data-chat-message]')));
+    if(openMenuId){
+      const reopened=feed.querySelector(`[data-chat-message="${openMenuId}"]`);
+      if(reopened?.querySelector('[data-chat-more]'))toggleMuteMenu(reopened);
+    }
+    if(initial||nearBottom)feed.scrollTop=feed.scrollHeight;
+  }
   updateComposer();
 }
 
@@ -136,6 +152,7 @@ function openChat(){
   area.addEventListener('input',()=>{area.style.height='auto';area.style.height=Math.min(area.scrollHeight,130)+'px'});
   area.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
   overlay.querySelector('.community-chat-send').onclick=sendMessage;
+  renderSignature='';
   loadChat(true);
   poller=setInterval(()=>loadChat(false),2500);
   setTimeout(()=>area.focus(),120);
