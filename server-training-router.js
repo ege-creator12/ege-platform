@@ -7,6 +7,7 @@ const { join } = require('node:path');
 const database = require('./src/db');
 const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const chemistryExamRegistry = require('./content/chemistry/exam-lines');
+const { lessonPracticePool, MIN_LESSON_QUESTIONS } = require('./src/lesson-practice');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -60,14 +61,23 @@ async function saveSession(userId,topicId,mode,target,ids){const storedMode=mode
 
 async function createGeneralTraining(req,res){
  const user=await auth(req,res);if(!user)return;
- const body=await readJson(req),mode=trainingModes.has(body.mode)?body.mode:'adaptive',topicId=body.topicId===undefined||body.topicId===null||Number(body.topicId)===0?0:numericId(body.topicId),examLine=body.examLine===undefined||body.examLine===null||Number(body.examLine)===0?0:numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),requestedSubject=String(body.subjectSlug||'').trim();
+ const body=await readJson(req),mode=trainingModes.has(body.mode)?body.mode:'adaptive',topicId=body.topicId===undefined||body.topicId===null||Number(body.topicId)===0?0:numericId(body.topicId),lessonId=body.lessonId===undefined||body.lessonId===null||Number(body.lessonId)===0?0:numericId(body.lessonId),examLine=body.examLine===undefined||body.examLine===null||Number(body.examLine)===0?0:numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||(lessonId?MIN_LESSON_QUESTIONS:10))),requestedSubject=String(body.subjectSlug||'').trim();
  if(topicId===null)return json(res,400,{error:'Некорректный идентификатор темы'});
+ if(lessonId===null)return json(res,400,{error:'Некорректный идентификатор урока'});
  if(requestedSubject&&!subjectSlugs.has(requestedSubject))return json(res,400,{error:'Некорректный предмет',code:'INVALID_SUBJECT'});
  if(examLine===null||examLine>28||(examLine&&!biologyExamRegistry.lines.some(x=>Number(x.line)===Number(examLine))))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});
 
  let onlySubjectId=0;
  let resolvedSubject=requestedSubject;
- if(examLine){
+ let resolvedTopicId=topicId;
+ let lessonInfo=null;
+ if(lessonId){
+  lessonInfo=await row(`SELECT l.id,l.topic_id,t.subject_id,s.slug subject_slug FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN subjects s ON s.id=t.subject_id WHERE l.id=? AND l.published=1 AND t.published=1 AND s.published=1`,lessonId);
+  if(!lessonInfo)return json(res,404,{error:'Урок не найден',code:'LESSON_NOT_FOUND'});
+  resolvedTopicId=Number(lessonInfo.topic_id);
+  onlySubjectId=Number(lessonInfo.subject_id);
+  resolvedSubject=String(lessonInfo.subject_slug||'');
+ }else if(examLine){
   resolvedSubject = 'biology';
   onlySubjectId = await subjectId('biology');
  }else if(requestedSubject){
@@ -82,11 +92,18 @@ async function createGeneralTraining(req,res){
  }
  if (!onlySubjectId) return json(res, 404, {error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
 
- const ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId: onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
+ let ids=[];
+ if(lessonId){
+  const resolved=await lessonPracticePool(database,{userId:user.id,lessonId,limit:Math.max(MIN_LESSON_QUESTIONS,target)});
+  ids=resolved.ids.slice(0,target);
+  if(ids.length<MIN_LESSON_QUESTIONS)return json(res,404,{error:'Для этого урока пока недостаточно заданий для полноценной практики.',code:'LESSON_PRACTICE_INCOMPLETE'});
+ }else{
+  ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId: onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
+ }
  if(!ids.length)return json(res,404,{error:examLine?`В строгом банке линии ${examLine} пока нет подходящих заданий`:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});
  if(examLine)await assertBiologyLineIds(ids,examLine,onlySubjectId);
- const session=await saveSession(user.id,topicId,mode,target,ids);
- json(res,201,{session,subjectSlug:resolvedSubject||null,examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?6:null});
+ const session=await saveSession(user.id,resolvedTopicId,mode,target,ids);
+ json(res,201,{session,subjectSlug:resolvedSubject||null,lessonId:lessonId||null,lessonPractice:Boolean(lessonId),examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?6:null});
 }
 
 async function createChemistryTraining(req,res){const user=await auth(req,res);if(!user)return;const body=await readJson(req),line=numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),mode=trainingModes.has(body.mode)?body.mode:'adaptive';if(!line||!chemistryExamRegistry.lines.some(x=>Number(x.line)===line))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});const chemistryId=await subjectId('chemistry');if(!chemistryId)return json(res,404,{error:'Химия не найдена'});const ids=await questionPool(user.id,0,mode,target,{examLine:line,subjectId:chemistryId,publishedOnly:true});if(!ids.length)return json(res,404,{error:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});const session=await saveSession(user.id,0,mode,target,ids);json(res,201,{session,subjectSlug:'chemistry'})}
