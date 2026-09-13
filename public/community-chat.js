@@ -6,7 +6,15 @@ let poller=null;
 let loading=false;
 let renderSignature='';
 let me={staff:false,admin:false,mutedUntil:null};
+let serverMessages=[];
+let pendingMessages=[];
+let outbox=[];
+let sending=false;
+let pendingSeq=0;
+let lastSentAt=0;
 
+const SEND_GAP_MS=1250;
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 const toast=message=>{if(typeof notify==='function')return notify(message);const t=document.querySelector('#toast');if(t){t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}};
 
@@ -19,7 +27,7 @@ style.textContent=`
 .community-chat-head{padding:20px 22px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(255,255,255,.015)}
 .community-chat-head h2{margin:2px 0 3px;font-size:22px;letter-spacing:-.02em}.community-chat-head p{margin:0;font-size:12px;opacity:.58}.community-chat-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#76e7a7;font-weight:800}.community-chat-close{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:inherit;border-radius:12px;width:40px;height:40px;font-size:24px;cursor:pointer}
 .community-chat-feed{overflow:auto;padding:20px 22px 28px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}.community-chat-empty{margin:auto;text-align:center;opacity:.58;padding:50px 20px}.community-chat-empty b{display:block;font-size:18px;margin-bottom:5px}
-.community-chat-message{max-width:82%;align-self:flex-start;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075);border-radius:18px 18px 18px 5px;padding:11px 13px 10px;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.08)}.community-chat-message.mine{align-self:flex-end;border-radius:18px 18px 5px 18px;background:rgba(74,210,132,.12);border-color:rgba(84,226,145,.18)}
+.community-chat-message{max-width:82%;align-self:flex-start;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075);border-radius:18px 18px 18px 5px;padding:11px 13px 10px;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.08)}.community-chat-message.mine{align-self:flex-end;border-radius:18px 18px 5px 18px;background:rgba(74,210,132,.12);border-color:rgba(84,226,145,.18)}.community-chat-message.pending{opacity:.78}.community-chat-message.pending .community-chat-time{color:#8ceab2;opacity:.72}.community-chat-message.optimistic:not(.pending) .community-chat-time{color:#8ceab2;opacity:.62}
 .community-chat-meta{display:flex;align-items:center;gap:7px;margin-bottom:6px;min-height:19px}.community-chat-name{font-size:12px;font-weight:800}.community-chat-badge{font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:3px 6px;border-radius:999px;background:rgba(91,232,151,.12);border:1px solid rgba(91,232,151,.2);color:#9af0bd}.community-chat-time{font-size:10px;opacity:.4;margin-left:auto}.community-chat-text{font-size:14px;line-height:1.48;white-space:pre-wrap;overflow-wrap:anywhere}
 .community-chat-more{border:0;background:transparent;color:inherit;opacity:.55;cursor:pointer;font-size:20px;line-height:1;padding:0 2px;margin-left:2px}.community-chat-more:hover{opacity:1}.community-chat-mute-menu{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:6px;flex-wrap:wrap}.community-chat-mute-menu button{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:inherit;border-radius:9px;padding:6px 8px;font:inherit;font-size:10px;cursor:pointer}.community-chat-mute-menu button:hover{border-color:rgba(112,231,164,.35);background:rgba(73,210,132,.09)}.community-chat-mute-menu .danger{border-color:rgba(255,125,125,.18);color:#ffc2c2}
 .community-chat-compose{border-top:1px solid rgba(255,255,255,.075);padding:13px 18px 16px;background:rgba(5,12,9,.92)}.community-chat-muted{display:none;margin:0 0 10px;padding:9px 11px;border-radius:11px;background:rgba(255,176,75,.08);border:1px solid rgba(255,176,75,.14);font-size:11px;color:#ffd9a0}.community-chat-muted.show{display:block}.community-chat-form{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:end}.community-chat-form textarea{min-height:44px;max-height:130px;resize:none;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:inherit;border-radius:14px;padding:12px 13px;font:inherit;font-size:14px;outline:none}.community-chat-form textarea:focus{border-color:rgba(91,232,151,.45);box-shadow:0 0 0 3px rgba(91,232,151,.07)}.community-chat-send{height:44px;border:0;border-radius:13px;padding:0 17px;background:#67e49c;color:#082012;font:inherit;font-weight:800;cursor:pointer}.community-chat-send:disabled,.community-chat-form textarea:disabled{opacity:.48;cursor:not-allowed}.community-chat-hint{margin-top:7px;font-size:10px;opacity:.38;padding-left:2px}
@@ -30,31 +38,40 @@ document.head.appendChild(style);
 function fmtTime(value){try{return new Date(value).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
 function fmtMute(value){const until=Number(value||0);if(!until)return '';const d=new Date(until);if(d.getUTCFullYear()>2900)return 'Вам выдан мут без срока.';return `Вам выдан мут до ${d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.`}
 
-function closeChat(){overlay?.remove();overlay=null;renderSignature='';if(poller){clearInterval(poller);poller=null}}
+function closeChat(){overlay?.remove();overlay=null;renderSignature='';serverMessages=[];if(poller){clearInterval(poller);poller=null}}
 
 function messagesSignature(messages){
-  return messages.map(m=>[m.id,m.body,m.name,m.badge,m.mine?1:0,m.moderatable?1:0].join('\u0001')).join('\u0002');
+  return messages.map(m=>[m.id,m.body,m.name,m.badge,m.mine?1:0,m.moderatable?1:0,m.pending?1:0,m.optimistic?1:0].join('\u0001')).join('\u0002');
 }
 
-function renderMessages(data,initial=false){
+function combinedMessages(nextMessages){
+  if(Array.isArray(nextMessages)){
+    serverMessages=nextMessages;
+    const confirmed=new Set(serverMessages.map(message=>Number(message.id)));
+    pendingMessages=pendingMessages.filter(message=>!message.serverId||!confirmed.has(Number(message.serverId)));
+  }
+  return [...serverMessages,...pendingMessages];
+}
+
+function renderMessages(data={},initial=false){
   if(!overlay)return;
   me=data.me||me;
   const feed=overlay.querySelector('.community-chat-feed');
   const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<90;
-  const messages=Array.isArray(data.messages)?data.messages:[];
+  const messages=combinedMessages(data.messages);
   const signature=messagesSignature(messages);
   const openMenuCard=feed.querySelector('.community-chat-mute-menu')?.closest('[data-chat-message]');
   const openMenuId=Number(openMenuCard?.dataset.chatMessage||0);
 
   if(initial||signature!==renderSignature){
     renderSignature=signature;
-    feed.innerHTML=messages.length?messages.map(m=>`<article class="community-chat-message ${m.mine?'mine':''}" data-chat-message="${Number(m.id)}"><div class="community-chat-meta"><span class="community-chat-name">${esc(m.name)}</span>${m.badge?`<span class="community-chat-badge">${esc(m.badge)}</span>`:''}<span class="community-chat-time">${esc(fmtTime(m.createdAt))}</span>${m.moderatable?'<button type="button" class="community-chat-more" data-chat-more aria-label="Модерация">⋯</button>':''}</div><div class="community-chat-text">${esc(m.body)}</div></article>`).join(''):'<div class="community-chat-empty"><b>Пока тихо</b><span>Напиши первым — можно обсудить задание, тему или подготовку.</span></div>';
+    feed.innerHTML=messages.length?messages.map(m=>`<article class="community-chat-message ${m.mine?'mine':''} ${m.pending?'pending':''} ${m.optimistic?'optimistic':''}" data-chat-message="${Number(m.id)}"><div class="community-chat-meta"><span class="community-chat-name">${esc(m.name)}</span>${m.badge?`<span class="community-chat-badge">${esc(m.badge)}</span>`:''}<span class="community-chat-time">${esc(m.pending?'отправляется…':m.optimistic?'сейчас':fmtTime(m.createdAt))}</span>${m.moderatable?'<button type="button" class="community-chat-more" data-chat-more aria-label="Модерация">⋯</button>':''}</div><div class="community-chat-text">${esc(m.body)}</div></article>`).join(''):'<div class="community-chat-empty"><b>Пока тихо</b><span>Напиши первым — можно обсудить задание, тему или подготовку.</span></div>';
     feed.querySelectorAll('[data-chat-more]').forEach(btn=>btn.onclick=()=>toggleMuteMenu(btn.closest('[data-chat-message]')));
     if(openMenuId){
       const reopened=feed.querySelector(`[data-chat-message="${openMenuId}"]`);
       if(reopened?.querySelector('[data-chat-more]'))toggleMuteMenu(reopened);
     }
-    if(initial||nearBottom)feed.scrollTop=feed.scrollHeight;
+    if(initial||nearBottom||pendingMessages.length)feed.scrollTop=feed.scrollHeight;
   }
   updateComposer();
 }
@@ -123,21 +140,60 @@ async function loadChat(initial=false){
   finally{loading=false}
 }
 
-async function sendMessage(){
-  if(!overlay)return;
-  const area=overlay.querySelector('textarea');
-  const button=overlay.querySelector('.community-chat-send');
-  const body=area.value.trim();
-  if(!body)return;
-  button.disabled=true;area.disabled=true;
+function makePending(body){
+  pendingSeq+=1;
+  return {id:-pendingSeq,body,name:'Вы',badge:'',mine:true,moderatable:false,createdAt:new Date().toISOString(),pending:true,optimistic:true,serverId:0};
+}
+
+async function flushOutbox(){
+  if(sending||!outbox.length)return;
+  sending=true;
+  const item=outbox[0];
+  const gap=Math.max(0,SEND_GAP_MS-(Date.now()-lastSentAt));
+  if(gap)await sleep(gap);
   try{
-    const r=await fetch('/api/community-chat/messages',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({body})});
+    const r=await fetch('/api/community-chat/messages',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({body:item.body})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok){if(d.mutedUntil)me.mutedUntil=d.mutedUntil;throw new Error(d.error||'Не удалось отправить')}
-    area.value='';area.style.height='auto';
-    await loadChat(true);
-  }catch(e){toast(e.message||'Не удалось отправить');updateComposer()}
-  finally{if(Number(me.mutedUntil||0)<=Date.now()){button.disabled=false;area.disabled=false;area.focus()}}
+    lastSentAt=Date.now();
+    item.pending.serverId=Number(d.id||0);
+    item.pending.pending=false;
+    outbox.shift();
+    renderMessages({me},false);
+    void loadChat(false);
+  }catch(e){
+    outbox.shift();
+    pendingMessages=pendingMessages.filter(message=>message!==item.pending);
+    renderMessages({me},false);
+    const area=overlay?.querySelector('textarea');
+    if(area&&!area.value.trim()){
+      area.value=item.body;
+      area.style.height='auto';
+      area.style.height=Math.min(area.scrollHeight,130)+'px';
+    }
+    toast(e.message||'Не удалось отправить');
+  }finally{
+    sending=false;
+    updateComposer();
+    if(outbox.length&&Number(me.mutedUntil||0)<=Date.now())void flushOutbox();
+  }
+}
+
+function sendMessage(){
+  if(!overlay)return;
+  const area=overlay.querySelector('textarea');
+  const body=area.value.trim();
+  if(!body)return;
+  if(Number(me.mutedUntil||0)>Date.now())return updateComposer();
+
+  const pending=makePending(body);
+  pendingMessages.push(pending);
+  outbox.push({body,pending});
+  area.value='';
+  area.style.height='auto';
+  renderMessages({me},false);
+  area.focus({preventScroll:true});
+  void flushOutbox();
 }
 
 function openChat(){
@@ -153,6 +209,7 @@ function openChat(){
   area.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
   overlay.querySelector('.community-chat-send').onclick=sendMessage;
   renderSignature='';
+  serverMessages=[];
   loadChat(true);
   poller=setInterval(()=>loadChat(false),2500);
   setTimeout(()=>area.focus(),120);
