@@ -22,7 +22,7 @@ async function adminStatus(){
 }
 
 async function revoke(reportId,button){
-  if(!confirm('Снять подписку ОСНОВА PRO у автора именно этого обращения? Личность автора останется скрытой.'))return;
+  if(button.disabled||button.dataset.done==='1')return;
   button.disabled=true;
   const old=button.textContent;
   button.textContent='Снимаем PRO…';
