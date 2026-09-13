@@ -92,7 +92,7 @@
     if(!target||!sourceNav)return;
     const sourceButtons=[...sourceNav.querySelectorAll('button[data-nav]')];
     const current=location.hash.slice(1)||'dashboard';
-    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|')+`|route:${current}|extras:v3`;
+    const signature=sourceButtons.map(btn=>`${btn.dataset.nav}:${btn.classList.contains('active')}`).join('|')+`|route:${current}|extras:v4`;
     if(target.dataset.signature===signature)return;
     target.dataset.signature=signature;
 
@@ -103,13 +103,17 @@
     }));
     const mapActive=current.startsWith('progress-map');
     const hasMap=regular.some(item=>item.route.startsWith('progress-map'));
+    let mapInserted=hasMap;
     let html='';
     for(const item of regular){
-      if(item.route==='mocks'&&!hasMap)html+=mapButtonHtml(mapActive);
+      if(item.route==='mocks'&&!mapInserted){
+        html+=mapButtonHtml(mapActive);
+        mapInserted=true;
+      }
       if(item.route==='profile')html+=aiButtonHtml();
       html+=`<button type="button" data-nav="${item.route}" class="${item.active?'active':''}" ${item.active?'aria-current="page"':''}>${item.html}</button>`;
     }
-    if(!hasMap)html+=mapButtonHtml(mapActive);
+    if(!mapInserted)html+=mapButtonHtml(mapActive);
     if(!regular.some(item=>item.route==='profile'))html+=aiButtonHtml();
     target.innerHTML=html;
   };
