@@ -5,6 +5,7 @@ const { row, rows, run } = database;
 
 const MAX_BODY = 8 * 1024;
 const MAX_MESSAGE = 900;
+const MAX_PREFIX = 24;
 const recentSends = new Map();
 const ALLOWED_MUTES = new Set([10, 60, 1440, 10080, 0]);
 const FOREVER_MS = Date.UTC(2999, 0, 1);
@@ -59,6 +60,13 @@ async function ensureSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`);
+    await run(`CREATE TABLE IF NOT EXISTS community_chat_prefixes (
+      user_id BIGINT PRIMARY KEY,
+      prefix TEXT NOT NULL,
+      assigned_by BIGINT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
   } else {
     await run(`CREATE TABLE IF NOT EXISTS community_chat_messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,6 +79,13 @@ async function ensureSchema() {
       muted_until_ms INTEGER NOT NULL,
       muted_by INTEGER NOT NULL,
       reason TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await run(`CREATE TABLE IF NOT EXISTS community_chat_prefixes (
+      user_id INTEGER PRIMARY KEY,
+      prefix TEXT NOT NULL,
+      assigned_by INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -107,27 +122,43 @@ function canModerateTarget(actor, actorStaff, target) {
   return true;
 }
 
+function canManageMessage(actor, actorStaff, target) {
+  if (!actorStaff.staff || !target) return false;
+  if (actorStaff.admin) return true;
+  if (target.role === 'admin') return false;
+  if (Number(target.is_moderator || 0) === 1) return false;
+  return true;
+}
+
 async function listMessages(res, user) {
   const info = await staffInfo(user);
   const mutedUntil = await activeMute(user.id);
   const list = await rows(`SELECT m.id,m.user_id,m.body,m.created_at,u.name,u.role,
-      CASE WHEN mu.user_id IS NULL THEN 0 ELSE 1 END is_moderator
+      CASE WHEN mu.user_id IS NULL THEN 0 ELSE 1 END is_moderator,
+      COALESCE(cp.prefix,'') chat_prefix
     FROM community_chat_messages m
     JOIN users u ON u.id=m.user_id
     LEFT JOIN moderator_users mu ON mu.user_id=u.id
+    LEFT JOIN community_chat_prefixes cp ON cp.user_id=u.id
     ORDER BY m.id DESC
     LIMIT 120`);
 
   list.reverse();
-  const messages = list.map(item => ({
-    id: Number(item.id),
-    body: String(item.body || ''),
-    createdAt: item.created_at,
-    name: String(item.name || 'Ученик'),
-    mine: Number(item.user_id) === Number(user.id),
-    badge: item.role === 'admin' ? 'Админ' : Number(item.is_moderator || 0) === 1 ? 'Модератор' : '',
-    moderatable: canModerateTarget(user, info, item),
-  }));
+  const messages = list.map(item => {
+    const prefix = String(item.chat_prefix || '').trim();
+    const plainName = String(item.name || 'Ученик');
+    return {
+      id: Number(item.id),
+      body: String(item.body || ''),
+      createdAt: item.created_at,
+      name: prefix ? `[${prefix}] ${plainName}` : plainName,
+      prefix,
+      mine: Number(item.user_id) === Number(user.id),
+      badge: item.role === 'admin' ? 'Админ' : Number(item.is_moderator || 0) === 1 ? 'Модератор' : '',
+      moderatable: canModerateTarget(user, info, item),
+      staffManageable: canManageMessage(user, info, item),
+    };
+  });
 
   json(res, 200, {
     messages,
@@ -172,10 +203,12 @@ async function sendMessage(req, res, user) {
 }
 
 async function messageTarget(messageId) {
-  return row(`SELECT m.user_id,u.role,CASE WHEN mu.user_id IS NULL THEN 0 ELSE 1 END is_moderator
+  return row(`SELECT m.user_id,u.role,CASE WHEN mu.user_id IS NULL THEN 0 ELSE 1 END is_moderator,
+      COALESCE(cp.prefix,'') chat_prefix
     FROM community_chat_messages m
     JOIN users u ON u.id=m.user_id
     LEFT JOIN moderator_users mu ON mu.user_id=u.id
+    LEFT JOIN community_chat_prefixes cp ON cp.user_id=u.id
     WHERE m.id=?`, messageId);
 }
 
@@ -244,6 +277,69 @@ async function unmuteFromMessage(res, user, messageId) {
   return true;
 }
 
+async function deleteMessage(res, user, messageId) {
+  const actor = await staffInfo(user);
+  if (!actor.staff) {
+    json(res, 403, { error: 'Недостаточно прав' });
+    return true;
+  }
+  const target = await messageTarget(messageId);
+  if (!target) {
+    json(res, 404, { error: 'Сообщение уже удалено' });
+    return true;
+  }
+  if (!canManageMessage(user, actor, target)) {
+    json(res, 403, { error: 'Это сообщение нельзя удалить' });
+    return true;
+  }
+  await run('DELETE FROM community_chat_messages WHERE id=?', messageId);
+  json(res, 200, { ok: true });
+  return true;
+}
+
+async function setPrefix(req, res, user, messageId) {
+  const actor = await staffInfo(user);
+  if (!actor.staff) {
+    json(res, 403, { error: 'Недостаточно прав' });
+    return true;
+  }
+  const target = await messageTarget(messageId);
+  if (!target) {
+    json(res, 404, { error: 'Сообщение не найдено' });
+    return true;
+  }
+  if (!canManageMessage(user, actor, target)) {
+    json(res, 403, { error: 'Этому пользователю нельзя менять префикс' });
+    return true;
+  }
+
+  const payload = await readJson(req);
+  const prefix = String(payload.prefix || '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, MAX_PREFIX);
+
+  if (!prefix) {
+    await run('DELETE FROM community_chat_prefixes WHERE user_id=?', target.user_id);
+    json(res, 200, { ok: true, prefix: '' });
+    return true;
+  }
+
+  await run(`INSERT INTO community_chat_prefixes(user_id,prefix,assigned_by,created_at,updated_at)
+    VALUES(?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id) DO UPDATE SET
+      prefix=excluded.prefix,
+      assigned_by=excluded.assigned_by,
+      updated_at=CURRENT_TIMESTAMP`,
+    target.user_id,
+    prefix,
+    user.id,
+  );
+  json(res, 200, { ok: true, prefix });
+  return true;
+}
+
 async function handle(req, res, url) {
   const path = url.pathname;
   if (!path.startsWith('/api/community-chat')) return false;
@@ -262,6 +358,12 @@ async function handle(req, res, url) {
 
   match = path.match(/^\/api\/community-chat\/messages\/(\d+)\/unmute$/);
   if (match && req.method === 'POST') return unmuteFromMessage(res, user, Number(match[1]));
+
+  match = path.match(/^\/api\/community-chat\/messages\/(\d+)\/prefix$/);
+  if (match && req.method === 'POST') return setPrefix(req, res, user, Number(match[1]));
+
+  match = path.match(/^\/api\/community-chat\/messages\/(\d+)$/);
+  if (match && req.method === 'DELETE') return deleteMessage(res, user, Number(match[1]));
 
   json(res, 405, { error: 'Недоступное действие' });
   return true;
