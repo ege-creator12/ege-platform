@@ -37,7 +37,7 @@
   .premium-motion:hover::after{transform:translateX(370%) rotate(10deg);opacity:1}
   .premium-motion>*{position:relative;z-index:1}
 
-  .premium-hero.premium-motion{transform:perspective(1250px) translate3d(calc(var(--tx)*.55),calc((var(--ty) + var(--lift))*.55),0) rotateX(calc(var(--rx)*.42)) rotateY(calc(var(--ry)*.42))!important}
+  .premium-hero.premium-motion{transform:perspective(1250px) translate3d(var(--tx),calc(var(--ty) + var(--lift)),0) rotateX(var(--rx)) rotateY(var(--ry))!important}
   .premium-hero.premium-motion:hover{--lift:-2px}
   .premium-hero-copy,.premium-hero-note{transition:transform .18s cubic-bezier(.2,.72,.2,1)}
   .premium-hero.is-pointer-active .premium-hero-copy{transform:translate3d(calc(var(--nx)*7px),calc(var(--ny)*7px),22px)}
