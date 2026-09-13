@@ -13,13 +13,13 @@
   #app,.app{position:relative;z-index:1}
 
   .premium-motion{
-    --mx:50%;--my:50%;--rx:0deg;--ry:0deg;--tx:0px;--ty:0px;--lift:0px;
+    --mx:50%;--my:50%;--rx:0deg;--ry:0deg;--lift:0px;
     position:relative!important;overflow:hidden!important;
-    transform:perspective(1050px) translate3d(var(--tx),calc(var(--ty) + var(--lift)),0) rotateX(var(--rx)) rotateY(var(--ry))!important;
+    transform:perspective(1050px) rotateX(var(--rx)) rotateY(var(--ry)) translate3d(0,var(--lift),0)!important;
     transform-style:preserve-3d;
     backface-visibility:hidden;
     will-change:transform;
-    transition:transform .18s cubic-bezier(.2,.72,.2,1),border-color .22s ease,box-shadow .22s ease,filter .22s ease!important;
+    transition:transform .2s cubic-bezier(.2,.72,.2,1),border-color .22s ease,box-shadow .22s ease,filter .22s ease!important;
   }
   .premium-motion::before{
     content:"";position:absolute;inset:-1px;z-index:0;pointer-events:none;border-radius:inherit;
@@ -32,28 +32,26 @@
     transform:translateX(-80%) rotate(10deg);opacity:0;
     transition:transform .58s cubic-bezier(.2,.75,.2,1),opacity .2s ease;
   }
-  .premium-motion:hover{--lift:-4px;border-color:rgba(108,245,168,.4)!important;box-shadow:0 28px 72px rgba(0,0,0,.34),0 10px 28px rgba(0,0,0,.16),0 0 0 1px rgba(101,255,170,.06),0 0 38px rgba(57,224,126,.075)!important;filter:saturate(1.035) brightness(1.015)}
+  .premium-motion:hover{--lift:-5px;border-color:rgba(108,245,168,.4)!important;box-shadow:0 28px 72px rgba(0,0,0,.34),0 10px 28px rgba(0,0,0,.16),0 0 0 1px rgba(101,255,170,.06),0 0 38px rgba(57,224,126,.075)!important;filter:saturate(1.035) brightness(1.015)}
   .premium-motion:hover::before{opacity:1}
   .premium-motion:hover::after{transform:translateX(370%) rotate(10deg);opacity:1}
   .premium-motion>*{position:relative;z-index:1}
 
-  .premium-hero.premium-motion{transform:perspective(1250px) translate3d(var(--tx),calc(var(--ty) + var(--lift)),0) rotateX(var(--rx)) rotateY(var(--ry))!important}
+  .premium-hero.premium-motion{transform:perspective(1250px) rotateX(calc(var(--rx)*.42)) rotateY(calc(var(--ry)*.42)) translate3d(0,calc(var(--lift)*.45),0)!important}
   .premium-hero.premium-motion:hover{--lift:-2px}
-  .premium-hero-copy,.premium-hero-note{transition:transform .18s cubic-bezier(.2,.72,.2,1)}
+  .premium-hero-copy,.premium-hero-note{transition:transform .2s cubic-bezier(.2,.72,.2,1)}
   .premium-hero.is-pointer-active .premium-hero-copy{transform:translate3d(calc(var(--nx)*7px),calc(var(--ny)*7px),22px)}
   .premium-hero.is-pointer-active .premium-hero-note{transform:translate3d(calc(var(--nx)*-9px),calc(var(--ny)*-9px),32px)}
 
-  .premium-subject-card.premium-motion:hover,.premium-quick-card.premium-motion:hover{--lift:-6px}
-  .premium-metric.premium-motion:hover{--lift:-5px}
-  .premium-week.premium-motion:hover,.premium-calendar.premium-motion:hover,.premium-quote.premium-motion:hover,.premium-leaderboard.premium-motion:hover,.premium-focus.premium-motion:hover{--lift:-4px}
+  .premium-quick-card.premium-motion:hover{--lift:-7px}
+  .premium-metric.premium-motion:hover{--lift:-6px}
+  .premium-week.premium-motion:hover,.premium-calendar.premium-motion:hover,.premium-quote.premium-motion:hover{--lift:-5px}
   .premium-continue.premium-motion:hover{--lift:-4px}
-  .topics>.premium-motion:hover,.grid3>.premium-motion:hover{--lift:-6px}
-  .quick-continue.premium-motion:hover{--lift:-3px}
+  .topics>.premium-motion:hover,.grid3>.premium-motion:hover{--lift:-7px}
+  .quick-continue.premium-motion:hover{--lift:-4px}
   .view-switch.premium-motion:hover{--lift:-2px}
-  .premium-side-pro.premium-motion:hover{--lift:-3px}
 
-  .topics>.card,.grid3>.card,.quick-continue,.line-card,.mock-variant-card,
-  .dashboard-card,.dashboard-widget,.widget,.panel,.tile,.stat-card,.stats-card,.progress-card,.trend-card,.road-card,.coach-card,.ai-card,.profile-card,.subscription-card,.search-card{
+  .topics>.card,.grid3>.card,.quick-continue,.line-card,.mock-variant-card{
     backdrop-filter:blur(14px) saturate(1.06);
     -webkit-backdrop-filter:blur(14px) saturate(1.06);
   }
@@ -71,13 +69,8 @@
   .sidebar nav button::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(110,255,176,.08),transparent);transform:translateX(-120%);transition:transform .45s ease}
   .sidebar nav button:hover::after{transform:translateX(120%)}
 
-  /* Exam/practice tasks must remain completely stable and readable. */
-  .question-card,.question-card *,.question-shell,.question-shell *,
-  .training-question,.training-question *,.training-task,.training-task *,
-  .task-card,.task-card *,.exercise-card,.exercise-card *,
-  .exam-question,.exam-question *,.mock-question,.mock-question *,.mock-task,.mock-task *,
-  [data-question-id],[data-question-id] *,[data-task-id],[data-task-id] *,[data-question],[data-question] *,[data-exercise],[data-exercise] *,
-  .training .option,.training .answer-input,.training .result{
+  /* Exam/practice tasks must remain stable and readable. */
+  .question-card,.question-card *,.training .option,.training .answer-input,.training .result{
     transform:none!important;
     filter:none!important;
   }
