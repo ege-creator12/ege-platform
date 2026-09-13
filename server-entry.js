@@ -8,6 +8,7 @@ database.run = (sql, ...params) => originalRun(
 );
 
 require('./server-problem-moderation-patch');
+require('./server-community-chat-live-patch');
 
 async function ensureAiUsageStorage(){
   const userIdType=database.dialect==='postgresql'?'BIGINT':'INTEGER';
