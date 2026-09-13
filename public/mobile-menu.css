@@ -6,6 +6,7 @@
 
   /* The old bottom bar becomes unreadable with 5–6 sections on a phone. */
   .mobile-nav{display:none!important}
+  .community-chat-mobile-launch,.problem-report-fab{display:none!important}
   .app main{padding-bottom:calc(32px + env(safe-area-inset-bottom))!important}
 
   .topbar{
