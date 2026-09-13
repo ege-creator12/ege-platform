@@ -45,9 +45,14 @@ function paintBadges(){
       badge.setAttribute('aria-hidden','true');
       btn.appendChild(badge);
     }
-    badge.textContent=unread>99?'99+':String(unread);
-    badge.classList.toggle('show',unread>0);
-    if(unread>0)btn.setAttribute('aria-label',`Общий чат — ${unread} новых сообщений`);
+    const nextText=unread>99?'99+':String(unread);
+    if(badge.textContent!==nextText)badge.textContent=nextText;
+    const shouldShow=unread>0;
+    if(badge.classList.contains('show')!==shouldShow)badge.classList.toggle('show',shouldShow);
+    if(shouldShow){
+      const label=`Общий чат — ${unread} новых сообщений`;
+      if(btn.getAttribute('aria-label')!==label)btn.setAttribute('aria-label',label);
+    }
   });
 }
 
@@ -110,9 +115,15 @@ async function sync(){
   finally{syncing=false}
 }
 
+let observerQueued=false;
 const observer=new MutationObserver(()=>{
-  paintBadges();
-  if(isChatOpen()&&latestKnown)setSeen(latestKnown);
+  if(observerQueued)return;
+  observerQueued=true;
+  requestAnimationFrame(()=>{
+    observerQueued=false;
+    paintBadges();
+    if(isChatOpen()&&latestKnown)setSeen(latestKnown);
+  });
 });
 observer.observe(document.documentElement,{childList:true,subtree:true});
 
