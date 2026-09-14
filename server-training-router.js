@@ -101,8 +101,8 @@ async function createGeneralTraining(req,res){
   onlySubjectId=Number(lessonInfo.subject_id);
   resolvedSubject=String(lessonInfo.subject_slug||'');
  }else if(examLine){
-  resolvedSubject='biology';
-  onlySubjectId=await subjectId('biology');
+  resolvedSubject = 'biology';
+  onlySubjectId = await subjectId('biology');
  }else if(requestedSubject){
   onlySubjectId=await subjectId(requestedSubject);
  }else if(topicId){
@@ -110,10 +110,10 @@ async function createGeneralTraining(req,res){
   onlySubjectId=Number(topic?.subject_id||0);
   if(onlySubjectId){const subject=await row('SELECT slug FROM subjects WHERE id=? AND published=1',onlySubjectId);resolvedSubject=String(subject?.slug||'')}
  }else{
-  resolvedSubject='biology';
-  onlySubjectId=await subjectId('biology');
+  resolvedSubject = 'biology';
+  onlySubjectId = await subjectId('biology');
  }
- if(!onlySubjectId)return json(res,404,{error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
+ if (!onlySubjectId) return json(res, 404, {error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
 
  let ids=[];
  if(lessonId){
@@ -121,7 +121,7 @@ async function createGeneralTraining(req,res){
   ids=resolved.ids.slice(0,target);
   if(ids.length<MIN_LESSON_QUESTIONS)return json(res,404,{error:'Для этого урока пока недостаточно заданий для полноценной практики.',code:'LESSON_PRACTICE_INCOMPLETE'});
  }else{
-  ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId:onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
+  ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId: onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
  }
  if(!ids.length)return json(res,404,{error:examLine?`В строгом банке линии ${examLine} пока нет подходящих заданий`:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});
  if(examLine)await assertBiologyLineIds(ids,examLine,onlySubjectId);
