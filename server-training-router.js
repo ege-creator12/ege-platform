@@ -8,6 +8,7 @@ const database = require('./src/db');
 const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const chemistryExamRegistry = require('./content/chemistry/exam-lines');
 const { lessonPracticePool, MIN_LESSON_QUESTIONS } = require('./src/lesson-practice');
+const { selectExamLineQuestionIds } = require('./src/training-line-selection');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -27,6 +28,21 @@ async function auth(req,res){const user=await userFor(req);if(!user){json(res,40
 const isCorrect=value=>value===true||value===1||value==='1'||value==='true';
 function dueAt(value){if(!value)return false;const time=value instanceof Date?value.getTime():Date.parse(value);return Number.isFinite(time)&&time<=Date.now()}
 async function recentPresentedIds(userId){const recent=await rows(`SELECT tsq.question_id FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id WHERE s.user_id=? AND tsq.presented_at IS NOT NULL ORDER BY tsq.presented_at DESC,tsq.session_id DESC,tsq.position DESC LIMIT 10`,userId);return new Set(recent.map(x=>Number(x.question_id)))}
+async function questionExposure(userId,questionIds){
+ if(!questionIds.length)return new Map();
+ const marks=questionIds.map(()=>'?').join(',');
+ const history=await rows(`SELECT tsq.question_id,COUNT(*) assigned_count,COUNT(tsq.presented_at) presented_count,
+   MAX(s.started_at) last_assigned_at,MAX(tsq.presented_at) last_presented_at
+   FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id
+   WHERE s.user_id=? AND tsq.question_id IN (${marks})
+   GROUP BY tsq.question_id`,userId,...questionIds);
+ return new Map(history.map(item=>[Number(item.question_id),{
+   assignedCount:Number(item.assigned_count||0),
+   presentedCount:Number(item.presented_count||0),
+   lastAssignedAt:item.last_assigned_at||null,
+   lastPresentedAt:item.last_presented_at||null,
+ }]));
+}
 function emptyMessage(mode){if(mode==='new')return 'Новых заданий сейчас нет — выберите другой режим.';if(mode==='review')return 'Заданий, срок повторения которых наступил, сейчас нет.';if(mode==='mistakes'||mode==='errors')return 'Ошибок для повторения пока нет.';return 'Для выбранной тренировки пока нет заданий.'}
 async function subjectId(slug){const subject=await row('SELECT id FROM subjects WHERE slug=? AND published=1',slug);return Number(subject?.id||0)}
 function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[`biology-bank-v6-line${line}-%`]}}
@@ -37,11 +53,18 @@ async function questionPool(userId,topicId,mode,limit,options={}){
  let strictClause='',strictParams=[];
  if(strictBiologyLine){const rule=biologyLineRule(examLine);if(!rule)return [];strictClause=` AND (${rule.patterns.map(()=>`q.external_key LIKE ?`).join(' OR ')})`;strictParams=[...rule.patterns];}
  const candidateLimit=Math.min(700,Math.max(limit*24,140));
- const candidates=await rows(`WITH RECURSIVE tree(id) AS (SELECT CAST(? AS BIGINT) UNION ALL SELECT t.id FROM topics t JOIN tree ON t.parent_id=tree.id), latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.id,q.external_key,q.exam_line,q.difficulty,a.id attempt_id,a.correct,a.next_review_at FROM questions q LEFT JOIN latest a ON a.question_id=q.id AND a.rn=1 WHERE q.active=1 AND (?=0 OR q.topic_id IN (SELECT id FROM tree)) AND (?=0 OR q.exam_line=?) AND (?=0 OR q.subject_id=?) AND (?=0 OR q.published=1) ${strictClause} AND ${filter} ORDER BY RANDOM() LIMIT ?`,topicId,userId,topicId,examLine,examLine,onlySubjectId,onlySubjectId,publishedOnly?1:0,...strictParams,candidateLimit);
+ const candidates=await rows(`WITH RECURSIVE tree(id) AS (SELECT CAST(? AS BIGINT) UNION ALL SELECT t.id FROM topics t JOIN tree ON t.parent_id=tree.id), latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.id,q.external_key,q.exam_line,q.prompt,q.content_json,q.answer_json,q.image_url,q.difficulty,a.id attempt_id,a.correct,a.next_review_at FROM questions q LEFT JOIN latest a ON a.question_id=q.id AND a.rn=1 WHERE q.active=1 AND (?=0 OR q.topic_id IN (SELECT id FROM tree)) AND (?=0 OR q.exam_line=?) AND (?=0 OR q.subject_id=?) AND (?=0 OR q.published=1) ${strictClause} AND ${filter} ORDER BY RANDOM() LIMIT ?`,topicId,userId,topicId,examLine,examLine,onlySubjectId,onlySubjectId,publishedOnly?1:0,...strictParams,candidateLimit);
  if(!candidates.length)return [];
+
+ if(examLine){
+  const exposure=await questionExposure(userId,candidates.map(candidate=>Number(candidate.id)));
+  return selectExamLineQuestionIds(candidates,exposure,{mode,limit});
+ }
+
  const recent=await recentPresentedIds(userId),adaptive=['adaptive','mixed','infinite','topic','hard'].includes(mode);
  const scored=candidates.map((candidate,randomIndex)=>{let learningPriority=0;if(adaptive){if(candidate.attempt_id&&!isCorrect(candidate.correct))learningPriority=0;else if(candidate.attempt_id&&dueAt(candidate.next_review_at))learningPriority=1;else if(!candidate.attempt_id)learningPriority=2;else learningPriority=3;}return {...candidate,recentPenalty:recent.has(Number(candidate.id))?1:0,learningPriority,randomIndex}});
- scored.sort((a,b)=>a.recentPenalty-b.recentPenalty||a.learningPriority-b.learningPriority||Number(a.difficulty||1)-Number(b.difficulty||1)||a.randomIndex-b.randomIndex);
+ const difficultyDirection=mode==='hard'?-1:1;
+ scored.sort((a,b)=>a.recentPenalty-b.recentPenalty||a.learningPriority-b.learningPriority||difficultyDirection*(Number(a.difficulty||1)-Number(b.difficulty||1))||a.randomIndex-b.randomIndex);
  return scored.slice(0,limit).map(x=>Number(x.id));
 }
 
@@ -78,8 +101,8 @@ async function createGeneralTraining(req,res){
   onlySubjectId=Number(lessonInfo.subject_id);
   resolvedSubject=String(lessonInfo.subject_slug||'');
  }else if(examLine){
-  resolvedSubject = 'biology';
-  onlySubjectId = await subjectId('biology');
+  resolvedSubject='biology';
+  onlySubjectId=await subjectId('biology');
  }else if(requestedSubject){
   onlySubjectId=await subjectId(requestedSubject);
  }else if(topicId){
@@ -87,10 +110,10 @@ async function createGeneralTraining(req,res){
   onlySubjectId=Number(topic?.subject_id||0);
   if(onlySubjectId){const subject=await row('SELECT slug FROM subjects WHERE id=? AND published=1',onlySubjectId);resolvedSubject=String(subject?.slug||'')}
  }else{
-  resolvedSubject = 'biology';
-  onlySubjectId = await subjectId('biology');
+  resolvedSubject='biology';
+  onlySubjectId=await subjectId('biology');
  }
- if (!onlySubjectId) return json(res, 404, {error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
+ if(!onlySubjectId)return json(res,404,{error:'Предмет тренировки не найден',code:'TRAINING_SUBJECT_NOT_FOUND'});
 
  let ids=[];
  if(lessonId){
@@ -98,7 +121,7 @@ async function createGeneralTraining(req,res){
   ids=resolved.ids.slice(0,target);
   if(ids.length<MIN_LESSON_QUESTIONS)return json(res,404,{error:'Для этого урока пока недостаточно заданий для полноценной практики.',code:'LESSON_PRACTICE_INCOMPLETE'});
  }else{
-  ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId: onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
+  ids=await questionPool(user.id,topicId,mode,target,{examLine,subjectId:onlySubjectId,publishedOnly:Boolean(examLine),strictBiologyLine:Boolean(examLine)});
  }
  if(!ids.length)return json(res,404,{error:examLine?`В строгом банке линии ${examLine} пока нет подходящих заданий`:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});
  if(examLine)await assertBiologyLineIds(ids,examLine,onlySubjectId);
