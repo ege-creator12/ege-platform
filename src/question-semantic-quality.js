@@ -29,7 +29,8 @@ function normalizeText(value){
 
 const IGNORED_KEYS=new Set([
   'variant','strictbankversion','strictfipi2027','strictexamline',
-  'mediumvariant','mediumbankversion','qualitytier','answerencoding'
+  'mediumvariant','mediumbankversion','qualitytier','answerencoding',
+  'qualitybankversion','qualityexamline'
 ]);
 
 function canonicalValue(value,key=''){
@@ -38,8 +39,8 @@ function canonicalValue(value,key=''){
   if(typeof value==='number'||typeof value==='boolean')return value;
   if(Array.isArray(value)){
     const items=value.map(item=>canonicalValue(item,key));
-    // The order of answer choices / the right column in matching tasks is UI noise;
-    // content on the left, table rows and sequence data keep their original order.
+    // Answer-option order and the right column of matching tasks are presentation
+    // details. Left-hand data, table rows and sequence order remain meaningful.
     if(['right','options'].includes(String(key).toLowerCase()))return items.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b),'ru'));
     return items;
   }
@@ -54,11 +55,18 @@ function canonicalValue(value,key=''){
   return normalizeText(value);
 }
 
+function parseContent(value){
+  if(!value)return {};
+  if(typeof value==='object')return value;
+  try{return JSON.parse(value);}catch{return value;}
+}
+function canonicalContent(item){return canonicalValue(parseContent(item?.content??item?.content_json??{}));}
+
 function semanticFingerprint(item){
   const prompt=normalizeText(item?.prompt);
   const image=String(item?.imageUrl||item?.image_url||'');
   const optionLabels=(item?.options||[]).map(option=>normalizeText(option?.label)).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ru'));
-  const content=canonicalValue(item?.content||item?.content_json||{});
+  const content=canonicalContent(item);
   return JSON.stringify({prompt,image,optionLabels,content});
 }
 
@@ -79,8 +87,16 @@ function nearDuplicate(a,b,{threshold=0.96}={}){
   if(String(a.type||a.questionType||'')!==String(b.type||b.questionType||''))return false;
   if(String(a.imageUrl||a.image_url||'')!==String(b.imageUrl||b.image_url||''))return false;
   if(semanticFingerprint(a)===semanticFingerprint(b))return true;
+
+  // Reused EGE instructions are normal. If the structured payload (table,
+  // matching left side, experimental data, etc.) is different, the task itself
+  // is different even when the top-level prompt is identical.
+  const contentA=JSON.stringify(canonicalContent(a));
+  const contentB=JSON.stringify(canonicalContent(b));
+  if(contentA!==contentB&&(contentA!=='{}'||contentB!=='{}'))return false;
+
   const sameOptions=JSON.stringify((a.options||[]).map(x=>normalizeText(x.label)).sort())===JSON.stringify((b.options||[]).map(x=>normalizeText(x.label)).sort());
   return sameOptions&&jaccard(a.prompt,b.prompt)>=threshold;
 }
 
-module.exports={normalizeText,canonicalValue,semanticFingerprint,jaccard,nearDuplicate};
+module.exports={normalizeText,canonicalValue,canonicalContent,semanticFingerprint,jaccard,nearDuplicate};
