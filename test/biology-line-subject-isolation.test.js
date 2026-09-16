@@ -15,17 +15,17 @@ test('strict biology line patterns are unique for every EGE line', () => {
   const patterns = registry.lines.map(info => strictPattern(info.line));
   assert.equal(new Set(patterns).size, 28);
   registry.lines.forEach(info => {
-    assert.equal(strictPattern(info.line), `biology-bank-v6-line${info.line}-%`);
+    assert.equal(strictPattern(info.line), `biology-bank-v7-line${info.line}-%`);
   });
 });
 
-test('biology line payload scopes count, progress, mistakes and examples to biology v6', async () => {
+test('biology line payload scopes count, progress, mistakes and examples to biology v7', async () => {
   const queries = [];
   const db = {
     async row(sql, ...params) {
       queries.push({ kind: 'row', sql, params });
       if (/FROM subjects/.test(sql)) return { id: 77, title: 'Биология' };
-      if (/COUNT\(\*\) n FROM questions/.test(sql)) return { n: 24 };
+      if (/COUNT\(\*\) n FROM questions/.test(sql)) return { n: 12 };
       if (/COUNT\(\*\) attempted/.test(sql)) return { attempted: 5, correct: 4, last_attempt_at: null };
       return {};
     },
@@ -38,8 +38,8 @@ test('biology line payload scopes count, progress, mistakes and examples to biol
   const payload = await biologyLinePayload(db, registry, 19, 123);
   assert.equal(payload.subjectSlug, 'biology');
   assert.equal(payload.strictBank, true);
-  assert.equal(payload.bankVersion, 6);
-  assert.equal(payload.questionCount, 24);
+  assert.equal(payload.bankVersion, 7);
+  assert.equal(payload.questionCount, 12);
 
   const questionQueries = queries.filter(item => /questions q|FROM questions/.test(item.sql));
   assert.ok(questionQueries.length >= 4);
@@ -49,7 +49,7 @@ test('biology line payload scopes count, progress, mistakes and examples to biol
     assert.match(item.sql, /q\.external_key LIKE \?/);
     assert.ok(item.params.includes(77), 'biology subject id must be passed');
     assert.ok(item.params.includes(19), 'requested line must be passed');
-    assert.ok(item.params.includes('biology-bank-v6-line19-%'), 'strict v6 prefix must be passed');
+    assert.ok(item.params.includes('biology-bank-v7-line19-%'), 'strict v7 prefix must be passed');
   }
 });
 
