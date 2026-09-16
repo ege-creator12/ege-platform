@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const nativeFetch=window.fetch.bind(window);
-const PRICE_TEXT='Стоимость подписки AI PRO — 39 990 рублей.';
+const PRICE_TEXT='Стоимость подписки AI PRO — 1 749 рублей в месяц.';
 const priceQuestion=text=>{
   const q=String(text||'').toLowerCase().replace(/ё/g,'е');
   const asksPrice=/(сколько\s+стоит|сколько\s+будет\s+стоить|цена|ценник|стоимость|тариф|подписк)/i.test(q);
@@ -52,5 +52,5 @@ window.fetch=async(input,init={})=>{
 
   return response;
 };
-window.OSNOVA_AI_PRO_PRICE=39990;
+window.OSNOVA_AI_PRO_PRICE=1749;
 })();
