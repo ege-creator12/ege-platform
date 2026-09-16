@@ -56,6 +56,65 @@ function maxScore(question) {
   return Math.max(1, Number.isFinite(raw) ? Math.round(raw) : 1);
 }
 
+function dayOf(value) {
+  if (!value) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  const text = String(value);
+  const iso = text.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (iso) return iso;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '';
+}
+
+async function upgradeLegacyAnswers(userId, sessionId) {
+  const context = await row(`SELECT tas.assignment_id
+    FROM teacher_assignment_students tas
+    JOIN training_sessions ts ON ts.id=tas.training_session_id
+    WHERE tas.training_session_id=? AND tas.user_id=? AND ts.user_id=?`, sessionId, userId, userId);
+  if (!context) throw Object.assign(new Error('Эта тренировка не является домашним заданием'), { status: 404, code: 'NOT_HOMEWORK' });
+
+  return transaction(async tx => {
+    const legacy = await tx.rows(`SELECT tsq.question_id,tsq.attempt_id,a.answer_json,a.duration_seconds,a.result_json,a.created_at,
+        q.points,q.max_score,q.explanation_json
+      FROM training_session_questions tsq
+      JOIN attempts a ON a.id=tsq.attempt_id AND a.user_id=?
+      JOIN questions q ON q.id=tsq.question_id
+      WHERE tsq.session_id=? AND tsq.attempt_id IS NOT NULL`, userId, sessionId);
+    if (!legacy.length) return { migrated: 0, reversedXp: 0 };
+
+    let reversedXp = 0;
+    const days = new Map();
+    for (const item of legacy) {
+      const result = parseJson(item.result_json, {}) || {};
+      reversedXp += Math.max(0, Number(result.xp || 0));
+      const answer = normalizedAnswer(parseJson(item.answer_json, []));
+      const pending = {
+        pending: true,
+        migratedFromLegacy: true,
+        answer,
+        duration: Math.max(0, Number(item.duration_seconds || 0)),
+        savedAt: item.created_at instanceof Date ? item.created_at.toISOString() : String(item.created_at || new Date().toISOString()),
+      };
+      await tx.run(`INSERT INTO teacher_homework_reviews(session_id,assignment_id,user_id,question_id,attempt_id,score,max_score,review_json)
+        VALUES(?,?,?,?,NULL,0,?,?)
+        ON CONFLICT(session_id,question_id) DO UPDATE SET attempt_id=NULL,score=0,max_score=excluded.max_score,review_json=excluded.review_json,updated_at=CURRENT_TIMESTAMP`,
+        sessionId, context.assignment_id, userId, item.question_id, maxScore(item), JSON.stringify(pending));
+      await tx.run("UPDATE training_session_questions SET attempt_id=NULL,state='answered',answered_at=COALESCE(answered_at,CURRENT_TIMESTAMP) WHERE session_id=? AND question_id=?", sessionId, item.question_id);
+      await tx.run('DELETE FROM attempts WHERE id=? AND user_id=?', item.attempt_id, userId);
+      const day = dayOf(item.created_at);
+      if (day) days.set(day, Number(days.get(day) || 0) + 1);
+    }
+
+    if (reversedXp > 0) {
+      await tx.run('UPDATE users SET xp=CASE WHEN xp>=? THEN xp-? ELSE 0 END WHERE id=?', reversedXp, reversedXp, userId);
+    }
+    for (const [day, count] of days) {
+      await tx.run('UPDATE activity_days SET solved=CASE WHEN solved>? THEN solved-? ELSE 0 END WHERE user_id=? AND day=?', count, count, userId, day);
+    }
+    return { migrated: legacy.length, reversedXp };
+  });
+}
+
 async function fillUnanswered(userId, sessionId) {
   const context = await row(`SELECT tas.assignment_id,ts.status
     FROM teacher_assignment_students tas
@@ -124,7 +183,11 @@ async function handle(req, res, url) {
       const user = await requireUser(req, res); if (!user) return true;
       await readJson(req);
       const sessionId = idOf(match[1]);
-      await fillUnanswered(user.id, sessionId);
+      const alreadyBatch = await row('SELECT session_id FROM teacher_homework_batch_reviews WHERE session_id=? AND user_id=?', sessionId, user.id);
+      if (!alreadyBatch) {
+        await upgradeLegacyAnswers(user.id, sessionId);
+        await fillUnanswered(user.id, sessionId);
+      }
       json(res, 200, await teacherBatch.finalizeBatch(user, sessionId));
       return true;
     }
@@ -135,4 +198,4 @@ async function handle(req, res, url) {
   return false;
 }
 
-module.exports = { handle, fillUnanswered, normalizedAnswer, NO_ANSWER };
+module.exports = { handle, fillUnanswered, upgradeLegacyAnswers, normalizedAnswer, NO_ANSWER };
