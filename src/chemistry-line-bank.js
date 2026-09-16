@@ -8,5 +8,6 @@ module.exports={
  ...require('./chemistry-bank-extended'),
  ...require('./chemistry-bank-foundations-ege'),
  ...require('./chemistry-bank-core-ege'),
- ...require('./chemistry-bank-first-part-ege')
+ ...require('./chemistry-bank-first-part-ege'),
+ ...require('./chemistry-bank-diverse-v3')
 };
