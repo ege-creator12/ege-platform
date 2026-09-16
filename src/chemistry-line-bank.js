@@ -10,5 +10,6 @@ module.exports={
  ...require('./chemistry-bank-core-ege'),
  ...require('./chemistry-bank-first-part-ege'),
  ...require('./chemistry-bank-diverse-v3'),
- ...require('./chemistry-bank-diversity-final')
+ ...require('./chemistry-bank-diversity-final'),
+ ...require('./chemistry-bank-line33-diverse')
 };
