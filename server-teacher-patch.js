@@ -4,6 +4,7 @@ const moderator = require('./server-moderator');
 const teacher = require('./server-teacher');
 const teacherV2 = require('./server-teacher-v2');
 const teacherV3 = require('./server-teacher-v3');
+const teacherFastRead = require('./server-teacher-fast-read');
 
 if (!moderator.__teacherConsolePatched) {
   const originalEnsureSchema = moderator.ensureSchema.bind(moderator);
@@ -16,6 +17,7 @@ if (!moderator.__teacherConsolePatched) {
   };
 
   moderator.handle = async function handleWithTeacher(req, res, url) {
+    if (await teacherFastRead.handle(req, res, url)) return true;
     if (await teacherV3.handle(req, res, url)) return true;
     if (await teacherV2.handle(req, res, url)) return true;
     if (await teacher.handle(req, res, url)) return true;
