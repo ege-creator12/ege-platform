@@ -38,6 +38,17 @@ check(entry.includes('NODE_OPTIONS'), 'release security propagates to child Node
 check(/owner-claim/.test(security) && /blockedPrivilegedPath/.test(security), 'legacy owner-claim path is denied before routing');
 check(/student_email/.test(security) && /studentEmail/.test(security), 'teacher response sanitizer covers legacy email field names');
 
+for (const migration of [
+  'migrations/007_admin_owner.sql',
+  'migrations/008_owner_account.sql',
+  'migrations/postgres/006_admin_owner.sql',
+  'migrations/postgres/007_owner_account.sql',
+  'migrations/postgres/008_secure_owner.sql',
+]) {
+  const sql = read(migration);
+  check(!/SET\s+role\s*=\s*['"]admin['"]/i.test(sql), `${migration} does not auto-promote a registered user to admin`);
+}
+
 const publicFiles = [];
 function walk(dir) {
   for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
