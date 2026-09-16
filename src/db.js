@@ -34,12 +34,31 @@ function pgSql(sql) {
   return sql.replace(/\b(active|published|correct)\s*=\s*1\b/gi, '$1=TRUE').replace(/\b(active|published|correct)\s*=\s*0\b/gi, '$1=FALSE').replace(/AVG\(((?:\w+\.)?)correct\)/gi, 'AVG($1correct::int)').replace(/SUM\(((?:\w+\.)?)correct\)/gi, 'SUM($1correct::int)').replace(/\?/g, () => `$${++index}`);
 }
 
+const sleep = ms => new Promise(resolveSleep => setTimeout(resolveSleep, ms));
+function transientPgReadError(error) {
+  const code = String(error?.code || '');
+  const message = String(error?.message || '');
+  return ['ECONNRESET','ETIMEDOUT','57P01','57P02','57P03','53300'].includes(code)
+    || /timeout exceeded when trying to connect|connection terminated|server closed the connection unexpectedly|max clients reached|EMAXCONNSESSION|ECONNRESET|ETIMEDOUT/i.test(message);
+}
+async function pgRead(sql, params) {
+  const text = pgSql(sql);
+  try {
+    return await pool.query(text, params);
+  } catch (error) {
+    if (!transientPgReadError(error)) throw error;
+    console.warn('pg-read-retry', error?.code || 'TRANSIENT', String(error?.message || '').slice(0, 160));
+    await sleep(150 + Math.floor(Math.random() * 151));
+    return pool.query(text, params);
+  }
+}
+
 async function rows(sql, ...params) {
-  if (postgres) return (await pool.query(pgSql(sql), params)).rows;
+  if (postgres) return (await pgRead(sql, params)).rows;
   return sqlite.prepare(sql).all(...params.map(value => typeof value === 'boolean' ? Number(value) : value));
 }
 async function row(sql, ...params) {
-  if (postgres) return (await pool.query(pgSql(sql), params)).rows[0];
+  if (postgres) return (await pgRead(sql, params)).rows[0];
   return sqlite.prepare(sql).get(...params.map(value => typeof value === 'boolean' ? Number(value) : value));
 }
 async function run(sql, ...params) {
