@@ -1,4 +1,12 @@
 process.env.PRESERVE_ADMIN_CONTENT = process.env.PRESERVE_ADMIN_CONTENT || '1';
+
+const quotaOptimizerPath = require.resolve('./server-ai-quota-optimizer');
+const quotaOptimizerFlag = `--require=${quotaOptimizerPath}`;
+if (!String(process.env.NODE_OPTIONS || '').includes(quotaOptimizerPath)) {
+  process.env.NODE_OPTIONS = [process.env.NODE_OPTIONS, quotaOptimizerFlag].filter(Boolean).join(' ');
+}
+require(quotaOptimizerPath);
+
 const database = require('./src/db');
 const { fastContentReady } = require('./src/startup-readiness');
 const originalRun = database.run;
