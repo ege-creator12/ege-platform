@@ -31,13 +31,12 @@ if (!global.__OSNOVA_RELEASE_SECURITY_PRELOAD__) {
 
   function installTeacherResponseSanitizer(res) {
     const originalWriteHead = res.writeHead.bind(res);
-    const originalWrite = res.write.bind(res);
     const originalEnd = res.end.bind(res);
     let statusCode = 200;
     let statusMessage = null;
     let headers = {};
-    let buffering = true;
     let total = 0;
+    let overflow = false;
     const chunks = [];
     const MAX = 4 * 1024 * 1024;
 
@@ -54,38 +53,53 @@ if (!global.__OSNOVA_RELEASE_SECURITY_PRELOAD__) {
 
     res.write = (chunk, encoding, callback) => {
       const cb = typeof encoding === 'function' ? encoding : callback;
-      if (!buffering) return originalWrite(chunk, encoding, callback);
-      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk ?? ''), typeof encoding === 'string' ? encoding : undefined);
-      total += buf.length;
-      if (total > MAX) {
-        buffering = false;
-        if (statusMessage) originalWriteHead(statusCode, statusMessage, headers); else originalWriteHead(statusCode, headers);
-        for (const previous of chunks) originalWrite(previous);
-        chunks.length = 0;
-        const out = originalWrite(buf);
-        if (typeof cb === 'function') queueMicrotask(cb);
-        return out;
+      if (!overflow) {
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk ?? ''), typeof encoding === 'string' ? encoding : undefined);
+        total += buf.length;
+        if (total > MAX) {
+          overflow = true;
+          chunks.length = 0;
+        } else {
+          chunks.push(buf);
+        }
       }
-      chunks.push(buf);
       if (typeof cb === 'function') queueMicrotask(cb);
       return true;
     };
 
     res.end = (chunk, encoding, callback) => {
       const cb = typeof encoding === 'function' ? encoding : callback;
-      if (!buffering) return originalEnd(chunk, encoding, callback);
-      if (chunk != null) {
+      if (chunk != null && !overflow) {
         const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), typeof encoding === 'string' ? encoding : undefined);
         total += buf.length;
-        chunks.push(buf);
+        if (total > MAX) {
+          overflow = true;
+          chunks.length = 0;
+        } else {
+          chunks.push(buf);
+        }
       }
+
+      if (overflow) {
+        const safe = Buffer.from(JSON.stringify({ error: 'Ответ кабинета учителя слишком большой', code: 'TEACHER_RESPONSE_TOO_LARGE' }));
+        originalWriteHead(500, {
+          'content-type': 'application/json; charset=utf-8',
+          'cache-control': 'no-store',
+          'content-length': safe.length,
+          'x-content-type-options': 'nosniff',
+          'referrer-policy': 'same-origin',
+        });
+        return originalEnd(safe, cb);
+      }
+
       let body = Buffer.concat(chunks);
-      const contentType = String(headers['content-type'] || headers['Content-Type'] || res.getHeader('content-type') || '');
+      const currentHeaders = typeof res.getHeaders === 'function' ? res.getHeaders() : {};
+      const contentType = String(headers['content-type'] || headers['Content-Type'] || currentHeaders['content-type'] || '');
       if (/json/i.test(contentType) || /^\s*[\[{]/.test(body.toString('utf8'))) {
         try { body = Buffer.from(JSON.stringify(sanitizeTeacherPayload(JSON.parse(body.toString('utf8'))))); }
-        catch { /* Keep malformed/non-JSON response unchanged. */ }
+        catch { /* Non-JSON responses are passed through unchanged. */ }
       }
-      const outputHeaders = { ...headers };
+      const outputHeaders = { ...currentHeaders, ...headers };
       for (const key of Object.keys(outputHeaders)) if (/^(?:content-length|transfer-encoding)$/i.test(key)) delete outputHeaders[key];
       outputHeaders['content-length'] = body.length;
       outputHeaders['x-content-type-options'] = outputHeaders['x-content-type-options'] || 'nosniff';
