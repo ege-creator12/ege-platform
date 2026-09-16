@@ -48,6 +48,15 @@ async function ensureAiCoachStorage(){
   await database.run('CREATE INDEX IF NOT EXISTS idx_ai_coach_memory_updated ON ai_coach_memory(updated_at)');
 }
 
+async function releaseRoleAudit(){
+  const admins=await database.row("SELECT COUNT(*) n FROM users WHERE role='admin'");
+  const teachers=await database.row('SELECT COUNT(*) n FROM teacher_users').catch(()=>({n:0}));
+  const moderators=await database.row('SELECT COUNT(*) n FROM moderator_users').catch(()=>({n:0}));
+  console.log(`release-role-audit admins=${Number(admins?.n||0)} teachers=${Number(teachers?.n||0)} moderators=${Number(moderators?.n||0)}`);
+  if(Number(admins?.n||0)===0)console.warn('release-role-audit warning: no administrator account exists');
+  if(Number(admins?.n||0)>1)console.warn('release-role-audit warning: multiple administrator accounts exist; review them before public release');
+}
+
 async function deepContentRepair(){
   const {ensureExamLineBank}=require('./src/exam-line-bank');
   const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
@@ -64,6 +73,7 @@ async function deepContentRepair(){
 (async()=>{
   await database.migrate();
   await Promise.all([ensureAiUsageStorage(),ensureAiCoachStorage()]);
+  await releaseRoleAudit();
   const ready=await fastContentReady(database);
   if(ready) console.log('Fast startup: content banks already healthy; deep rebuild skipped.');
   else await deepContentRepair();
