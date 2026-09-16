@@ -54,6 +54,7 @@ function desktopNavHtml(){
   parts.push(btn({routeTo:'pro',label:'PRO',kind:'pro',iconHtml:'✦',attrs:'data-student-pro="1"'}));
   parts.push(btn({label:'Аналитика',kind:'analytics',iconHtml:'⌁',attrs:'data-analytics-placeholder="1"',cls:'product-analytics-nav analytics-placeholder'}));
   parts.push(btn({routeTo:'profile',label:'Профиль',kind:'profile',iconHtml:icon('profile','◎')}));
+  parts.push(window.osnovaTeacherNavigation?.html()||'');
   if(u.role==='admin')parts.push(btn({routeTo:'admin',label:'Управление',kind:'admin',iconHtml:icon('admin','◇')}));
   else if(isModeratorKnown())parts.push(btn({routeTo:'admin',label:'Модерация',kind:'admin',iconHtml:'◇',attrs:'data-moderator-nav="1"'}));
   return `<nav aria-label="Основная навигация" data-stable-sidebar="1">${parts.join('')}</nav>`;
@@ -103,15 +104,17 @@ function stableOrder(nav){
     nav.querySelector('[data-student-pro]'),
     analytics,
     nav.querySelector('[data-nav="profile"]'),
+    nav.querySelector('[data-nav="teacher"]'),
+    nav.querySelector('[data-nav="homework"]'),
+    nav.querySelector('[data-ai-tools-nav]'),
     staff
   ].filter(Boolean);
   const current=[...nav.children];
   const unknown=current.filter(node=>!desired.includes(node));
   const final=[...desired,...unknown];
   if(final.length===current.length&&final.every((node,i)=>node===current[i]))return;
-  const frag=document.createDocumentFragment();
-  final.forEach(node=>frag.appendChild(node));
-  nav.appendChild(frag);
+  // Move only misplaced items. Detaching the whole list resets scroll/focus.
+  final.forEach((node,i)=>{if(nav.children[i]!==node)nav.insertBefore(node,nav.children[i]||null)});
 }
 
 let normalizing=false;

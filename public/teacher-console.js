@@ -29,7 +29,8 @@
       button=document.createElement('button');button.type='button';button.setAttribute(marker,'1');button.dataset.nav=route;
       const profile=nav.querySelector('[data-nav="profile"]');if(profile)nav.insertBefore(button,profile);else nav.appendChild(button);
     }
-    button.innerHTML=`<span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>`;
+    const content=`<span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>`;
+    if(button.innerHTML!==content)button.innerHTML=content;
     button.dataset.nav=route;
     const active=String(state.route||'')===route;
     button.classList.toggle('active',active);
@@ -39,8 +40,11 @@
   }
 
   async function enhanceShell(){
+    // The current homework module owns teacher/student navigation.
+    if(window.osnovaTeacherNavigation)return window.osnovaTeacherNavigation.refresh();
     if(typeof state==='undefined'||!state?.user)return;
     const status=await teacherStatus();
+    if(window.osnovaTeacherNavigation)return window.osnovaTeacherNavigation.refresh();
     const teacher=Boolean(status.teacher);
     document.documentElement.classList.toggle('osnova-teacher',teacher);
     document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>{
@@ -55,7 +59,7 @@
         else existingClassroom?.remove();
       }
     });
-    if(teacher){const chip=document.querySelector('.user-chip small');if(chip)chip.textContent='Учитель'}
+    if(teacher){const chip=document.querySelector('.user-chip small');if(chip&&chip.textContent!=='Учитель')chip.textContent='Учитель'}
   }
 
   function scheduleEnhance(){

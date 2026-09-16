@@ -5,46 +5,83 @@
   const subjectName=slug=>slug==='chemistry'?'Химия':'Биология';
   const shortDate=value=>{if(!value)return 'без срока';const d=new Date(value);return Number.isFinite(d.getTime())?d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}):'без срока'};
   const statusText=status=>status==='completed'?'Выполнено':status==='active'?'В процессе':'Назначено';
-  let statusCache=null,statusAt=0,homeworkCache=null,homeworkAt=0,enhanceBusy=false;
+  let statusCache=null,statusAt=0,statusPromise=null,statusUserId=0,homeworkCache=null,homeworkAt=0,homeworkUserId=0,enhanceBusy=false;
 
   async function getTeacherStatus(force=false){
     const id=Number(state?.user?.id||0);if(!id)return {teacher:false,admin:false};
-    if(!force&&statusCache&&Date.now()-statusAt<30000)return statusCache;
-    try{const d=await api('/teacher/status');statusCache={teacher:Boolean(d.teacher),admin:Boolean(d.admin),userId:id}}
-    catch{statusCache={teacher:false,admin:state?.user?.role==='admin',userId:id}}
-    statusAt=Date.now();return statusCache;
+    if(!force&&statusCache?.userId===id&&Date.now()-statusAt<30000)return statusCache;
+    if(statusPromise&&statusUserId===id)return statusPromise;
+    statusUserId=id;
+    const role=state.user.role;
+    const request=(async()=>{
+      let status;
+      try{const d=await api('/teacher/status');status={teacher:Boolean(d.teacher),admin:Boolean(d.admin),userId:id}}
+      catch{status={teacher:statusCache?.userId===id?statusCache.teacher:false,admin:role==='admin',userId:id}}
+      if(Number(state?.user?.id)===id){statusCache=status;statusAt=Date.now()}
+      return status;
+    })();
+    statusPromise=request;
+    try{return await request}finally{if(statusPromise===request)statusPromise=null}
   }
 
   async function getHomeworkCount(force=false){
     if(!state?.user||state.user.role==='admin')return 0;
-    if(!force&&homeworkCache!==null&&Date.now()-homeworkAt<30000)return homeworkCache;
-    try{const d=await api('/teacher/student');homeworkCache=(d.assignments||[]).filter(a=>a.status!=='completed').length}
-    catch{homeworkCache=0}
-    homeworkAt=Date.now();return homeworkCache;
+    const id=Number(state.user.id);
+    if(!force&&homeworkUserId===id&&homeworkCache!==null&&Date.now()-homeworkAt<30000)return homeworkCache;
+    let count=0;
+    try{const d=await api('/teacher/student');count=(d.assignments||[]).filter(a=>a.status!=='completed').length}catch{}
+    if(Number(state?.user?.id)===id){homeworkCache=count;homeworkAt=Date.now();homeworkUserId=id}
+    return count;
   }
 
+  function navContent(label,icon,badge=0){return `<span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>${badge?`<span class="homework-nav-badge">${badge}</span>`:''}`}
+
   function upsertNav(nav,route,label,marker,icon,badge=0){
-    let button=nav.querySelector(`[${marker}]`);
-    if(!button){button=document.createElement('button');button.type='button';button.setAttribute(marker,'1');const profile=nav.querySelector('[data-nav="profile"]');if(profile)nav.insertBefore(button,profile);else nav.appendChild(button)}
-    button.dataset.nav=route;button.innerHTML=`<span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>${badge?`<span class="homework-nav-badge">${badge}</span>`:''}`;
+    const matches=[...nav.querySelectorAll(`[${marker}],[data-nav="${route}"]${route==='teacher'?', [data-teacher-nav]':''}`)];
+    let button=matches.shift();
+    matches.forEach(duplicate=>duplicate.remove());
+    const content=navContent(label,icon,badge);
+    if(!button){button=document.createElement('button');button.type='button';button.dataset.nav=route;button.setAttribute(marker,'1');button.innerHTML=content;nav.appendChild(button)}
+    if(!button.hasAttribute(marker))button.setAttribute(marker,'1');
+    button.removeAttribute('data-teacher-nav');
+    if(button.dataset.nav!==route)button.dataset.nav=route;
+    if(button.innerHTML!==content)button.innerHTML=content;
     const active=state.route===route||(route==='homework'&&state.route==='classroom');button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');button.onclick=()=>go(route);return button;
   }
 
   async function enhanceNavV2(){
     if(enhanceBusy||!state?.user)return;enhanceBusy=true;
     try{
+      const id=Number(state.user.id);
       const status=await getTeacherStatus();
+      if(Number(state?.user?.id)!==id)return;
+      document.documentElement.classList.toggle('osnova-teacher',Boolean(status.teacher));
       document.querySelectorAll('[data-classroom-nav]').forEach(x=>x.remove());
       if(status.teacher){
         document.querySelectorAll('[data-homework-nav]').forEach(x=>x.remove());
         document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>upsertNav(nav,'teacher','Кабинет учителя','data-teacher-v2-nav','▥',0));
-      }else if(!status.admin&&!document.documentElement.classList.contains('osnova-moderator')){
-        document.querySelectorAll('[data-teacher-v2-nav]').forEach(x=>x.remove());
-        const count=await getHomeworkCount();
-        document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>upsertNav(nav,'homework','Домашние задания','data-homework-nav','▣',count));
+        const chip=document.querySelector('.user-chip small');if(chip&&chip.textContent!=='Учитель')chip.textContent='Учитель';
+      }else{
+        document.querySelectorAll('[data-teacher-nav],[data-teacher-v2-nav],.sidebar nav [data-nav="teacher"],.mobile-nav [data-nav="teacher"]').forEach(x=>x.remove());
+        if(!status.admin&&!document.documentElement.classList.contains('osnova-moderator')){
+          const count=await getHomeworkCount();
+          if(Number(state?.user?.id)!==id)return;
+          document.querySelectorAll('.sidebar nav,.mobile-nav').forEach(nav=>upsertNav(nav,'homework','Домашние задания','data-homework-nav','▣',count));
+        }else document.querySelectorAll('[data-homework-nav]').forEach(x=>x.remove());
       }
     }finally{enhanceBusy=false}
   }
+
+  // Reuse the known role while rendering each shell so the item does not arrive late.
+  function navigationHtml(){
+    if(!state?.user||statusCache?.userId!==Number(state.user.id))return '';
+    const teacher=statusCache.teacher;
+    if(!teacher&&(statusCache.admin||document.documentElement.classList.contains('osnova-moderator')))return '';
+    const route=teacher?'teacher':'homework',active=state.route===route||(!teacher&&state.route==='classroom');
+    const badge=!teacher&&homeworkUserId===Number(state.user.id)?homeworkCache:0;
+    return `<button type="button" data-nav="${route}" ${teacher?'data-teacher-v2-nav':'data-homework-nav'}="1" class="${active?'active':''}" ${active?'aria-current="page"':''}>${navContent(teacher?'Кабинет учителя':'Домашние задания',teacher?'▥':'▣',badge)}</button>`;
+  }
+  window.osnovaTeacherNavigation={refresh:enhanceNavV2,html:navigationHtml};
 
   function loadingV2(text){app.innerHTML=shell(`<div class="page-state" role="status"><div class="skeleton wide"></div><div class="skeleton"></div><span>${esc2(text)}</span></div>`);bindShell();enhanceNavV2().catch(()=>{})}
 
