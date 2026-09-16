@@ -41,11 +41,11 @@
     if(r.startsWith('progress-map')||node.hasAttribute('data-ege-map-nav')||t==='карта егэ')return 'map';
     if(r==='mocks'||t==='пробники')return 'mocks';
     if(r==='pro'||node.hasAttribute('data-student-pro')||t==='pro')return 'pro';
-    if(node.hasAttribute('data-product-analytics')||node.hasAttribute('data-analytics-placeholder')||t==='аналитика')return 'analytics';
+    if(node.hasAttribute('data-product-analytics')||node.hasAttribute('data-analytics-placeholder')||node.hasAttribute('data-hard-analytics-proxy')||t==='аналитика')return 'analytics';
     if(r==='profile'||t==='профиль')return 'profile';
     if(r==='homework'||r==='classroom'||node.hasAttribute('data-homework-nav')||node.hasAttribute('data-student-homework-stable')||t.startsWith('домашние задан'))return 'homework';
     if(r==='ai-tools'||node.hasAttribute('data-ai-tools-nav')||t==='ai-инструменты')return 'ai-tools';
-    if(node.hasAttribute('data-community-chat-launch')||node.classList.contains('community-chat-nav')||t==='общий чат')return 'chat';
+    if(node.hasAttribute('data-community-chat-launch')||node.hasAttribute('data-hard-chat-proxy')||node.classList.contains('community-chat-nav')||t==='общий чат')return 'chat';
     if(r==='teacher'||node.hasAttribute('data-teacher-nav')||node.hasAttribute('data-teacher-v2-nav')||t==='кабинет учителя')return 'teacher';
     if(r==='admin'||node.hasAttribute('data-moderator-nav')||t==='управление'||t==='модерация')return 'staff';
     return '';
@@ -96,10 +96,10 @@
   }
 
   function pick(nodes,k){
+    if(k==='analytics')return nodes.find(n=>n.hasAttribute('data-hard-analytics-proxy'))||null;
+    if(k==='chat')return nodes.find(n=>n.hasAttribute('data-hard-chat-proxy'))||null;
     if(!nodes.length)return null;
-    if(k==='analytics')return nodes.find(n=>n.hasAttribute('data-product-analytics'))||nodes.find(n=>n.hasAttribute('data-analytics-placeholder'))||nodes[0];
     if(k==='homework')return nodes.find(n=>n.hasAttribute('data-student-homework-stable'))||nodes.find(n=>n.dataset.nav==='homework')||nodes[0];
-    if(k==='chat')return nodes.find(n=>n.hasAttribute('data-community-chat-launch'))||nodes[0];
     return nodes[0];
   }
 
@@ -107,8 +107,6 @@
     if(!node)return;
     node.dataset.hardSlot=k;
     node.hidden=false;
-    if(k==='analytics'&&!node.querySelector('span:last-child'))node.innerHTML='<span class="nav-icon" aria-hidden="true">⌁</span><span>Аналитика</span>';
-    if(k==='chat'&&!node.querySelector('span:last-child'))node.innerHTML='<span class="nav-icon" aria-hidden="true">💬</span><span>Общий чат</span>';
   }
 
   function cloneFrozen(nav){
@@ -128,16 +126,6 @@
         const target=button.dataset.nav;
         try{if(typeof go==='function')go(target);else location.hash=target}catch{location.hash=target}
       };
-    });
-    nav.querySelector('[data-hard-slot="analytics"]')?.addEventListener('click',()=>{
-      const real=[...nav.querySelectorAll('[data-product-analytics]')].find(n=>!n.hasAttribute('data-hard-slot'));
-      if(real)return real.click();
-      setTimeout(()=>[...nav.querySelectorAll('[data-product-analytics]')].find(n=>!n.hasAttribute('data-hard-slot'))?.click(),120);
-    });
-    nav.querySelector('[data-hard-slot="chat"]')?.addEventListener('click',()=>{
-      const real=[...nav.querySelectorAll('[data-community-chat-launch]')].find(n=>!n.hasAttribute('data-hard-slot'));
-      if(real)return real.click();
-      setTimeout(()=>[...nav.querySelectorAll('[data-community-chat-launch]')].find(n=>!n.hasAttribute('data-hard-slot'))?.click(),120);
     });
   }
 
@@ -167,8 +155,6 @@
     const existing=nav.querySelector(`:scope>button[data-hard-slot="${k}"]`);
     if(existing&&existing!==node){node.remove();return true}
     mark(node,k);
-    // Optional role controls live after the frozen student menu so their late
-    // arrival never shifts the student's buttons.
     nav.appendChild(node);
     cloneFrozen(nav);
     return true;
@@ -185,8 +171,6 @@
           if(added?.nodeType!==1||added.parentElement!==nav)continue;
           if(added.hasAttribute('data-hard-slot'))continue;
           if(promoteOptional(added))continue;
-          // All late feature buttons stay in the DOM as hidden functional
-          // proxies. CSS prevents them from taking space, so the menu cannot jump.
         }
       }
       updateActive(nav);
@@ -222,8 +206,6 @@
         node.removeAttribute('data-hard-slot');
       });
 
-      // One canonical assembly per shell render. After this, we never sort
-      // the list again; late buttons are hidden instead of moving anything.
       const frag=document.createDocumentFragment();
       ordered.forEach(node=>frag.appendChild(node));
       nav.prepend(frag);
@@ -239,6 +221,12 @@
     if(!nav)return;
     if(nav.dataset.hardFrozenSidebar==='1'){bindCanonical(nav);updateActive(nav);watchNav(nav);return}
     freeze(nav);
+  }
+
+  function clickHidden(nav,selector,attempt=0){
+    const real=[...nav.querySelectorAll(selector)].find(n=>!n.hasAttribute('data-hard-slot'));
+    if(real){real.click();return}
+    if(attempt<4)setTimeout(()=>clickHidden(nav,selector,attempt+1),80);
   }
 
   injectStyle();
@@ -266,15 +254,12 @@
     const button=event.target.closest?.('.sidebar nav[data-hard-frozen-sidebar="1"]>button[data-hard-slot]');
     if(!button)return;
     const slot=button.dataset.hardSlot;
-    if(slot==='analytics'&&button.hasAttribute('data-hard-analytics-proxy')){
-      const nav=button.parentElement;
-      const real=[...nav.querySelectorAll('[data-product-analytics]')].find(n=>n!==button);
-      if(real){event.preventDefault();event.stopImmediatePropagation();real.click()}
-    }
-    if(slot==='chat'&&button.hasAttribute('data-hard-chat-proxy')){
-      const nav=button.parentElement;
-      const real=[...nav.querySelectorAll('[data-community-chat-launch]')].find(n=>n!==button);
-      if(real){event.preventDefault();event.stopImmediatePropagation();real.click()}
+    if(slot==='analytics'){
+      event.preventDefault();event.stopImmediatePropagation();
+      clickHidden(button.parentElement,'[data-product-analytics]');
+    }else if(slot==='chat'){
+      event.preventDefault();event.stopImmediatePropagation();
+      clickHidden(button.parentElement,'[data-community-chat-launch]');
     }
   },true);
 
