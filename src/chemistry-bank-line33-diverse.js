@@ -2,9 +2,7 @@
 const base=require('./chemistry-bank-extended');
 const {extended}=require('./chemistry-bank-utils');
 
-function build33(n){
-  n=Math.max(1,Number(n)||1);
-  if(((n-1)%10)+1!==6)return base[33](n);
+function alcoholByOxygenFraction(n){
   const criteria=[
     'По массовой доле кислорода корректно найдена молярная масса вещества.',
     'Использована общая формула предельного одноатомного спирта и найдено число атомов углерода.',
@@ -20,6 +18,32 @@ function build33(n){
   );
   item.content={...(item.content||{}),formulaScenario:'oxygen-mass-fraction-alcohol'};
   return item;
+}
+
+function acidBySaltMass(n){
+  const criteria=[
+    'По молярной массе соли корректно найдена молярная масса исходной кислоты.',
+    'Использована общая формула предельной одноосновной карбоновой кислоты и найдено число атомов углерода.',
+    'Записана правильная молекулярная формула кислоты и приведено обоснование.'
+  ];
+  const model='При нейтрализации RCOOH + NaOH → RCOONa + H2O атом H карбоксильной группы заменяется на Na, поэтому молярная масса соли на 22 г/моль больше молярной массы кислоты. M(кислоты)=110−22=88 г/моль. Для предельной одноосновной кислоты CnH2nO2: M=14n+32. 14n+32=88, n=4. Формула C4H8O2.';
+  const item=extended(
+    'Предельная одноосновная карбоновая кислота полностью нейтрализована раствором NaOH. Молярная масса образовавшейся натриевой соли равна 110 г/моль. Определите молекулярную формулу исходной кислоты и покажите расчёт.',
+    model,n,
+    'Формула определяется через стехиометрию нейтрализации и разницу молярных масс кислоты и её натриевой соли.',
+    criteria,
+    ['Запишите схему нейтрализации RCOOH + NaOH → RCOONa + H2O.','Учтите замену H на Na: масса соли больше на 22 г/моль.','Найдите M кислоты.','Используйте общую формулу CnH2nO2 и определите n.']
+  );
+  item.content={...(item.content||{}),formulaScenario:'carboxylic-acid-from-sodium-salt'};
+  return item;
+}
+
+function build33(n){
+  n=Math.max(1,Number(n)||1);
+  const scenario=((n-1)%10)+1;
+  if(scenario===6)return alcoholByOxygenFraction(n);
+  if(scenario===10)return acidBySaltMass(n);
+  return base[33](n);
 }
 
 module.exports={33:build33};
