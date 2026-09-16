@@ -7,11 +7,12 @@ const {auditLessonPractice,MIN_LESSON_QUESTIONS}=require('../src/lesson-practice
 
 (async()=>{
   await db.migrate();
-  // Mirror production startup before checking lesson coverage: the visible chemistry
-  // course is the v2 course and its exam-line banks are what lesson practice uses.
+  // Mirror production startup before checking lesson coverage. The duplicate-free
+  // chemistry v3 bank intentionally requires ten semantically distinct tasks per
+  // exam line; lesson practice itself still requires at least five resolvable tasks.
   await ensureChemistryCourse(db);
-  const chemistry=await ensureChemistryLineBank(db,{minimum:20,mediumMinimum:20});
-  if(!chemistry.ok)throw new Error('Chemistry question bank is incomplete before lesson-practice audit');
+  const chemistry=await ensureChemistryLineBank(db,{minimum:10});
+  if(!chemistry.ok)throw new Error('Chemistry v3 question bank is incomplete before lesson-practice audit');
 
   const report=await auditLessonPractice(db,{minimum:MIN_LESSON_QUESTIONS});
   console.log(`Lesson practice audit: ${report.total} visible lessons; direct>=${report.minimum}: ${report.directReady}; topic fallback: ${report.topicReady}; EGE-line/section fallback: ${report.fallbackReady}`);
