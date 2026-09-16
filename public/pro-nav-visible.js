@@ -5,6 +5,21 @@
   style.textContent='[data-student-pro]{display:flex!important}';
   document.head.appendChild(style);
 
+  if(!document.querySelector('link[data-ai-pro-entry-style]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='/ai-pro-entry.css?v=20260916-1';
+    link.dataset.aiProEntryStyle='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-ai-pro-entry-script]')){
+    const script=document.createElement('script');
+    script.src='/ai-pro-entry.js?v=20260916-1';
+    script.async=false;
+    script.dataset.aiProEntryScript='1';
+    document.body.appendChild(script);
+  }
+
   let scheduled=false;
 
   function ensureProNav(){
