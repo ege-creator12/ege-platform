@@ -17,6 +17,7 @@ jobs:
       - run: node --check public/student-runtime-hardening.js
       - run: node --check public/lesson-practice.js
       - run: node --check public/release-navigation-lock.js
+      - run: node --check public/teacher-privacy-ui.js
       - run: node --check server-release-security-preload.js
       - run: node --check src/lesson-practice.js
       - run: npm test
