@@ -36,43 +36,53 @@ function lateState(dueAt, finishedAt, status) {
   return Number.isFinite(compare) && compare > due;
 }
 
-const gradeJoin = `
-  LEFT JOIN (
-    SELECT tsq.session_id,
-      SUM(
-        CASE
+async function gradesForSessions(sessionIds) {
+  const ids = [...new Set(sessionIds.map(Number).filter(Number.isFinite))];
+  if (!ids.length) return new Map();
+  const out = new Map();
+  for (let offset = 0; offset < ids.length; offset += 400) {
+    const chunk = ids.slice(offset, offset + 400);
+    const marks = chunk.map(() => '?').join(',');
+    const data = await rows(`SELECT tsq.session_id,
+        SUM(CASE
           WHEN thr.score IS NOT NULL THEN thr.score
           WHEN att.correct=1 THEN CASE WHEN COALESCE(q.max_score,q.points,1) < 1 THEN 1 ELSE COALESCE(q.max_score,q.points,1) END
           ELSE 0
-        END
-      ) AS score_points,
-      SUM(CASE WHEN COALESCE(q.max_score,q.points,1) < 1 THEN 1 ELSE COALESCE(q.max_score,q.points,1) END) AS max_points
-    FROM training_session_questions tsq
-    JOIN questions q ON q.id=tsq.question_id
-    LEFT JOIN attempts att ON att.id=tsq.attempt_id
-    LEFT JOIN teacher_homework_reviews thr ON thr.session_id=tsq.session_id AND thr.question_id=tsq.question_id
-    GROUP BY tsq.session_id
-  ) hg ON hg.session_id=ts.id`;
+        END) score_points,
+        SUM(CASE WHEN COALESCE(q.max_score,q.points,1) < 1 THEN 1 ELSE COALESCE(q.max_score,q.points,1) END) max_points
+      FROM training_session_questions tsq
+      JOIN questions q ON q.id=tsq.question_id
+      LEFT JOIN attempts att ON att.id=tsq.attempt_id
+      LEFT JOIN teacher_homework_reviews thr ON thr.session_id=tsq.session_id AND thr.question_id=tsq.question_id
+      WHERE tsq.session_id IN (${marks})
+      GROUP BY tsq.session_id`, ...chunk);
+    for (const item of data) out.set(Number(item.session_id), {
+      scorePoints: Math.max(0, Number(item.score_points || 0)),
+      maxPoints: Math.max(1, Number(item.max_points || 1)),
+    });
+  }
+  return out;
+}
 
 async function fastTeacherResults(teacherId) {
   const data = await rows(`SELECT a.id assignment_id,a.title,a.subject_slug,a.exam_line,a.question_count,a.due_at,a.created_at,
       c.id class_id,c.name class_name,u.id user_id,u.name student_name,u.email student_email,
-      tas.training_session_id,tas.started_at,ts.status training_status,ts.answered_count,ts.correct_count,ts.started_at session_started_at,ts.finished_at,
-      COALESCE(hg.score_points,0) score_points,
-      COALESCE(hg.max_points,a.question_count) max_points
+      tas.training_session_id,tas.started_at,ts.status training_status,ts.answered_count,ts.correct_count,ts.started_at session_started_at,ts.finished_at
     FROM teacher_assignments a
     JOIN teacher_classes c ON c.id=a.class_id
     JOIN teacher_assignment_students tas ON tas.assignment_id=a.id
     JOIN users u ON u.id=tas.user_id
     LEFT JOIN training_sessions ts ON ts.id=tas.training_session_id
-    ${gradeJoin}
     WHERE a.teacher_id=?
     ORDER BY a.created_at DESC,a.id DESC,u.name,u.id`, teacherId);
 
+  const gradeMap = await gradesForSessions(data.map(x => x.training_session_id).filter(Boolean));
   return data.map(item => {
+    const sessionId = item.training_session_id ? Number(item.training_session_id) : null;
+    const grade = sessionId ? gradeMap.get(sessionId) : null;
     const status = item.training_status === 'completed' ? 'completed' : item.training_status === 'active' ? 'active' : 'assigned';
-    const maxPoints = Math.max(1, Number(item.max_points || item.question_count || 1));
-    const scorePoints = Math.max(0, Number(item.score_points || 0));
+    const maxPoints = grade?.maxPoints || Math.max(1, Number(item.question_count || 1));
+    const scorePoints = grade?.scorePoints || 0;
     return {
       ...item,
       assignment_id: Number(item.assignment_id),
@@ -80,7 +90,7 @@ async function fastTeacherResults(teacherId) {
       user_id: Number(item.user_id),
       exam_line: Number(item.exam_line),
       question_count: Number(item.question_count),
-      training_session_id: item.training_session_id ? Number(item.training_session_id) : null,
+      training_session_id: sessionId,
       answered_count: Number(item.answered_count || 0),
       correct_count: Number(item.correct_count || 0),
       score_points: scorePoints,
@@ -100,41 +110,37 @@ async function fastStudentPayload(userId) {
     WHERE cs.user_id=? ORDER BY cs.joined_at DESC`, userId);
 
   const assignments = await rows(`SELECT a.id,a.title,a.subject_slug,a.exam_line,a.question_count,a.due_at,a.created_at,c.name class_name,u.name teacher_name,
-      tas.training_session_id,ts.status training_status,ts.answered_count,ts.correct_count,ts.finished_at,
-      COALESCE(hg.score_points,0) score_points,
-      COALESCE(hg.max_points,a.question_count) max_points
+      tas.training_session_id,ts.status training_status,ts.answered_count,ts.correct_count,ts.finished_at
     FROM teacher_assignment_students tas
     JOIN teacher_assignments a ON a.id=tas.assignment_id
     JOIN teacher_classes c ON c.id=a.class_id
     JOIN users u ON u.id=a.teacher_id
     LEFT JOIN training_sessions ts ON ts.id=tas.training_session_id
-    ${gradeJoin}
     WHERE tas.user_id=?
     ORDER BY CASE WHEN ts.status='completed' THEN 1 ELSE 0 END,a.due_at NULLS LAST,a.created_at DESC,a.id DESC`, userId).catch(async () => rows(`SELECT a.id,a.title,a.subject_slug,a.exam_line,a.question_count,a.due_at,a.created_at,c.name class_name,u.name teacher_name,
-      tas.training_session_id,ts.status training_status,ts.answered_count,ts.correct_count,ts.finished_at,
-      COALESCE(hg.score_points,0) score_points,
-      COALESCE(hg.max_points,a.question_count) max_points
+      tas.training_session_id,ts.status training_status,ts.answered_count,ts.correct_count,ts.finished_at
     FROM teacher_assignment_students tas
     JOIN teacher_assignments a ON a.id=tas.assignment_id
     JOIN teacher_classes c ON c.id=a.class_id
     JOIN users u ON u.id=a.teacher_id
     LEFT JOIN training_sessions ts ON ts.id=tas.training_session_id
-    ${gradeJoin}
-    WHERE tas.user_id=?
-    ORDER BY a.created_at DESC,a.id DESC`, userId));
+    WHERE tas.user_id=? ORDER BY a.created_at DESC,a.id DESC`, userId));
 
+  const gradeMap = await gradesForSessions(assignments.map(x => x.training_session_id).filter(Boolean));
   return {
     memberships: memberships.map(x => ({ ...x, id: Number(x.id) })),
     assignments: assignments.map(item => {
+      const sessionId = item.training_session_id ? Number(item.training_session_id) : null;
+      const grade = sessionId ? gradeMap.get(sessionId) : null;
       const status = item.training_status === 'completed' ? 'completed' : item.training_status === 'active' ? 'active' : 'assigned';
-      const maxPoints = Math.max(1, Number(item.max_points || item.question_count || 1));
-      const scorePoints = Math.max(0, Number(item.score_points || 0));
+      const maxPoints = grade?.maxPoints || Math.max(1, Number(item.question_count || 1));
+      const scorePoints = grade?.scorePoints || 0;
       return {
         ...item,
         id: Number(item.id),
         exam_line: Number(item.exam_line),
         question_count: Number(item.question_count),
-        training_session_id: item.training_session_id ? Number(item.training_session_id) : null,
+        training_session_id: sessionId,
         answered_count: Number(item.answered_count || 0),
         correct_count: Number(item.correct_count || 0),
         score_points: scorePoints,
@@ -167,4 +173,4 @@ async function handle(req, res, url) {
   return false;
 }
 
-module.exports = { handle, fastTeacherResults, fastStudentPayload };
+module.exports = { handle, fastTeacherResults, fastStudentPayload, gradesForSessions };
