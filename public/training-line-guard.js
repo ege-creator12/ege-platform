@@ -46,9 +46,19 @@ document.addEventListener('click',event=>{
 },true);
 
 function decorateTraining(){
-  const line=Number(sessionStorage.trainingExamLine||0),version=Number(sessionStorage.trainingBankVersion||0);
-  if(!line||version!==6||location.hash!=='#training')return;
+  if(location.hash!=='#training')return;
   const meta=document.querySelector('.question-card .q-meta');
+
+  // Generic training renderer historically falls back to “Биология” when a
+  // question has no topic label. Chemistry line sessions explicitly store
+  // their subject in sessionStorage, so keep the visible subject badge in sync.
+  if(meta&&sessionStorage.trainingSubject==='chemistry'){
+    const wrongSubject=[...meta.querySelectorAll('.pill')].find(badge=>badge.textContent.trim()==='Биология');
+    if(wrongSubject)wrongSubject.textContent='Химия';
+  }
+
+  const line=Number(sessionStorage.trainingExamLine||0),version=Number(sessionStorage.trainingBankVersion||0);
+  if(!line||version!==6)return;
   if(meta&&!meta.querySelector('[data-strict-line-badge]')){
     const badge=document.createElement('span');badge.className='pill';badge.dataset.strictLineBadge='1';badge.textContent=`Линия ${line} · строгий банк`;meta.prepend(badge);
   }
