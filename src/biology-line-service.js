@@ -1,6 +1,7 @@
 'use strict';
 
-const strictPattern = line => `biology-bank-v6-line${Number(line)}-%`;
+const BIOLOGY_BANK_VERSION = 7;
+const strictPattern = line => `biology-bank-v${BIOLOGY_BANK_VERSION}-line${Number(line)}-%`;
 
 function safeJson(value) {
   if (value == null || value === '') return null;
@@ -95,7 +96,7 @@ async function biologyLinePayload(db, registry, line, userId) {
       wrongQuestionRefs: wrong.map(x => x.external_key),
     },
     strictBank: true,
-    bankVersion: 6,
+    bankVersion: BIOLOGY_BANK_VERSION,
     subjectSlug: 'biology',
   };
 }
@@ -106,9 +107,8 @@ async function biologyLinesPayload(db, registry, userId) {
   let lines = [];
   if (subject && numbers.length) {
     const marks = numbers.map(() => '?').join(',');
-    // Match each question's declared line as strictly as the detail endpoint.
     const scope = `q.subject_id=? AND q.exam_line IN (${marks})
-      AND q.external_key LIKE ('biology-bank-v6-line' || CAST(q.exam_line AS TEXT) || '-%')`;
+      AND q.external_key LIKE ('biology-bank-v${BIOLOGY_BANK_VERSION}-line' || CAST(q.exam_line AS TEXT) || '-%')`;
     const [counts, stats, wrong] = await Promise.all([
       db.rows(`SELECT q.exam_line,COUNT(*) n FROM questions q
         WHERE ${scope} AND q.active=1 AND q.published=1 GROUP BY q.exam_line`,
@@ -153,7 +153,7 @@ async function biologyLinesPayload(db, registry, userId) {
         wrongQuestionRefs: wrongByLine.get(Number(item.line)) || [],
       },
       strictBank: true,
-      bankVersion: 6,
+      bankVersion: BIOLOGY_BANK_VERSION,
       };
     });
   }
@@ -162,9 +162,9 @@ async function biologyLinesPayload(db, registry, userId) {
     sourceStatus: registry.sourceStatus,
     subjectSlug: 'biology',
     strictBank: true,
-    bankVersion: 6,
+    bankVersion: BIOLOGY_BANK_VERSION,
     lines,
   };
 }
 
-module.exports = { biologyLinePayload, biologyLinesPayload, strictPattern, publicExample, safeJson };
+module.exports = { biologyLinePayload, biologyLinesPayload, strictPattern, publicExample, safeJson, BIOLOGY_BANK_VERSION };

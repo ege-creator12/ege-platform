@@ -15,6 +15,7 @@ const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.TRAINING_UPSTREAM_PORT || (PORT + 1));
 const trainingModes = new Set(['adaptive', 'mixed', 'new', 'review', 'mistakes', 'errors', 'hard', 'infinite', 'topic']);
 const subjectSlugs = new Set(['biology', 'chemistry']);
+const BIOLOGY_BANK_VERSION = 7;
 
 const json = (res, status, data) => {
   res.writeHead(status, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
@@ -45,7 +46,7 @@ async function questionExposure(userId,questionIds){
 }
 function emptyMessage(mode){if(mode==='new')return 'Новых заданий сейчас нет — выберите другой режим.';if(mode==='review')return 'Заданий, срок повторения которых наступил, сейчас нет.';if(mode==='mistakes'||mode==='errors')return 'Ошибок для повторения пока нет.';return 'Для выбранной тренировки пока нет заданий.'}
 async function subjectId(slug){const subject=await row('SELECT id FROM subjects WHERE slug=? AND published=1',slug);return Number(subject?.id||0)}
-function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[`biology-bank-v6-line${line}-%`]}}
+function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`]}}
 
 async function questionPool(userId,topicId,mode,limit,options={}){
  const examLine=Number(options.examLine||0),onlySubjectId=Number(options.subjectId||0),publishedOnly=Boolean(options.publishedOnly),strictBiologyLine=Boolean(options.strictBiologyLine&&examLine);
@@ -72,7 +73,7 @@ async function assertBiologyLineIds(ids,line,subject){
  if(!ids.length)return;
  const marks=ids.map(()=>'?').join(',');
  const selected=await rows(`SELECT id,external_key,exam_line,subject_id FROM questions WHERE id IN (${marks})`,...ids);
- const prefix=`biology-bank-v6-line${line}-`;
+ const prefix=`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-`;
  const bad=selected.filter(q=>Number(q.exam_line)!==Number(line)||Number(q.subject_id)!==Number(subject)||!String(q.external_key||'').startsWith(prefix));
  if(selected.length!==ids.length||bad.length){
   console.error('strict-biology-line-violation',{requestedLine:line,ids,bad});
@@ -126,7 +127,7 @@ async function createGeneralTraining(req,res){
  if(!ids.length)return json(res,404,{error:examLine?`В строгом банке линии ${examLine} пока нет подходящих заданий`:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});
  if(examLine)await assertBiologyLineIds(ids,examLine,onlySubjectId);
  const session=await saveSession(user.id,resolvedTopicId,mode,target,ids);
- json(res,201,{session,subjectSlug:resolvedSubject||null,lessonId:lessonId||null,lessonPractice:Boolean(lessonId),examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?6:null});
+ json(res,201,{session,subjectSlug:resolvedSubject||null,lessonId:lessonId||null,lessonPractice:Boolean(lessonId),examLine:examLine||null,strictLinePool:Boolean(examLine),bankVersion:examLine?BIOLOGY_BANK_VERSION:null});
 }
 
 async function createChemistryTraining(req,res){const user=await auth(req,res);if(!user)return;const body=await readJson(req),line=numericId(body.examLine),target=Math.min(100,Math.max(1,Number(body.targetQuestions)||10)),mode=trainingModes.has(body.mode)?body.mode:'adaptive';if(!line||!chemistryExamRegistry.lines.some(x=>Number(x.line)===line))return json(res,400,{error:'Некорректный номер задания',code:'INVALID_EXAM_LINE'});const chemistryId=await subjectId('chemistry');if(!chemistryId)return json(res,404,{error:'Химия не найдена'});const ids=await questionPool(user.id,0,mode,target,{examLine:line,subjectId:chemistryId,publishedOnly:true});if(!ids.length)return json(res,404,{error:emptyMessage(mode),code:'TRAINING_POOL_EMPTY'});const session=await saveSession(user.id,0,mode,target,ids);json(res,201,{session,subjectSlug:'chemistry'})}
