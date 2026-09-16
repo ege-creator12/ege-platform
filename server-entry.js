@@ -1,10 +1,14 @@
 process.env.PRESERVE_ADMIN_CONTENT = process.env.PRESERVE_ADMIN_CONTENT || '1';
 
 const quotaOptimizerPath = require.resolve('./server-ai-quota-optimizer');
-const quotaOptimizerFlag = `--require=${quotaOptimizerPath}`;
-if (!String(process.env.NODE_OPTIONS || '').includes(quotaOptimizerPath)) {
-  process.env.NODE_OPTIONS = [process.env.NODE_OPTIONS, quotaOptimizerFlag].filter(Boolean).join(' ');
+const releaseSecurityPath = require.resolve('./server-release-security-preload');
+for (const preloadPath of [quotaOptimizerPath, releaseSecurityPath]) {
+  const flag = `--require=${preloadPath}`;
+  if (!String(process.env.NODE_OPTIONS || '').includes(preloadPath)) {
+    process.env.NODE_OPTIONS = [process.env.NODE_OPTIONS, flag].filter(Boolean).join(' ');
+  }
 }
+require(releaseSecurityPath);
 require(quotaOptimizerPath);
 
 const database = require('./src/db');
