@@ -15,13 +15,13 @@
         button=document.createElement('button');
         button.type='button';
         button.dataset.studentPro='1';
+        button.dataset.nav='pro';
+        button.innerHTML='<span class="nav-icon">✦</span><span>PRO</span>';
+        button.onclick=()=>go('pro');
         const profile=nav.querySelector('[data-nav="profile"]');
         if(profile)nav.insertBefore(button,profile);else nav.appendChild(button);
       }
-      button.dataset.nav='pro-about';
-      button.innerHTML='<span class="nav-icon">✦</span><span>AI PRO</span>';
-      button.onclick=()=>go('pro-about');
-      const active=String(state.route||'')==='pro'||String(state.route||'')==='pro-about';
+      const active=String(state.route||'')==='pro';
       button.classList.toggle('active',active);
       if(active)button.setAttribute('aria-current','page');
       else button.removeAttribute('aria-current');
