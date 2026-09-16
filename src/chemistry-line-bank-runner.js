@@ -72,6 +72,20 @@ async function removeSemanticDuplicates(db,subjectId){
  return hidden;
 }
 
+async function resolveLineLesson(db,subjectId,info){
+ const line=Number(info.line);
+ const anchorSlug=`chemistry-line-${String(line).padStart(2,'0')}-lesson`;
+ let lesson=await db.row('SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=? AND l.published=1',subjectId,anchorSlug);
+ if(lesson)return lesson;
+ const refs=Array.isArray(info.lessonRefs)?info.lessonRefs.filter(Boolean):[];
+ if(!refs.length)return null;
+ const marks=refs.map(()=>'?').join(',');
+ lesson=await db.row(`SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id
+   WHERE t.subject_id=? AND l.slug IN (${marks}) AND l.published=1
+   ORDER BY l.id LIMIT 1`,subjectId,...refs);
+ return lesson||null;
+}
+
 async function ensureChemistryLineBank(db,{minimum=10}={}){
  const subject=await db.row("SELECT id FROM subjects WHERE slug='chemistry'");
  if(!subject)return {ok:false,inserted:0,lines:[],bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
@@ -91,8 +105,7 @@ async function ensureChemistryLineBank(db,{minimum=10}={}){
    let existing=await bankItems(db,subject.id,line),count=existing.length;
    const accepted=existing.map(item=>({...item,content:parseJson(item.content_json)}));
    const fingerprints=new Set(accepted.map(fingerprint));
-   const lessonSlug=`chemistry-line-${String(line).padStart(2,'0')}-lesson`;
-   const lesson=await db.row('SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=? AND l.published=1',subject.id,lessonSlug);
+   const lesson=await resolveLineLesson(db,subject.id,info);
    if(!lesson){lines.push({line,count,added:0,warning:'lesson-not-found'});continue;}
 
    let added=0,skippedDuplicates=0;
@@ -118,4 +131,4 @@ async function ensureChemistryLineBank(db,{minimum=10}={}){
  else console.warn('Chemistry v3 line bank incomplete:',lines.filter(x=>x.count<minimum));
  return {ok,inserted,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION,retiredOldBank:retired,detachedMisclassified:detached,deduplicated};
 }
-module.exports={ensureChemistryLineBank,BANK_VERSION,MEDIUM_BANK_VERSION,fingerprint,sanitizeExamLineAssignments};
+module.exports={ensureChemistryLineBank,BANK_VERSION,MEDIUM_BANK_VERSION,fingerprint,sanitizeExamLineAssignments,resolveLineLesson};
