@@ -42,7 +42,7 @@ const gradeJoin = `
       SUM(
         CASE
           WHEN thr.score IS NOT NULL THEN thr.score
-          WHEN COALESCE(att.correct,0) <> 0 THEN CASE WHEN COALESCE(q.max_score,q.points,1) < 1 THEN 1 ELSE COALESCE(q.max_score,q.points,1) END
+          WHEN att.correct=1 THEN CASE WHEN COALESCE(q.max_score,q.points,1) < 1 THEN 1 ELSE COALESCE(q.max_score,q.points,1) END
           ELSE 0
         END
       ) AS score_points,
