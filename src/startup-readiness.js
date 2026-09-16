@@ -1,11 +1,11 @@
 'use strict';
 
-// Keep these values in sync with the current generated-bank namespaces.
-// This module is intentionally tiny and does not require the large course/generator
-// modules, so the normal cold-start path can verify readiness without parsing them.
-const BIOLOGY_BANK_VERSION = 'v6';
-const CHEMISTRY_BANK_VERSION = 'v2';
-const CHEMISTRY_MEDIUM_VERSION = 'v1';
+// Keep these values in sync with the current duplicate-free generated-bank namespaces.
+// This module stays tiny so the normal cold-start path can verify readiness without
+// loading the large course/generator modules.
+const BIOLOGY_BANK_VERSION = 'v7';
+const CHEMISTRY_BANK_VERSION = 'v3';
+const CHEMISTRY_MEDIUM_VERSION = 'retired-v1';
 const CHEMISTRY_COURSE_VERSION = 'chemistry-2027-subject-course-v2-fipi-mastery-complete';
 
 const numeric = value => Number(value || 0);
@@ -19,7 +19,7 @@ function completeLineSet(rows, lineCount, minimum) {
   return true;
 }
 
-async function fastContentReady(db, { biologyMinimum = 24, chemistryMinimum = 20 } = {}) {
+async function fastContentReady(db, { biologyMinimum = 12, chemistryMinimum = 10 } = {}) {
   try {
     const [biology, chemistry, chemistryUpgrade] = await Promise.all([
       db.row("SELECT id FROM subjects WHERE slug='biology' AND published=1"),
@@ -28,7 +28,7 @@ async function fastContentReady(db, { biologyMinimum = 24, chemistryMinimum = 20
     ]);
     if (!biology?.id || !chemistry?.id || !chemistryUpgrade?.version) return false;
 
-    const [biologyCounts, chemistryCore, chemistryMedium] = await Promise.all([
+    const [biologyCounts, chemistryCore] = await Promise.all([
       db.rows(`SELECT exam_line,COUNT(*) n FROM questions
         WHERE subject_id=? AND active=1 AND published=1
           AND exam_line BETWEEN 1 AND 28
@@ -39,16 +39,10 @@ async function fastContentReady(db, { biologyMinimum = 24, chemistryMinimum = 20
           AND exam_line BETWEEN 1 AND 34
           AND external_key LIKE ?
         GROUP BY exam_line`, Number(chemistry.id), `chemistry-bank-${CHEMISTRY_BANK_VERSION}-line%`),
-      db.rows(`SELECT exam_line,COUNT(*) n FROM questions
-        WHERE subject_id=? AND active=1 AND published=1
-          AND exam_line BETWEEN 1 AND 34
-          AND external_key LIKE ?
-        GROUP BY exam_line`, Number(chemistry.id), `chemistry-medium-${CHEMISTRY_MEDIUM_VERSION}-line%`),
     ]);
 
     return completeLineSet(biologyCounts, 28, biologyMinimum)
-      && completeLineSet(chemistryCore, 34, chemistryMinimum)
-      && completeLineSet(chemistryMedium, 34, chemistryMinimum);
+      && completeLineSet(chemistryCore, 34, chemistryMinimum);
   } catch (error) {
     // A missing state table or a partially migrated database simply falls back to
     // the deep startup repair path. Never make startup correctness depend on this gate.
