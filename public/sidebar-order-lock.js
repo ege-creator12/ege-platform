@@ -37,7 +37,7 @@ function preferred(k,nodes){
   if(k==='role'){
     const teacher=nodes.find(n=>n.dataset.nav==='teacher'||n.hasAttribute('data-teacher-nav')||n.hasAttribute('data-teacher-v2-nav')||clean(n.textContent)==='кабинет учителя');
     const homework=nodes.find(n=>n.dataset.nav==='homework'||n.dataset.nav==='classroom'||n.hasAttribute('data-homework-nav')||n.hasAttribute('data-classroom-nav'));
-    return document.documentElement.classList.contains('osnova-teacher')?(teacher||homework):(teacher||homework);
+    return document.documentElement.classList.contains('osnova-teacher')?(teacher||homework):(homework||teacher);
   }
   return nodes[0];
 }
