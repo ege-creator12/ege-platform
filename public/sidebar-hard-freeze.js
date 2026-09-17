@@ -156,7 +156,6 @@
           if(added?.nodeType!==1||added.parentElement!==nav||added.hasAttribute('data-hard-slot'))continue;
           const k=key(added);
           if(!k)continue;
-          // Duplicates from feature scripts stay hidden. Only optional slots can be promoted once.
           if((k==='teacher'||k==='homework'||k==='chat'||k==='staff')&&!nav.querySelector(`:scope>button[data-hard-slot="${k}"]`))needsFreeze=true;
         }
       }
@@ -179,6 +178,16 @@
     if(attempt<8)setTimeout(()=>clickHidden(nav,selector,attempt+1),100);
   }
 
+  function openCommunityChat(nav){
+    try{
+      if(window.OsnovaCommunityChat?.open){
+        window.OsnovaCommunityChat.open();
+        return;
+      }
+    }catch{}
+    clickHidden(nav,'[data-community-chat-launch]');
+  }
+
   injectStyle();
 
   if(typeof shell==='function'){
@@ -198,8 +207,8 @@
     const slot=button.dataset.hardSlot;
     if(slot==='analytics'){
       event.preventDefault();event.stopImmediatePropagation();clickHidden(button.parentElement,'[data-product-analytics]');
-    }else if(slot==='chat'&&button.hasAttribute('data-hard-chat-proxy')){
-      event.preventDefault();event.stopImmediatePropagation();clickHidden(button.parentElement,'[data-community-chat-launch]');
+    }else if(slot==='chat'){
+      event.preventDefault();event.stopImmediatePropagation();openCommunityChat(button.parentElement);
     }
   },true);
 
