@@ -38,7 +38,14 @@ document.head.appendChild(style);
 function fmtTime(value){try{return new Date(value).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
 function fmtMute(value){const until=Number(value||0);if(!until)return '';const d=new Date(until);if(d.getUTCFullYear()>2900)return 'Вам выдан мут без срока.';return `Вам выдан мут до ${d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.`}
 
-function closeChat(){overlay?.remove();overlay=null;renderSignature='';serverMessages=[];if(poller){clearInterval(poller);poller=null}}
+function closeChat(){
+  overlay?.remove();
+  overlay=null;
+  renderSignature='';
+  serverMessages=[];
+  loading=false;
+  if(poller){clearInterval(poller);poller=null}
+}
 
 function messagesSignature(messages){
   return messages.map(m=>[m.id,m.body,m.name,m.badge,m.mine?1:0,m.moderatable?1:0,m.pending?1:0,m.optimistic?1:0].join('\u0001')).join('\u0002');
@@ -57,6 +64,7 @@ function renderMessages(data={},initial=false){
   if(!overlay)return;
   me=data.me||me;
   const feed=overlay.querySelector('.community-chat-feed');
+  if(!feed)return;
   const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<90;
   const messages=combinedMessages(data.messages);
   const signature=messagesSignature(messages);
@@ -83,6 +91,7 @@ function updateComposer(){
   const banner=overlay.querySelector('.community-chat-muted');
   const area=overlay.querySelector('textarea');
   const send=overlay.querySelector('.community-chat-send');
+  if(!banner||!area||!send)return;
   banner.classList.toggle('show',muted);
   banner.textContent=muted?fmtMute(until):'';
   area.disabled=muted;
@@ -131,13 +140,21 @@ async function unmuteMessage(id,button){
 async function loadChat(initial=false){
   if(!overlay||loading)return;
   loading=true;
+  const target=overlay;
   try{
     const r=await fetch('/api/community-chat',{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Не удалось загрузить чат');
+    if(target!==overlay)return;
     renderMessages(d,initial);
-  }catch(e){if(initial){const feed=overlay?.querySelector('.community-chat-feed');if(feed)feed.innerHTML=`<div class="community-chat-empty"><b>Чат пока недоступен</b><span>${esc(e.message||'Попробуйте позже')}</span></div>`}}
-  finally{loading=false}
+  }catch(e){
+    if(initial&&target===overlay){
+      const feed=overlay?.querySelector('.community-chat-feed');
+      if(feed)feed.innerHTML=`<div class="community-chat-empty"><b>Чат пока недоступен</b><span>${esc(e.message||'Попробуйте позже')}</span></div>`;
+    }
+  }finally{
+    loading=false;
+  }
 }
 
 function makePending(body){
@@ -174,14 +191,14 @@ async function flushOutbox(){
     toast(e.message||'Не удалось отправить');
   }finally{
     sending=false;
-    updateComposer();
-    if(outbox.length&&Number(me.mutedUntil||0)<=Date.now())void flushOutbox();
+    if(outbox.length)void flushOutbox();
   }
 }
 
 function sendMessage(){
   if(!overlay)return;
   const area=overlay.querySelector('textarea');
+  if(!area)return;
   const body=area.value.trim();
   if(!body)return;
   if(Number(me.mutedUntil||0)>Date.now())return updateComposer();
@@ -197,23 +214,36 @@ function sendMessage(){
 }
 
 function openChat(){
-  if(overlay)return;
+  if(overlay?.isConnected){
+    overlay.querySelector('textarea')?.focus({preventScroll:true});
+    return;
+  }
+  if(overlay&&!overlay.isConnected)overlay=null;
+  if(poller){clearInterval(poller);poller=null}
+  loading=false;
+
   overlay=document.createElement('div');
   overlay.className='community-chat-overlay';
   overlay.innerHTML=`<section class="community-chat-panel" role="dialog" aria-modal="true" aria-label="Общий чат"><header class="community-chat-head"><div><div class="community-chat-eyebrow">Сообщество ОСНОВЫ</div><h2>Общий чат</h2><p>Обсуждайте задания, темы и подготовку вместе.</p></div><button type="button" class="community-chat-close" aria-label="Закрыть">×</button></header><div class="community-chat-feed"><div class="community-chat-empty"><b>Загружаем чат…</b></div></div><footer class="community-chat-compose"><div class="community-chat-muted"></div><div class="community-chat-form"><textarea maxlength="900" rows="1" placeholder="Напишите сообщение…"></textarea><button type="button" class="community-chat-send">Отправить</button></div><div class="community-chat-hint">Enter — отправить · Shift + Enter — новая строка</div></footer></section>`;
   document.body.appendChild(overlay);
-  overlay.querySelector('.community-chat-close').onclick=closeChat;
+  overlay.querySelector('.community-chat-close').addEventListener('click',closeChat);
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeChat()});
   const area=overlay.querySelector('textarea');
   area.addEventListener('input',()=>{area.style.height='auto';area.style.height=Math.min(area.scrollHeight,130)+'px'});
   area.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
-  overlay.querySelector('.community-chat-send').onclick=sendMessage;
+  overlay.querySelector('.community-chat-send').addEventListener('click',sendMessage);
   renderSignature='';
   serverMessages=[];
-  loadChat(true);
-  poller=setInterval(()=>loadChat(false),2500);
-  setTimeout(()=>area.focus(),120);
+  void loadChat(true);
+  poller=setInterval(()=>void loadChat(false),2500);
+  setTimeout(()=>overlay?.querySelector('textarea')?.focus({preventScroll:true}),120);
 }
+
+window.OsnovaCommunityChat={
+  open:openChat,
+  close:closeChat,
+  isOpen:()=>Boolean(overlay?.isConnected),
+};
 
 function chatIcon(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M8 10h8M8 13h5"/></svg>'}
 
@@ -223,13 +253,21 @@ function ensureLaunchers(){
     const btn=document.createElement('button');
     btn.type='button';btn.className='community-chat-nav';btn.dataset.communityChatLaunch='1';
     btn.innerHTML=`<span class="nav-icon">${chatIcon()}</span><span>Общий чат</span>`;
-    btn.onclick=openChat;
+    btn.addEventListener('click',openChat);
     const profile=nav.querySelector('[data-nav="profile"]');
     if(profile)nav.insertBefore(btn,profile);else nav.appendChild(btn);
   }
   const hasApp=document.querySelector('.app .mobile-nav');
   let mobile=document.querySelector('.community-chat-mobile-launch');
-  if(hasApp&&!mobile){mobile=document.createElement('button');mobile.type='button';mobile.className='community-chat-mobile-launch';mobile.setAttribute('aria-label','Открыть общий чат');mobile.textContent='💬';mobile.onclick=openChat;document.body.appendChild(mobile)}
+  if(hasApp&&!mobile){
+    mobile=document.createElement('button');
+    mobile.type='button';
+    mobile.className='community-chat-mobile-launch';
+    mobile.setAttribute('aria-label','Открыть общий чат');
+    mobile.textContent='💬';
+    mobile.addEventListener('click',openChat);
+    document.body.appendChild(mobile);
+  }
   if(!hasApp&&mobile)mobile.remove();
 }
 
