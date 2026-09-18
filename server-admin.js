@@ -224,6 +224,36 @@ async function handleAdmin(req, res, path) {
     json(res, 200, { ok: true, question: await questionDetail(id) }); return true;
   }
 
+  match = path.match(/^\/api\/admin-console\/users\/(\d+)\/xp$/);
+  if (match && req.method === 'POST') {
+    const id = idOf(match[1]), b = await readJson(req);
+    const delta = Number(b.delta);
+    if (!id || !Number.isSafeInteger(delta) || delta === 0) {
+      json(res, 400, { error: 'Укажите целое количество XP, отличное от нуля' }); return true;
+    }
+    if (Math.abs(delta) > 1000000) {
+      json(res, 400, { error: 'За одну операцию можно изменить не более 1 000 000 XP' }); return true;
+    }
+    const updated = await transaction(async tx => {
+      const target = await tx.row('SELECT id,name,role,xp FROM users WHERE id=?', id);
+      if (!target) return null;
+      const previousXp = Math.max(0, Number(target.xp) || 0);
+      const xp = Math.max(0, previousXp + delta);
+      await tx.run('UPDATE users SET xp=? WHERE id=?', xp, id);
+      return {
+        id: Number(target.id),
+        name: target.name,
+        role: target.role,
+        previousXp,
+        xp,
+        delta: xp - previousXp,
+        leaderboardAffected: target.role === 'student'
+      };
+    });
+    if (!updated) { json(res, 404, { error: 'Пользователь не найден' }); return true; }
+    json(res, 200, { ok: true, user: updated }); return true;
+  }
+
   match = path.match(/^\/api\/admin-console\/users\/(\d+)$/);
   if (match && req.method === 'PATCH') {
     const id = idOf(match[1]), b = await readJson(req);
