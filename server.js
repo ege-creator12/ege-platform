@@ -178,7 +178,29 @@ async function api(req,res,path){
   }
   if(path.match(/^\/api\/training\/sessions\/\d+\/answer$/)&&req.method==='POST'){
    const u=await auth(req,res);if(!u)return;const id=numericId(path.split('/')[4]),b=await body(req),questionId=numericId(b.questionId);if(!id||!questionId)return json(res,400,{error:'Некорректный идентификатор'});
-   const saved=await database.transaction(async tx=>{const item=await tx.row(`SELECT tsq.position,tsq.state,tsq.attempt_id,q.* FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id JOIN questions q ON q.id=tsq.question_id WHERE s.id=? AND s.user_id=? AND q.id=?`,id,u.id,questionId);if(!item||item.state!=='pending')throw new HttpError(409,'ATTEMPT_COMPLETED','Задание уже завершено');const claimed=await tx.run("UPDATE training_session_questions SET state='answered',answered_at=CURRENT_TIMESTAMP WHERE session_id=? AND position=? AND state='pending'",id,item.position);if(!claimed.changes)throw new HttpError(409,'ATTEMPT_COMPLETED','Задание уже завершено');const result=await recordAnswer(u.id,item,b,tx);await tx.run('UPDATE training_session_questions SET attempt_id=? WHERE session_id=? AND position=?',result.attemptId,id,item.position);await tx.run('UPDATE training_sessions SET answered_count=answered_count+1,correct_count=correct_count+? WHERE id=?',result.correct?1:0,id);const left=Number((await tx.row("SELECT COUNT(*) n FROM training_session_questions WHERE session_id=? AND state='pending'",id)).n);if(left===0)await tx.run("UPDATE training_sessions SET status='completed',finished_at=CURRENT_TIMESTAMP WHERE id=?",id);return {result,left}});
+   const saved=await database.transaction(async tx=>{
+    const item=await tx.row(`SELECT tsq.position,tsq.state,tsq.attempt_id,q.* FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id JOIN questions q ON q.id=tsq.question_id WHERE s.id=? AND s.user_id=? AND q.id=?`,id,u.id,questionId);
+    if(!item)throw new HttpError(404,'QUESTION_NOT_FOUND','Задание не входит в тренировку');
+    const pendingLeft=async()=>Number((await tx.row("SELECT COUNT(*) n FROM training_session_questions WHERE session_id=? AND state='pending'",id)).n);
+    if(item.state!=='pending'){
+      const previous=await savedResolution(item,u.id,tx);
+      if(previous&&previous.resolutionType!=='revealed')return {result:previous,left:await pendingLeft()};
+      throw new HttpError(409,'ATTEMPT_COMPLETED','Задание уже завершено');
+    }
+    const claimed=await tx.run("UPDATE training_session_questions SET state='answered',answered_at=CURRENT_TIMESTAMP WHERE session_id=? AND position=? AND state='pending'",id,item.position);
+    if(!claimed.changes){
+      const current=await tx.row(`SELECT tsq.position,tsq.state,tsq.attempt_id,q.* FROM training_session_questions tsq JOIN training_sessions s ON s.id=tsq.session_id JOIN questions q ON q.id=tsq.question_id WHERE s.id=? AND s.user_id=? AND q.id=?`,id,u.id,questionId);
+      const previous=await savedResolution(current,u.id,tx);
+      if(previous&&previous.resolutionType!=='revealed')return {result:previous,left:await pendingLeft()};
+      throw new HttpError(409,'ATTEMPT_COMPLETED','Задание уже завершено');
+    }
+    const result=await recordAnswer(u.id,item,b,tx);
+    await tx.run('UPDATE training_session_questions SET attempt_id=? WHERE session_id=? AND position=?',result.attemptId,id,item.position);
+    await tx.run('UPDATE training_sessions SET answered_count=answered_count+1,correct_count=correct_count+? WHERE id=?',result.correct?1:0,id);
+    const left=await pendingLeft();
+    if(left===0)await tx.run("UPDATE training_sessions SET status='completed',finished_at=CURRENT_TIMESTAMP WHERE id=?",id);
+    return {result,left}
+   });
    return json(res,200,{...saved.result,done:saved.left===0,session:await sessionPayload(id,u.id),stats:await stats(u.id)});
   }
   if(path.match(/^\/api\/training\/sessions\/\d+\/reveal$/)&&req.method==='POST'){
