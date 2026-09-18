@@ -162,7 +162,9 @@ function actionSuggestions(message, plan, tutor, profile, subjectSlug = '') {
   const line = requestedExamLine(q);
   const maxLine = subjectSlug === 'chemistry' ? 34 : 28;
   if (line && line <= maxLine) {
-    actions.push({ type: 'start_line', label: `Тренировать линию ${line}`, payload: { line, count: 8 } });
+    const countMatch = q.match(/\b(\d{1,2})\s*(?:задан|вопрос|тест)/);
+    const count = clamp(Number(countMatch?.[1] || 8), 1, 30);
+    actions.push({ type: 'start_line', label: `Тренировать линию ${line} · ${count} заданий`, payload: { line, count } });
   } else if (!line && /тренир|задани|практик|проверь меня/.test(q)) {
     actions.push({ type: 'personal_practice', label: 'Собрать персональную тренировку' });
   }
@@ -220,7 +222,7 @@ async function personalPracticeIds(db, userId, subjectSlug, count = 10) {
 
 async function linePracticeIds(db, userId, subjectSlug, line, count = 8) {
   const subject = await subjectId(db, subjectSlug);
-  const wanted = clamp(Number(count) || 8, 3, 30), examLine = Number(line);
+  const wanted = clamp(Number(count) || 8, 1, 30), examLine = Number(line);
   const rows = await db.rows(`SELECT q.id FROM questions q LEFT JOIN attempts a ON a.question_id=q.id AND a.user_id=? WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 ORDER BY CASE WHEN a.correct=0 THEN 0 WHEN a.id IS NULL THEN 1 ELSE 2 END,RANDOM() LIMIT ?`, userId, subject.id, examLine, wanted * 3);
   return [...new Set(rows.map(item => Number(item.id)).filter(Boolean))].slice(0, wanted);
 }
