@@ -64,34 +64,101 @@
       return;
     }
 
-    const loading=addBubble(chat,'assistant',`Подбираю реальные задания линии ${line} из банка сайта…`,'loading');
+    const loading=addBubble(chat,'assistant',`Ищу задания линии ${line} в открытом банке ФИПИ…`,'loading');
     submit.disabled=true;
     input.disabled=true;
     try{
-      const endpoint=subject==='chemistry'?'/api/subjects/chemistry/training/sessions':'/api/training/sessions';
-      const body={examLine:line,mode:'adaptive',targetQuestions:count};
-      if(subject==='biology')body.subjectSlug='biology';
-      const response=await fetch(endpoint,{
-        method:'POST',credentials:'same-origin',cache:'no-store',
-        headers:{'content-type':'application/json','accept':'application/json'},
-        body:JSON.stringify(body),
+      const response=await fetch(`/api/external-exam-line?subject=${encodeURIComponent(subject)}&line=${line}&count=${count}`,{
+        method:'GET',credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'},
       });
       const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||`Не удалось открыть линию ${line}`);
-      if(!data.session?.id)throw new Error('Тренировка создана без идентификатора');
-      sessionStorage.trainingSession=String(data.session.id);
-      sessionStorage.trainingSubject=subject;
-      loading.classList.remove('loading');
-      loading.textContent=`Готово. Это задания именно линии ${line} из проверенного банка ${subject==='chemistry'?'химии':'биологии'}. Открываю тренировку…`;
-      modal.remove();
-      if(typeof globalThis.go==='function')globalThis.go('training');
-      else location.hash='training';
+      if(!response.ok)throw new Error(data.error||`Не удалось найти источники для линии ${line}`);
+
+      loading.remove();
+      const card=document.createElement('section');
+      card.className='ai-practice-card';
+      const head=document.createElement('div');
+      head.className='ai-practice-head';
+      const title=document.createElement('b');
+      title.textContent=`Линия ${line} · ${subject==='chemistry'?'химия':'биология'}`;
+      const source=document.createElement('span');
+      source.textContent='Источник: ФИПИ';
+      head.append(title,source);
+
+      const intro=document.createElement('p');
+      intro.textContent=data.tasks?.length
+        ? `Ниже — реальные задания из открытого банка ФИПИ, привязанные к этой линии официальным навигатором ЕГЭ-2026.`
+        : 'В навигаторе ФИПИ не нашлось прямой ссылки на конкретное задание этой линии. Открой банк ФИПИ по предмету.';
+
+      const list=document.createElement('div');
+      list.style.display='grid';
+      list.style.gap='10px';
+      for(const task of (data.tasks||[])){
+        const row=document.createElement('div');
+        row.style.display='flex';
+        row.style.alignItems='center';
+        row.style.justifyContent='space-between';
+        row.style.gap='12px';
+        row.style.padding='12px';
+        row.style.border='1px solid rgba(143,240,185,.14)';
+        row.style.borderRadius='14px';
+        row.style.background='rgba(143,240,185,.04)';
+
+        const meta=document.createElement('div');
+        const strong=document.createElement('strong');
+        strong.textContent=`ФИПИ · ID ${task.qid}`;
+        const small=document.createElement('small');
+        small.style.display='block';
+        small.style.marginTop='3px';
+        small.style.opacity='.72';
+        small.textContent=`Задание линии ${line}`;
+        meta.append(strong,small);
+
+        const open=document.createElement('a');
+        open.className='btn ghost';
+        open.href=task.url;
+        open.target='_blank';
+        open.rel='noopener noreferrer';
+        open.textContent='Открыть →';
+        row.append(meta,open);
+        list.appendChild(row);
+      }
+
+      const actions=document.createElement('div');
+      actions.className='ai-practice-actions';
+      actions.style.marginTop='14px';
+      const bank=document.createElement('a');
+      bank.className='btn';
+      bank.href=data.bankUrl;
+      bank.target='_blank';
+      bank.rel='noopener noreferrer';
+      bank.textContent='Открыть банк ФИПИ';
+      const navigator=document.createElement('a');
+      navigator.className='btn ghost';
+      navigator.href=data.navigatorUrl;
+      navigator.target='_blank';
+      navigator.rel='noopener noreferrer';
+      navigator.textContent='Навигатор ФИПИ';
+      actions.append(bank,navigator);
+
+      if((data.tasks||[]).length<count){
+        const note=document.createElement('small');
+        note.style.display='block';
+        note.style.marginTop='12px';
+        note.style.opacity='.72';
+        note.textContent=`В официальном навигаторе есть ${data.tasks?.length||0} прямых примеров для этой линии. Я не подменяю недостающие задания выдуманными.`;
+        card.append(head,intro,list,actions,note);
+      }else card.append(head,intro,list,actions);
+
+      chat.appendChild(card);
+      chat.scrollTop=chat.scrollHeight;
     }catch(error){
       loading.classList.remove('loading');
-      loading.textContent=error.message||'Не удалось открыть тренировку по этой линии.';
+      loading.textContent=error.message||'Не удалось получить задания ФИПИ по этой линии.';
     }finally{
       submit.disabled=false;
       input.disabled=false;
+      input.focus({preventScroll:true});
     }
   }
 
