@@ -176,12 +176,14 @@ async function coachReply(userId, subjectSlug, message, history = [], mode = 'co
         actions: [],
       };
     }
+    const countMatch = normalizedQ.match(/\b(\d{1,2})\s*(?:задан|вопрос|тест)/);
+    const requestedCount = Math.min(30, Math.max(1, Number(countMatch?.[1] || 8)));
     return {
       text: `Для линии ${requestedLine} беру только задания из реального банка сайта с exam_line=${requestedLine}. Нейросеть сама задания этой линии больше не придумывает.`,
       subjectSlug,
       source: 'strict-line-router',
       aiAvailable: true,
-      actions: [{ type: 'start_line', label: `Начать линию ${requestedLine}`, payload: { line: requestedLine, count: 8 } }],
+      actions: [{ type: 'start_line', label: `Начать линию ${requestedLine} · ${requestedCount} заданий`, payload: { line: requestedLine, count: requestedCount } }],
     };
   }
   const safeHistory = (Array.isArray(history) ? history : [])
