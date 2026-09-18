@@ -187,8 +187,11 @@
       const mocks = nav.querySelector('[data-nav="mocks"]');
       if (mocks) nav.insertBefore(button, mocks);
       else nav.appendChild(button);
-      button.onclick = () => go('progress-map/biology');
     }
+    // Keep the route on the DOM node itself. The stable sidebar serializes and
+    // restores nav HTML, which drops property-only onclick handlers.
+    button.dataset.nav = 'progress-map/biology';
+    button.onclick = () => go('progress-map/biology');
     button.classList.toggle('active', route().startsWith('progress-map'));
   }
 
