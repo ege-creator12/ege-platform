@@ -19,6 +19,82 @@
     return Math.min(MAX_TASKS,Math.max(1,Number(match?.[1]||5)));
   }
 
+  function requestedLine(text){
+    const raw=normalize(text);
+    let match=raw.match(/(?:лини(?:я|и|ю|е)?|номер\s+задани(?:я|е)|задани(?:е|я)\s*№?)\s*(\d{1,2})/i);
+    if(!match)match=raw.match(/\b(\d{1,2})\s*(?:-?я\s*)?лини(?:я|и|ю|е)?\b/i);
+    const line=Number(match?.[1]||0);
+    return Number.isInteger(line)&&line>0?line:0;
+  }
+
+  function requestedSubject(text,line){
+    const raw=normalize(text);
+    if(/\b(?:химия|химии|химию|химический|химические|хим)\b/i.test(raw))return 'chemistry';
+    if(/\b(?:биология|биологии|биологию|биологический|биологические|био)\b/i.test(raw))return 'biology';
+    if(line>28&&line<=34)return 'chemistry';
+    const route=String(globalThis.state?.route||'');
+    if(route==='chemistry'||route.startsWith('chemistry/'))return 'chemistry';
+    if(route==='biology'||route.startsWith('biology/'))return 'biology';
+    return '';
+  }
+
+  function lineLimit(subject){return subject==='chemistry'?34:28;}
+
+  async function startRealLinePractice(modal,userPrompt,line){
+    const chat=modal.querySelector('#ai-tutor-chat');
+    const input=modal.querySelector('#ai-tutor-input');
+    const submit=modal.querySelector('#ai-tutor-form button[type="submit"]');
+    if(!chat||!input||!submit)return;
+    const count=requestedCount(userPrompt);
+    const subject=requestedSubject(userPrompt,line);
+    addBubble(chat,'user',userPrompt);
+
+    if(!subject){
+      addBubble(chat,'assistant',`Уточни предмет для линии ${line}: биология или химия? У них одинаковые номера линий означают разные задания, поэтому я не буду угадывать.`);
+      input.value='';
+      input.placeholder='Например: биология, линия 27';
+      input.focus({preventScroll:true});
+      return;
+    }
+    if(line>lineLimit(subject)){
+      addBubble(chat,'assistant',subject==='biology'
+        ? `В биологии ЕГЭ сейчас линии 1–28. Линии ${line} там нет.`
+        : `В химии ЕГЭ сейчас линии 1–34. Линии ${line} там нет.`);
+      input.focus({preventScroll:true});
+      return;
+    }
+
+    const loading=addBubble(chat,'assistant',`Подбираю реальные задания линии ${line} из банка сайта…`,'loading');
+    submit.disabled=true;
+    input.disabled=true;
+    try{
+      const endpoint=subject==='chemistry'?'/api/subjects/chemistry/training/sessions':'/api/training/sessions';
+      const body={examLine:line,mode:'adaptive',targetQuestions:count};
+      if(subject==='biology')body.subjectSlug='biology';
+      const response=await fetch(endpoint,{
+        method:'POST',credentials:'same-origin',cache:'no-store',
+        headers:{'content-type':'application/json','accept':'application/json'},
+        body:JSON.stringify(body),
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||`Не удалось открыть линию ${line}`);
+      if(!data.session?.id)throw new Error('Тренировка создана без идентификатора');
+      sessionStorage.trainingSession=String(data.session.id);
+      sessionStorage.trainingSubject=subject;
+      loading.classList.remove('loading');
+      loading.textContent=`Готово. Это задания именно линии ${line} из проверенного банка ${subject==='chemistry'?'химии':'биологии'}. Открываю тренировку…`;
+      modal.remove();
+      if(typeof globalThis.go==='function')globalThis.go('training');
+      else location.hash='training';
+    }catch(error){
+      loading.classList.remove('loading');
+      loading.textContent=error.message||'Не удалось открыть тренировку по этой линии.';
+    }finally{
+      submit.disabled=false;
+      input.disabled=false;
+    }
+  }
+
   function parseJson(text){
     const raw=clean(text).replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'');
     try{return JSON.parse(raw)}catch{}
@@ -187,6 +263,8 @@
   }
 
   async function generatePractice(modal,userPrompt){
+    const line=requestedLine(userPrompt);
+    if(line)return startRealLinePractice(modal,userPrompt,line);
     const chat=modal.querySelector('#ai-tutor-chat');
     const input=modal.querySelector('#ai-tutor-input');
     const submit=modal.querySelector('#ai-tutor-form button[type="submit"]');
@@ -245,7 +323,7 @@
       armed=!armed;
       mode.classList.toggle('active',armed);
       if(armed){
-        input.placeholder='Например: дай 5 заданий по генетике, линия 27';
+        input.placeholder='Например: дай 5 заданий по биологии, линия 27';
         input.focus();
       }else input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
     });
