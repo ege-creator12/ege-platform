@@ -8,6 +8,7 @@ const database = require('./src/db');
 const planner = require('./src/ai-study-planner');
 const digitalTutor = require('./src/digital-tutor');
 const coachEngine = require('./src/ai-coach-engine');
+const { lineSources } = require('./content/external-exam-sources');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -177,13 +178,23 @@ async function coachReply(userId, subjectSlug, message, history = [], mode = 'co
       };
     }
     const countMatch = normalizedQ.match(/\b(\d{1,2})\s*(?:задан|вопрос|тест)/);
-    const requestedCount = Math.min(30, Math.max(1, Number(countMatch?.[1] || 8)));
+    const requestedCount = Math.min(10, Math.max(1, Number(countMatch?.[1] || 5)));
+    const sources = lineSources(subjectSlug, requestedLine, requestedCount);
+    const actions = (sources?.tasks || []).map(task => ({
+      type: 'external_source',
+      label: `ФИПИ · ID ${task.qid}`,
+      url: task.url,
+      payload: { line: requestedLine, qid: task.qid, source: 'fipi' },
+    }));
+    if (sources?.bankUrl) actions.push({ type: 'external_source', label: 'Открыть банк ФИПИ', url: sources.bankUrl, payload: { line: requestedLine, source: 'fipi-bank' } });
     return {
-      text: `Для линии ${requestedLine} беру только задания из реального банка сайта с exam_line=${requestedLine}. Нейросеть сама задания этой линии больше не придумывает.`,
+      text: actions.length
+        ? `Для линии ${requestedLine} беру задания из открытого банка ФИПИ. Ниже — официальные ссылки из навигатора ЕГЭ-2026; внутренний банк сайта для такого запроса не используется.`
+        : `В официальном навигаторе не нашёл прямой ссылки для линии ${requestedLine}. Открой банк ФИПИ по предмету — выдумывать задание вместо него не буду.`,
       subjectSlug,
-      source: 'strict-line-router',
+      source: 'fipi-line-router',
       aiAvailable: true,
-      actions: [{ type: 'start_line', label: `Начать линию ${requestedLine} · ${requestedCount} заданий`, payload: { line: requestedLine, count: requestedCount } }],
+      actions: actions.slice(0, 4),
     };
   }
   const safeHistory = (Array.isArray(history) ? history : [])
@@ -205,7 +216,7 @@ async function coachReply(userId, subjectSlug, message, history = [], mode = 'co
     },
     weeklyReport: report,
   };
-  const prompt = `Ты — персональный AI-репетитор и куратор ОСНОВА для ЕГЭ. Ты не просто отвечаешь в чате: ты управляешь подготовкой на основе реальных данных ученика.\n\n${modeInstruction(selectedMode)}\n\nПравила:\n- используй историю ошибок, слабые линии, темп, повторения и недельную динамику;\n- замечай повторяющиеся паттерны, например спешку или одну и ту же ошибку;\n- если пользователь просит план, дай конкретно по дням с минутами и типом работы;\n- если просит изменить нагрузку, объясни последствия и предложи применимое изменение;\n- если учишь теме, не вываливай простыню — веди диалог шагами;\n- если ученик просит задания конкретной линии ЕГЭ, не придумывай их в тексте: такие задания должны идти только из реального банка сайта;\n- не выдумывай статистику, действия ученика или официальный будущий балл;\n- не повторяй мотивационные клише;\n- отвечай по-русски, живо, конкретно;\n- важные формулы и списки делай читаемыми на телефоне.\n\nРеальные данные: ${JSON.stringify(context)}\n${safeHistory ? `\nПредыдущий диалог:\n${safeHistory}\n` : ''}\nУченик: ${q}`;
+  const prompt = `Ты — персональный AI-репетитор и куратор ОСНОВА для ЕГЭ. Ты не просто отвечаешь в чате: ты управляешь подготовкой на основе реальных данных ученика.\n\n${modeInstruction(selectedMode)}\n\nПравила:\n- используй историю ошибок, слабые линии, темп, повторения и недельную динамику;\n- замечай повторяющиеся паттерны, например спешку или одну и ту же ошибку;\n- если пользователь просит план, дай конкретно по дням с минутами и типом работы;\n- если просит изменить нагрузку, объясни последствия и предложи применимое изменение;\n- если учишь теме, не вываливай простыню — веди диалог шагами;\n- если ученик просит задания конкретной линии ЕГЭ, не придумывай их в тексте: используй только внешние источники ФИПИ/проверенные каталоги; внутренний банк сайта для такого запроса не используй;\n- не выдумывай статистику, действия ученика или официальный будущий балл;\n- не повторяй мотивационные клише;\n- отвечай по-русски, живо, конкретно;\n- важные формулы и списки делай читаемыми на телефоне.\n\nРеальные данные: ${JSON.stringify(context)}\n${safeHistory ? `\nПредыдущий диалог:\n${safeHistory}\n` : ''}\nУченик: ${q}`;
   const actions = coachEngine.actionSuggestions(q, plan, tutor, profile, subjectSlug);
   const fallback = fallbackCoachReply(plan, tutor, q, profile, selectedMode);
   await coachEngine.remember(database, userId, subjectSlug, { type: 'preference', key: 'lastMode', value: selectedMode }).catch(() => {});
