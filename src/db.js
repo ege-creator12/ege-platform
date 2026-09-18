@@ -53,6 +53,17 @@ async function pgRead(sql, params) {
   }
 }
 
+async function pgConnect() {
+  try {
+    return await pool.connect();
+  } catch (error) {
+    if (!transientPgReadError(error)) throw error;
+    console.warn('pg-connect-retry', error?.code || 'TRANSIENT', String(error?.message || '').slice(0, 160));
+    await sleep(180 + Math.floor(Math.random() * 221));
+    return pool.connect();
+  }
+}
+
 async function rows(sql, ...params) {
   if (postgres) return (await pgRead(sql, params)).rows;
   return sqlite.prepare(sql).all(...params.map(value => typeof value === 'boolean' ? Number(value) : value));
@@ -72,7 +83,7 @@ async function run(sql, ...params) {
 
 async function transaction(callback) {
   if (postgres) {
-    const client = await pool.connect();
+    const client = await pgConnect();
     const scoped = {
       rows: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows,
       row: async (sql, ...params) => (await client.query(pgSql(sql), params)).rows[0],
@@ -98,7 +109,7 @@ async function transaction(callback) {
 async function migrate() {
   const base = resolve(__dirname, postgres ? '../migrations/postgres' : '../migrations');
   if (postgres) {
-    const client = await pool.connect();
+    const client = await pgConnect();
     try {
       await client.query('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)');
       for (const name of readdirSync(base).filter(name => name.endsWith('.sql')).sort()) {
