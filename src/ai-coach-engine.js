@@ -143,16 +143,30 @@ function extractLoad(message, plan) {
   return { minutesPerDay, daysPerWeek };
 }
 
-function actionSuggestions(message, plan, tutor, profile) {
+function requestedExamLine(message) {
+  const q = String(message || '').toLowerCase().replace(/ё/g, 'е');
+  let match = q.match(/(?:лини(?:я|и|ю|е)?|задани(?:е|я))\s*№?\s*(\d{1,2})/);
+  if (!match) match = q.match(/\b(\d{1,2})\s*(?:-?я\s*)?лини(?:я|и|ю|е)?\b/);
+  const line = Number(match?.[1] || 0);
+  return Number.isInteger(line) && line > 0 ? line : 0;
+}
+
+function actionSuggestions(message, plan, tutor, profile, subjectSlug = '') {
   const q = String(message || '').toLowerCase();
   const actions = [];
   const load = extractLoad(q, plan);
   if (load && (load.minutesPerDay !== Number(plan.minutesPerDay) || load.daysPerWeek !== Number(plan.daysPerWeek))) actions.push({ type: 'adjust_load', label: `Применить ${load.daysPerWeek} дн. × ${load.minutesPerDay} мин`, payload: load });
   if (/диагност|провер.*уров|с чего начать/.test(q)) actions.push({ type: 'diagnostic', label: 'Начать адаптивную диагностику' });
   if (/ошиб|повтор|закреп/.test(q) && profile.dueReviewCount) actions.push({ type: 'review', label: `Повторить ${Math.min(12, profile.dueReviewCount)} заданий` });
-  if (/тренир|задани|практик|проверь меня/.test(q)) actions.push({ type: 'personal_practice', label: 'Собрать персональную тренировку' });
-  const lineMatch = q.match(/(?:лини|задани[ея])\s*(\d{1,2})/);
-  if (lineMatch) actions.push({ type: 'start_line', label: `Тренировать линию ${Number(lineMatch[1])}`, payload: { line: Number(lineMatch[1]), count: 8 } });
+
+  const line = requestedExamLine(q);
+  const maxLine = subjectSlug === 'chemistry' ? 34 : 28;
+  if (line && line <= maxLine) {
+    actions.push({ type: 'start_line', label: `Тренировать линию ${line}`, payload: { line, count: 8 } });
+  } else if (!line && /тренир|задани|практик|проверь меня/.test(q)) {
+    actions.push({ type: 'personal_practice', label: 'Собрать персональную тренировку' });
+  }
+
   if (/сегодня|что делать/.test(q) && tutor?.nextStep) actions.push({ type: 'today_next', label: tutor.nextStep.key === 'theory' ? 'Открыть теорию' : tutor.nextStep.key === 'review' ? 'Повторить ошибки' : 'Начать следующий шаг' });
   return actions.slice(0, 3);
 }
