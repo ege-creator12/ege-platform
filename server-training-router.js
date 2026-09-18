@@ -9,6 +9,7 @@ const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const chemistryExamRegistry = require('./content/chemistry/exam-lines');
 const { lessonPracticePool, MIN_LESSON_QUESTIONS } = require('./src/lesson-practice');
 const { selectExamLineQuestionIds } = require('./src/training-line-selection');
+const { lineSources } = require('./content/external-exam-sources');
 const { row, rows, run } = database;
 
 const PORT = Number(process.env.PORT || 3000);
@@ -134,5 +135,16 @@ async function createChemistryTraining(req,res){const user=await auth(req,res);i
 
 function proxy(req,res){const headers={...req.headers,host:`127.0.0.1:${UPSTREAM_PORT}`};const upstream=http.request({hostname:'127.0.0.1',port:UPSTREAM_PORT,path:req.url,method:req.method,headers},upstreamResponse=>{res.writeHead(upstreamResponse.statusCode||502,upstreamResponse.headers);upstreamResponse.pipe(res)});upstream.on('error',error=>{if(!res.headersSent)json(res,503,{error:'Сервис временно запускается'});else res.end();console.warn('training-upstream-error',error?.code||'UNKNOWN')});req.pipe(upstream)}
 function waitForUpstream(left=180){return new Promise((resolve,reject)=>{const test=attemptsLeft=>{const socket=net.createConnection({host:'127.0.0.1',port:UPSTREAM_PORT});socket.once('connect',()=>{socket.destroy();resolve()});socket.once('error',()=>{socket.destroy();if(attemptsLeft<=0)reject(new Error('Training upstream did not start'));else setTimeout(()=>test(attemptsLeft-1),100)})};test(left)})}
-async function start(){const child=spawn(process.execPath,[join(__dirname,'server-ai-review.js')],{cwd:__dirname,env:{...process.env,PORT:String(UPSTREAM_PORT)},stdio:'inherit'});child.on('exit',code=>{if(code)console.error('training upstream exit',code)});await waitForUpstream();const server=http.createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;try{if(path==='/api/training/sessions'&&req.method==='POST')return await createGeneralTraining(req,res);if(path==='/api/subjects/chemistry/training/sessions'&&req.method==='POST')return await createChemistryTraining(req,res);proxy(req,res)}catch(error){console.error('training-api',error);if(!res.headersSent)json(res,error?.status||500,{error:error?.status?error.message:'Не удалось начать тренировку'})}});server.listen(PORT,()=>console.log(`EGE platform + training router: http://localhost:${PORT}`));const stop=()=>{child.kill('SIGTERM');server.close(()=>process.exit(0))};process.on('SIGTERM',stop);process.on('SIGINT',stop)}
+async function start(){const child=spawn(process.execPath,[join(__dirname,'server-ai-review.js')],{cwd:__dirname,env:{...process.env,PORT:String(UPSTREAM_PORT)},stdio:'inherit'});child.on('exit',code=>{if(code)console.error('training upstream exit',code)});await waitForUpstream();const server=http.createServer(async(req,res)=>{const url=new URL(req.url,'http://localhost'),path=url.pathname;try{
+ if(path==='/api/external-exam-line'&&req.method==='GET'){
+  const user=await auth(req,res);if(!user)return;
+  const subject=String(url.searchParams.get('subject')||'').trim(),line=Number(url.searchParams.get('line')||0),count=Number(url.searchParams.get('count')||5);
+  const data=lineSources(subject,line,count);
+  if(!data)return json(res,400,{error:'Некорректный предмет или номер линии',code:'INVALID_EXTERNAL_LINE'});
+  return json(res,200,data);
+ }
+ if(path==='/api/training/sessions'&&req.method==='POST')return await createGeneralTraining(req,res);
+ if(path==='/api/subjects/chemistry/training/sessions'&&req.method==='POST')return await createChemistryTraining(req,res);
+ proxy(req,res)
+}catch(error){console.error('training-api',error);if(!res.headersSent)json(res,error?.status||500,{error:error?.status?error.message:'Не удалось начать тренировку'})}});server.listen(PORT,()=>console.log(`EGE platform + training router: http://localhost:${PORT}`));const stop=()=>{child.kill('SIGTERM');server.close(()=>process.exit(0))};process.on('SIGTERM',stop);process.on('SIGINT',stop)}
 start().catch(error=>{console.error(error);process.exit(1)});
