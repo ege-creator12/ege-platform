@@ -158,6 +158,32 @@ async function coachReply(userId, subjectSlug, message, history = [], mode = 'co
   const q = String(message || '').trim().slice(0, 1500);
   if (!q) throw Object.assign(new Error('Напиши вопрос'), { status: 400 });
   const selectedMode = ['coach', 'teach', 'ege90', 'quiz', 'hint', 'check'].includes(mode) ? mode : 'coach';
+  const normalizedQ = q.toLowerCase().replace(/ё/g, 'е');
+  let requestedLineMatch = normalizedQ.match(/(?:лини(?:я|и|ю|е)?|задани(?:е|я))\s*№?\s*(\d{1,2})/);
+  if (!requestedLineMatch) requestedLineMatch = normalizedQ.match(/\b(\d{1,2})\s*(?:-?я\s*)?лини(?:я|и|ю|е)?\b/);
+  const requestedLine = Number(requestedLineMatch?.[1] || 0);
+  const asksLinePractice = requestedLine > 0 && /(?:дай|подбери|создай|сделай|хочу|нужн|тренир|практик|решать|порешать|задан)/.test(normalizedQ);
+  if (asksLinePractice) {
+    const maxLine = subjectSlug === 'chemistry' ? 34 : 28;
+    if (requestedLine > maxLine) {
+      return {
+        text: subjectSlug === 'chemistry'
+          ? `В химии ЕГЭ линии идут с 1 по 34. Линии ${requestedLine} нет.`
+          : `В биологии ЕГЭ линии идут с 1 по 28. Линии ${requestedLine} нет.`,
+        subjectSlug,
+        source: 'strict-line-router',
+        aiAvailable: true,
+        actions: [],
+      };
+    }
+    return {
+      text: `Для линии ${requestedLine} беру только задания из реального банка сайта с exam_line=${requestedLine}. Нейросеть сама задания этой линии больше не придумывает.`,
+      subjectSlug,
+      source: 'strict-line-router',
+      aiAvailable: true,
+      actions: [{ type: 'start_line', label: `Начать линию ${requestedLine}`, payload: { line: requestedLine, count: 8 } }],
+    };
+  }
   const safeHistory = (Array.isArray(history) ? history : [])
     .slice(-10)
     .filter(item => item && (item.role === 'assistant' || item.role === 'user') && String(item.text || '').trim())
@@ -177,8 +203,8 @@ async function coachReply(userId, subjectSlug, message, history = [], mode = 'co
     },
     weeklyReport: report,
   };
-  const prompt = `Ты — персональный AI-репетитор и куратор ОСНОВА для ЕГЭ. Ты не просто отвечаешь в чате: ты управляешь подготовкой на основе реальных данных ученика.\n\n${modeInstruction(selectedMode)}\n\nПравила:\n- используй историю ошибок, слабые линии, темп, повторения и недельную динамику;\n- замечай повторяющиеся паттерны, например спешку или одну и ту же ошибку;\n- если пользователь просит план, дай конкретно по дням с минутами и типом работы;\n- если просит изменить нагрузку, объясни последствия и предложи применимое изменение;\n- если учишь теме, не вываливай простыню — веди диалог шагами;\n- не выдумывай статистику, действия ученика или официальный будущий балл;\n- не повторяй мотивационные клише;\n- отвечай по-русски, живо, конкретно;\n- важные формулы и списки делай читаемыми на телефоне.\n\nРеальные данные: ${JSON.stringify(context)}\n${safeHistory ? `\nПредыдущий диалог:\n${safeHistory}\n` : ''}\nУченик: ${q}`;
-  const actions = coachEngine.actionSuggestions(q, plan, tutor, profile);
+  const prompt = `Ты — персональный AI-репетитор и куратор ОСНОВА для ЕГЭ. Ты не просто отвечаешь в чате: ты управляешь подготовкой на основе реальных данных ученика.\n\n${modeInstruction(selectedMode)}\n\nПравила:\n- используй историю ошибок, слабые линии, темп, повторения и недельную динамику;\n- замечай повторяющиеся паттерны, например спешку или одну и ту же ошибку;\n- если пользователь просит план, дай конкретно по дням с минутами и типом работы;\n- если просит изменить нагрузку, объясни последствия и предложи применимое изменение;\n- если учишь теме, не вываливай простыню — веди диалог шагами;\n- если ученик просит задания конкретной линии ЕГЭ, не придумывай их в тексте: такие задания должны идти только из реального банка сайта;\n- не выдумывай статистику, действия ученика или официальный будущий балл;\n- не повторяй мотивационные клише;\n- отвечай по-русски, живо, конкретно;\n- важные формулы и списки делай читаемыми на телефоне.\n\nРеальные данные: ${JSON.stringify(context)}\n${safeHistory ? `\nПредыдущий диалог:\n${safeHistory}\n` : ''}\nУченик: ${q}`;
+  const actions = coachEngine.actionSuggestions(q, plan, tutor, profile, subjectSlug);
   const fallback = fallbackCoachReply(plan, tutor, q, profile, selectedMode);
   await coachEngine.remember(database, userId, subjectSlug, { type: 'preference', key: 'lastMode', value: selectedMode }).catch(() => {});
   if (!GEMINI_API_KEY || !COACH_MODELS.length) return { text: fallback, subjectSlug, source: 'plan-fallback', aiAvailable: false, actions };
