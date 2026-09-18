@@ -121,7 +121,7 @@ async function api(req,res,path){
   if(path==='/api/leaderboard'&&req.method==='GET'){
     res.setHeader('cache-control','no-store');
     const u=await auth(req,res);if(!u)return;
-    const leaders=await rows("SELECT id,name,xp FROM users WHERE role='student' ORDER BY xp DESC,id ASC LIMIT 5");
+    const leaders=await rows("SELECT id,name,xp FROM users WHERE role IN ('student','admin') ORDER BY xp DESC,id ASC LIMIT 5");
     return json(res,200,{leaders:leaders.map((leader,index)=>({rank:index+1,name:leader.name,xp:Number(leader.xp)||0,isYou:String(leader.id)===String(u.id)}))});
   }
   if(path==='/api/subjects'){const u=await auth(req,res);if(u)return json(res,200,{subjects:await rows('SELECT * FROM subjects WHERE published=1 ORDER BY position,id')})}
