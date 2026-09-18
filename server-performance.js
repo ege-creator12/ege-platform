@@ -198,7 +198,11 @@ function staticCandidate(pathname) {
 function cacheControl(url, extension) {
   if (url.searchParams.has('v')) return 'public, max-age=31536000, immutable';
   if (['.png','.webp','.jpg','.jpeg','.svg','.ico','.woff2'].includes(extension)) return 'public, max-age=86400, stale-while-revalidate=604800';
-  return 'public, max-age=600, stale-while-revalidate=86400';
+  // Most feature scripts/styles are intentionally loaded without a version
+  // query. Always revalidate them so a just-deployed bug fix cannot be hidden
+  // behind a ten-minute browser cache.
+  if (extension === '.js' || extension === '.css') return 'public, max-age=0, must-revalidate';
+  return 'public, max-age=60, must-revalidate';
 }
 
 function serveStatic(req, res, url) {
@@ -228,22 +232,43 @@ function serveStatic(req, res, url) {
 
 function proxy(req, res) {
   const headers = { ...req.headers, host: `127.0.0.1:${UPSTREAM_PORT}` };
-  const upstream = http.request({
-    hostname: '127.0.0.1',
-    port: UPSTREAM_PORT,
-    path: req.url,
-    method: req.method,
-    headers,
-  }, upstreamResponse => {
-    res.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
-    upstreamResponse.pipe(res);
-  });
-  upstream.on('error', error => {
-    if (!res.headersSent) json(res, 503, { error: 'Сервис временно запускается' });
-    else res.end();
-    console.warn('performance-upstream-error', error?.code || 'UNKNOWN');
-  });
-  req.pipe(upstream);
+  const idempotent = req.method === 'GET' || req.method === 'HEAD';
+
+  const attempt = (retry = 0) => {
+    const upstream = http.request({
+      hostname: '127.0.0.1',
+      port: UPSTREAM_PORT,
+      path: req.url,
+      method: req.method,
+      headers,
+    }, upstreamResponse => {
+      res.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
+      upstreamResponse.pipe(res);
+    });
+
+    upstream.setTimeout(15000, () => {
+      const error = new Error('UPSTREAM_TIMEOUT');
+      error.code = 'UPSTREAM_TIMEOUT';
+      upstream.destroy(error);
+    });
+
+    upstream.on('error', error => {
+      const code = error?.code || 'UNKNOWN';
+      const transient = ['ECONNRESET','ECONNREFUSED','EPIPE','UPSTREAM_TIMEOUT'].includes(code);
+      if (idempotent && transient && retry < 1 && !res.headersSent) {
+        console.warn('performance-upstream-retry', code);
+        return setTimeout(() => attempt(retry + 1), 80);
+      }
+      if (!res.headersSent) json(res, 503, { error: 'Сервис временно недоступен. Повторите через несколько секунд.', code: 'UPSTREAM_UNAVAILABLE' });
+      else res.end();
+      console.warn('performance-upstream-error', code);
+    });
+
+    if (idempotent) upstream.end();
+    else req.pipe(upstream);
+  };
+
+  attempt();
 }
 
 function waitForUpstream(left = 220) {
