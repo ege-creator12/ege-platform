@@ -17,6 +17,15 @@
     .admin-danger-zone{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,120,120,.16);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
     .admin-danger-zone strong{display:block;color:#ffc0c0;margin-bottom:4px}.admin-danger-zone small{display:block;color:var(--muted);max-width:520px;line-height:1.45}
     .admin-delete-account{background:rgba(198,66,66,.13)!important;color:#ffc0c0!important;border:1px solid rgba(255,128,128,.24)!important}
+    .admin-xp-grant{color:#8ff0b9!important;font-weight:800!important}
+    .admin-xp-overlay{position:fixed;inset:0;z-index:10050;background:rgba(2,10,7,.72);backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px}
+    .admin-xp-dialog{width:min(520px,100%);padding:24px;border:1px solid rgba(109,235,163,.2);background:linear-gradient(160deg,rgba(8,27,20,.98),rgba(5,18,14,.98));box-shadow:0 28px 90px rgba(0,0,0,.48)}
+    .admin-xp-dialog h2{margin:6px 0 4px}.admin-xp-dialog .subtitle{margin:0 0 18px}
+    .admin-xp-current{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 14px;border:1px solid rgba(143,240,185,.12);border-radius:14px;background:rgba(143,240,185,.05);margin-bottom:14px}
+    .admin-xp-current strong{font-size:22px;color:#8ff0b9}.admin-xp-quick{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+    .admin-xp-quick button{border:1px solid rgba(143,240,185,.16);background:rgba(143,240,185,.07);color:var(--text);border-radius:999px;padding:8px 12px;cursor:pointer}
+    .admin-xp-quick button:hover{background:rgba(143,240,185,.13)}
+    .admin-xp-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
   `;
   document.head.appendChild(style);
 
@@ -95,6 +104,54 @@
     }
   };
 
+  function openXpDialog(u){
+    if(!u)return;
+    document.querySelector('.admin-xp-overlay')?.remove();
+    const overlay=document.createElement('div');
+    overlay.className='admin-xp-overlay';
+    overlay.innerHTML=`<form class="card admin-xp-dialog" data-xp-form>
+      <div class="eyebrow">Управление опытом</div>
+      <h2>${escUser(u.name)}</h2>
+      <p class="subtitle">${escUser(u.email)}</p>
+      <div class="admin-xp-current"><span>Сейчас у пользователя</span><strong>${Number(u.xp)||0} XP</strong></div>
+      <div class="field"><label>ИЗМЕНИТЬ XP</label><input name="delta" type="number" step="1" value="100" required><small>Положительное число начисляет XP, отрицательное — снимает. Рейтинг пересчитывается автоматически.</small></div>
+      <div class="admin-xp-quick">
+        <button type="button" data-xp-preset="100">+100</button>
+        <button type="button" data-xp-preset="500">+500</button>
+        <button type="button" data-xp-preset="1000">+1000</button>
+        <button type="button" data-xp-preset="-100">−100</button>
+      </div>
+      <div class="admin-xp-actions"><button type="button" class="btn ghost" data-xp-cancel>Отмена</button><button class="btn" data-xp-submit>Применить</button></div>
+    </form>`;
+    document.body.appendChild(overlay);
+    const form=overlay.querySelector('[data-xp-form]');
+    const input=form.elements.delta;
+    overlay.querySelectorAll('[data-xp-preset]').forEach(button=>button.onclick=()=>{input.value=button.dataset.xpPreset;input.focus()});
+    const close=()=>overlay.remove();
+    overlay.querySelector('[data-xp-cancel]').onclick=close;
+    overlay.onclick=e=>{if(e.target===overlay)close()};
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const delta=Number(input.value);
+      if(!Number.isSafeInteger(delta)||delta===0)return notify('Укажи целое количество XP, отличное от нуля');
+      const submit=overlay.querySelector('[data-xp-submit]');
+      submit.disabled=true;submit.textContent='Сохраняем…';
+      try{
+        const result=await adminApi(`/users/${u.id}/xp`,{method:'POST',body:JSON.stringify({delta})});
+        const actual=Number(result?.user?.delta)||0;
+        u.xp=Number(result?.user?.xp)||0;
+        adminCache.overview=null;
+        close();
+        notify(`${actual>=0?'+':''}${actual} XP · теперь ${u.xp} XP`);
+        await adminUsers();
+      }catch(error){
+        notify(error.message||'Не удалось изменить XP');
+        submit.disabled=false;submit.textContent='Применить';
+      }
+    };
+    requestAnimationFrame(()=>input.select());
+  }
+
   window.adminUsers=async function(){
     try{
       const [d,mods]=await Promise.all([adminApi('/overview'),api('/moderator-admin/list')]);
@@ -102,7 +159,8 @@
       const users=(d.users||[]).map(u=>({...u,role:u.role==='admin'?'admin':moderatorIds.has(Number(u.id))?'moderator':'student'}));
       const roleLabel=r=>r==='admin'?'Администратор':r==='moderator'?'Модератор':'Ученик';
       const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
-      adminFrame(`<div class="admin-note">Только администратор может управлять аккаунтами. Удаление окончательное: пользователь и связанные с ним данные удаляются из базы.</div><div class="card admin-table-wrap"><table class="admin-table"><thead><tr><th>Пользователь</th><th>Роль</th><th>XP</th><th>Решено</th><th></th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${escUser(u.name)}</b><small>${escUser(u.email)}</small></td><td>${roleLabel(u.role)}</td><td>${Number(u.xp)||0}</td><td>${u.solved??0}</td><td><div class="admin-user-actions"><button class="link" data-edit-user="${u.id}">Изменить</button>${Number(u.id)!==currentId?`<button class="link admin-user-delete" data-delete-user="${u.id}">Удалить</button>`:'<small>Текущий аккаунт</small>'}</div></td></tr>`).join('')}</tbody></table></div>`,'Пользователи');
+      adminFrame(`<div class="admin-note">Только администратор может управлять аккаунтами. Удаление окончательное: пользователь и связанные с ним данные удаляются из базы.</div><div class="card admin-table-wrap"><table class="admin-table"><thead><tr><th>Пользователь</th><th>Роль</th><th>XP</th><th>Решено</th><th></th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${escUser(u.name)}</b><small>${escUser(u.email)}</small></td><td>${roleLabel(u.role)}</td><td>${Number(u.xp)||0}</td><td>${u.solved??0}</td><td><div class="admin-user-actions"><button class="link admin-xp-grant" data-xp-user="${u.id}">+ XP</button><button class="link" data-edit-user="${u.id}">Изменить</button>${Number(u.id)!==currentId?`<button class="link admin-user-delete" data-delete-user="${u.id}">Удалить</button>`:'<small>Текущий аккаунт</small>'}</div></td></tr>`).join('')}</tbody></table></div>`,'Пользователи');
+      document.querySelectorAll('[data-xp-user]').forEach(x=>x.onclick=()=>openXpDialog(users.find(u=>Number(u.id)===Number(x.dataset.xpUser))));
       document.querySelectorAll('[data-edit-user]').forEach(x=>x.onclick=()=>window.editUser(users.find(u=>Number(u.id)===Number(x.dataset.editUser))));
       document.querySelectorAll('[data-delete-user]').forEach(x=>x.onclick=()=>window.deleteUserAccount(users.find(u=>Number(u.id)===Number(x.dataset.deleteUser)),x));
     }catch(e){
@@ -114,9 +172,10 @@
   window.editUser=function(u){
     const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
     const danger=Number(u.id)!==currentId?`<div class="admin-danger-zone"><div><strong>Удалить аккаунт</strong><small>Удалит пользователя, активные сессии, прогресс, попытки, данные пробников и другие связанные записи из базы.</small></div><button type="button" class="btn admin-delete-account" id="admin-delete-account">Удалить аккаунт</button></div>`:'';
-    adminFrame(`<button class="back" id="admin-back">← Пользователи</button><form class="card admin-editor" id="user-edit"><h2>${escUser(u.name)}</h2><p class="subtitle">${escUser(u.email)}</p><div class="field"><label>ИМЯ</label><input name="name" value="${escUser(u.name)}"></div><div class="field"><label>XP</label><input name="xp" type="number" min="0" value="${Number(u.xp)||0}"></div><div class="field"><label>РОЛЬ</label><select name="role"><option value="student" ${u.role==='student'?'selected':''}>Ученик</option><option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option><option value="admin" ${u.role==='admin'?'selected':''}>Администратор</option></select></div><div class="admin-note">Модератор: контент + задания + проверка сайта. Без пользователей, оформления, удаления и системных настроек.</div><button class="btn">Сохранить</button>${danger}</form>`,'Пользователь');
+    adminFrame(`<button class="back" id="admin-back">← Пользователи</button><form class="card admin-editor" id="user-edit"><h2>${escUser(u.name)}</h2><p class="subtitle">${escUser(u.email)}</p><div class="field"><label>ИМЯ</label><input name="name" value="${escUser(u.name)}"></div><div class="field"><label>ТЕКУЩИЙ XP</label><input name="xp" type="number" min="0" value="${Number(u.xp)||0}"><small>Можно задать точное значение вручную или использовать кнопку ниже для начисления.</small></div><div class="actions"><button type="button" class="btn ghost admin-xp-grant" id="admin-grant-xp">Выдать / снять XP</button></div><div class="field"><label>РОЛЬ</label><select name="role"><option value="student" ${u.role==='student'?'selected':''}>Ученик</option><option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option><option value="admin" ${u.role==='admin'?'selected':''}>Администратор</option></select></div><div class="admin-note">Модератор: контент + задания + проверка сайта. Без пользователей, оформления, удаления и системных настроек.</div><button class="btn">Сохранить</button>${danger}</form>`,'Пользователь');
     document.querySelector('#admin-back').onclick=()=>{adminTab='users';admin()};
     const deleteButton=document.querySelector('#admin-delete-account');if(deleteButton)deleteButton.onclick=()=>window.deleteUserAccount(u,deleteButton);
+    const grantButton=document.querySelector('#admin-grant-xp');if(grantButton)grantButton.onclick=()=>openXpDialog(u);
     document.querySelector('#user-edit').onsubmit=async e=>{
       e.preventDefault();
       const b=Object.fromEntries(new FormData(e.target));
