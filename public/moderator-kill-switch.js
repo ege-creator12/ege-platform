@@ -49,21 +49,6 @@
     return btn;
   }
 
-  async function activate(){
-    const btn=document.getElementById(ID);
-    if(btn){btn.disabled=true;btn.style.opacity='.6';btn.textContent='Отключаю…'}
-    try{
-      const r=await fetch('/api/site-maintenance/activate',{method:'POST',credentials:'same-origin',headers:{accept:'application/json'}});
-      const d=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(d.error||'Не удалось включить режим');
-      alert('Сайт отключён. Вернуть его может только владелец.');
-      location.reload();
-    }catch(error){
-      alert(error.message||'Не удалось отключить сайт');
-      sync(true);
-    }
-  }
-
   async function deactivate(){
     const btn=document.getElementById(ID);
     if(btn){btn.disabled=true;btn.style.opacity='.6';btn.textContent='Включаю…'}
@@ -87,10 +72,6 @@
       const r=await fetch('/api/site-maintenance/status',{credentials:'same-origin',headers:{accept:'application/json'}});
       if(!r.ok){removeButton();return}
       const d=await r.json();
-      if(d.moderator){
-        makeButton('💥 ПОЛОЖИТЬ САЙТ','danger',activate);
-        return;
-      }
       if(d.admin&&d.active){
         makeButton('✓ ВКЛЮЧИТЬ САЙТ','success',deactivate);
         return;
