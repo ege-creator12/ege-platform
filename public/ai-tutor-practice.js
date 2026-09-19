@@ -21,16 +21,20 @@
 
   function requestedLine(text){
     const raw=normalize(text);
+    // Не используем \\b вокруг кириллицы: в JavaScript это ломает распознавание фраз
+    // вроде «дай 3 задания по 18 линии егэ химия».
     let match=raw.match(/(?:лини(?:я|и|ю|е)?|номер\s+задани(?:я|е)|задани(?:е|я)\s*№?)\s*(\d{1,2})/i);
-    if(!match)match=raw.match(/\b(\d{1,2})\s*(?:-?я\s*)?лини(?:я|и|ю|е)?\b/i);
+    if(!match)match=raw.match(/(\d{1,2})\s*(?:-?(?:я|й)\s*)?лини(?:я|и|ю|е)?/i);
     const line=Number(match?.[1]||0);
     return Number.isInteger(line)&&line>0?line:0;
   }
 
   function requestedSubject(text,line){
     const raw=normalize(text);
-    if(/\b(?:химия|химии|химию|химический|химические|хим)\b/i.test(raw))return 'chemistry';
-    if(/\b(?:биология|биологии|биологию|биологический|биологические|био)\b/i.test(raw))return 'biology';
+    const chemistry=/(?:^|[^а-яё])(?:химия|химии|химию|химический|химические|хим)(?=$|[^а-яё])/i;
+    const biology=/(?:^|[^а-яё])(?:биология|биологии|биологию|биологический|биологические|био)(?=$|[^а-яё])/i;
+    if(chemistry.test(raw))return 'chemistry';
+    if(biology.test(raw))return 'biology';
     if(line>28&&line<=34)return 'chemistry';
     const route=String(globalThis.state?.route||'');
     if(route==='chemistry'||route.startsWith('chemistry/'))return 'chemistry';
@@ -332,6 +336,13 @@
   async function generatePractice(modal,userPrompt){
     const line=requestedLine(userPrompt);
     if(line)return startRealLinePractice(modal,userPrompt,line);
+    if(/лини(?:я|и|ю|е)?/i.test(normalize(userPrompt))){
+      const chat=modal.querySelector('#ai-tutor-chat');
+      const input=modal.querySelector('#ai-tutor-input');
+      if(chat)addBubble(chat,'assistant','Не смог распознать номер линии. Напиши, например: «дай 3 задания по 18 линии ЕГЭ, химия».');
+      if(input)input.focus({preventScroll:true});
+      return;
+    }
     const chat=modal.querySelector('#ai-tutor-chat');
     const input=modal.querySelector('#ai-tutor-input');
     const submit=modal.querySelector('#ai-tutor-form button[type="submit"]');
