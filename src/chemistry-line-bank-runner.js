@@ -1,9 +1,23 @@
 'use strict';
 const registry=require('../content/chemistry/exam-lines');
-const builders=require('./chemistry-line-bank');
+const sourceModules=[
+  require('./chemistry-bank-foundations'),
+  require('./chemistry-bank-inorganic'),
+  require('./chemistry-bank-organic'),
+  require('./chemistry-bank-processes'),
+  require('./chemistry-bank-calculations'),
+  require('./chemistry-bank-extended'),
+  require('./chemistry-bank-foundations-ege'),
+  require('./chemistry-bank-core-ege'),
+  require('./chemistry-bank-first-part-ege'),
+  require('./chemistry-bank-diverse-v3'),
+  require('./chemistry-bank-diversity-final'),
+  require('./chemistry-bank-line33-diverse')
+];
+const {build:buildSupplement}=require('./chemistry-bank-unique-supplement');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
-const {diversifyQuestion}=require('./question-bank-diversify');
-const BANK_VERSION='v3';
+
+const BANK_VERSION='v4';
 const MEDIUM_BANK_VERSION='retired-v1';
 
 function parseJson(value){
@@ -12,6 +26,18 @@ function parseJson(value){
  try{return JSON.parse(value);}catch{return {};}
 }
 function fingerprint(item){return semanticFingerprint({...item,content:item.content||parseJson(item.content_json)});}
+function buildersFor(line){
+ const builds=sourceModules.map(module=>module?.[line]).filter(fn=>typeof fn==='function');
+ builds.push(seed=>buildSupplement(line,seed));
+ return builds;
+}
+function prepareItem(line,raw,seed){
+ if(!raw)return null;
+ return {
+   ...raw,
+   difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,seed%3===0?3:2)
+ };
+}
 
 async function insertQuestion(db,{subject,lesson,line,info,key,item,source}){
  const maxScore=Number(item.maxScore||info.maxScore||1);
@@ -26,21 +52,45 @@ async function insertQuestion(db,{subject,lesson,line,info,key,item,source}){
    JSON.stringify({short:item.explanation,fullSolution:item.explanation,scoringPoints:item.scoringPoints||item.content?.criteria||[]}),JSON.stringify(content),'{}',
    source,'original',line,maxScore,line>=29?600:line>=23?240:150,2027,JSON.stringify(item.solutionSteps||[]),maxScore,'review');
  const questionId=Number(result.lastInsertRowid);
- for(const [i,opt] of (item.options||[]).entries())await db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',questionId,String(opt.value),String(opt.label),i);
+ for(const [i,opt] of (item.options||[]).entries()){
+   await db.run('INSERT INTO question_options(question_id,value,label,position) VALUES(?,?,?,?)',questionId,String(opt.value),String(opt.label),i);
+ }
  return questionId;
 }
 
 async function retireOldGeneratedBanks(db,subjectId){
- const old=await db.row("SELECT COUNT(*) n FROM questions WHERE subject_id=? AND active=1 AND ((external_key LIKE 'chemistry-bank-%' AND external_key NOT LIKE 'chemistry-bank-v3-line%') OR external_key LIKE 'chemistry-medium-%')",subjectId);
+ const currentPattern=`chemistry-bank-${BANK_VERSION}-line%`;
+ const old=await db.row(
+   `SELECT COUNT(*) n FROM questions
+    WHERE subject_id=? AND active=1
+      AND ((external_key LIKE 'chemistry-bank-%' AND external_key NOT LIKE ?) OR external_key LIKE 'chemistry-medium-%')`,
+   subjectId,currentPattern
+ );
  const retired=Number(old?.n||0);
- if(retired)await db.run("UPDATE questions SET active=FALSE,published=FALSE,exam_line=NULL WHERE subject_id=? AND ((external_key LIKE 'chemistry-bank-%' AND external_key NOT LIKE 'chemistry-bank-v3-line%') OR external_key LIKE 'chemistry-medium-%')",subjectId);
+ if(retired)await db.run(
+   `UPDATE questions SET active=FALSE,published=FALSE,exam_line=NULL
+    WHERE subject_id=?
+      AND ((external_key LIKE 'chemistry-bank-%' AND external_key NOT LIKE ?) OR external_key LIKE 'chemistry-medium-%')`,
+   subjectId,currentPattern
+ );
  return retired;
 }
 
 async function sanitizeExamLineAssignments(db,subjectId){
- const row=await db.row("SELECT COUNT(*) n FROM questions WHERE subject_id=? AND exam_line BETWEEN 1 AND 34 AND (external_key IS NULL OR external_key NOT LIKE 'chemistry-bank-v3-line%')",subjectId);
+ const pattern=`chemistry-bank-${BANK_VERSION}-line%`;
+ const row=await db.row(
+   `SELECT COUNT(*) n FROM questions
+    WHERE subject_id=? AND exam_line BETWEEN 1 AND 34
+      AND (external_key IS NULL OR external_key NOT LIKE ?)`,
+   subjectId,pattern
+ );
  const detached=Number(row?.n||0);
- if(detached)await db.run("UPDATE questions SET exam_line=NULL WHERE subject_id=? AND exam_line BETWEEN 1 AND 34 AND (external_key IS NULL OR external_key NOT LIKE 'chemistry-bank-v3-line%')",subjectId);
+ if(detached)await db.run(
+   `UPDATE questions SET exam_line=NULL
+    WHERE subject_id=? AND exam_line BETWEEN 1 AND 34
+      AND (external_key IS NULL OR external_key NOT LIKE ?)`,
+   subjectId,pattern
+ );
  return detached;
 }
 
@@ -54,7 +104,10 @@ async function bankItems(db,subjectId,line){
  const map=new Map();
  for(const row of rows){
   let item=map.get(Number(row.id));
-  if(!item){item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,type:row.type,questionType:row.question_type,options:[]};map.set(item.id,item);}
+  if(!item){
+    item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,type:row.type,questionType:row.question_type,options:[]};
+    map.set(item.id,item);
+  }
   if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
  }
  return [...map.values()];
@@ -67,7 +120,8 @@ async function removeSemanticDuplicates(db,subjectId){
   for(const item of items){
    const fp=fingerprint(item);
    if(!seen.has(fp)){seen.set(fp,item);continue;}
-   await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);hidden++;
+   await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);
+   hidden++;
   }
  }
  return hidden;
@@ -76,7 +130,10 @@ async function removeSemanticDuplicates(db,subjectId){
 async function resolveLineLesson(db,subjectId,info){
  const line=Number(info.line);
  const anchorSlug=`chemistry-line-${String(line).padStart(2,'0')}-lesson`;
- let lesson=await db.row('SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=? AND l.published=1',subjectId,anchorSlug);
+ let lesson=await db.row(
+   'SELECT l.id,l.topic_id FROM lessons l JOIN topics t ON t.id=l.topic_id WHERE t.subject_id=? AND l.slug=? AND l.published=1',
+   subjectId,anchorSlug
+ );
  if(lesson)return lesson;
  const refs=Array.isArray(info.lessonRefs)?info.lessonRefs.filter(Boolean):[];
  if(!refs.length)return null;
@@ -94,14 +151,19 @@ async function ensureChemistryLineBank(db,{minimum=25}={}){
  const retired=await retireOldGeneratedBanks(db,subject.id);
  const detached=await sanitizeExamLineAssignments(db,subject.id);
  const deduplicated=await removeSemanticDuplicates(db,subject.id);
- let inserted=0;const lines=[];
+ const keyRows=await db.rows('SELECT external_key FROM questions WHERE subject_id=? AND external_key IS NOT NULL',subject.id);
+ const existingKeys=new Set(keyRows.map(row=>String(row.external_key)));
+ let inserted=0;
+ const lines=[];
 
  for(const info of registry.lines){
-   const line=Number(info.line),build=builders[line];
-   if(typeof build!=='function'){
+   const line=Number(info.line);
+   const builds=buildersFor(line);
+   if(!builds.length){
      lines.push({line,count:0,added:0,warning:'builder-not-found'});
      continue;
    }
+
    const prefix=`chemistry-bank-${BANK_VERSION}-line${line}-`;
    let existing=await bankItems(db,subject.id,line),count=existing.length;
    const accepted=existing.map(item=>({...item,content:parseJson(item.content_json)}));
@@ -109,27 +171,53 @@ async function ensureChemistryLineBank(db,{minimum=25}={}){
    const lesson=await resolveLineLesson(db,subject.id,info);
    if(!lesson){lines.push({line,count,added:0,warning:'lesson-not-found'});continue;}
 
-   let added=0,skippedDuplicates=0;
-   for(let n=1;count<minimum&&n<=160;n++){
-     const key=`${prefix}${n}`;
-     if(await db.row('SELECT id FROM questions WHERE external_key=?',key))continue;
-     const raw=diversifyQuestion(build(n),{n,line,subject:'chemistry'});
-     const item={...raw,difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,n%3===0?3:2)};
-     const fp=fingerprint(item);
-     if(fingerprints.has(fp)||accepted.some(previous=>nearDuplicate(previous,item))){skippedDuplicates++;continue;}
-     await insertQuestion(db,{subject,lesson,line,info,key,item,source:'Оригинальный банк ОСНОВА · химия ЕГЭ-2027 · v3 · без смысловых дублей'});
-     fingerprints.add(fp);accepted.push(item);count++;added++;inserted++;
+   let added=0,skippedDuplicates=0,serial=1;
+   for(let seed=1;seed<=360&&count<minimum;seed++){
+     for(const build of builds){
+       if(count>=minimum)break;
+       let raw=null;
+       try{raw=build(seed);}catch{}
+       const item=prepareItem(line,raw,seed);
+       if(!item)continue;
+
+       const key=`${prefix}${serial++}`;
+       if(existingKeys.has(key))continue;
+       const fp=fingerprint(item);
+       if(fingerprints.has(fp)||accepted.some(previous=>nearDuplicate(previous,item))){
+         skippedDuplicates++;
+         continue;
+       }
+
+       await insertQuestion(db,{
+         subject,lesson,line,info,key,item,
+         source:`ОСНОВА · авторский уникальный банк по формату ФИПИ · химия ЕГЭ-2027 · ${BANK_VERSION}`
+       });
+       existingKeys.add(key);
+       fingerprints.add(fp);
+       accepted.push(item);
+       count++;
+       added++;
+       inserted++;
+     }
    }
-   existing=await bankItems(db,subject.id,line);count=existing.length;
+
+   existing=await bankItems(db,subject.id,line);
+   count=existing.length;
    const hard=existing.filter(item=>parseJson(item.content_json)?.qualityTier==='hard').length;
    lines.push({line,count,hard,added,skippedDuplicates});
  }
+
  const ok=lines.length===34&&lines.every(x=>x.count>=minimum);
- if(retired)console.log(`Chemistry bank cleanup: retired ${retired} old/core-medium generated questions.`);
- if(detached)console.log(`Chemistry line cleanup: detached ${detached} non-v3 questions from strict line routing.`);
- if(deduplicated)console.log(`Chemistry semantic duplicate cleanup: hidden ${deduplicated} v3 duplicates.`);
- if(ok)console.log(`Chemistry v3 bank ready: >=${minimum} semantically distinct questions on all 34 lines; generated ${inserted}.`);
- else console.warn('Chemistry v3 line bank incomplete:',lines.filter(x=>x.count<minimum));
- return {ok,inserted,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION,retiredOldBank:retired,detachedMisclassified:detached,deduplicated};
+ if(retired)console.log(`Chemistry bank cleanup: retired ${retired} older generated questions.`);
+ if(detached)console.log(`Chemistry line cleanup: detached ${detached} non-${BANK_VERSION} questions from strict line routing.`);
+ if(deduplicated)console.log(`Chemistry semantic duplicate cleanup: hidden ${deduplicated} ${BANK_VERSION} duplicates.`);
+ if(ok)console.log(`Chemistry ${BANK_VERSION} bank ready: >=${minimum} genuinely distinct questions on all 34 lines; generated ${inserted}.`);
+ else console.warn(`Chemistry ${BANK_VERSION} line bank incomplete:`,lines.filter(x=>x.count<minimum));
+
+ return {
+   ok,inserted,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION,
+   retiredOldBank:retired,detachedMisclassified:detached,deduplicated
+ };
 }
+
 module.exports={ensureChemistryLineBank,BANK_VERSION,MEDIUM_BANK_VERSION,fingerprint,sanitizeExamLineAssignments,resolveLineLesson};
