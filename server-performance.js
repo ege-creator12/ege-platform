@@ -231,10 +231,12 @@ async function handleAiLineTasks(req, res, url) {
       return true;
     }
 
-    // Берём только активный опубликованный банк нужного предмета и нужной линии.
-    // Не привязываемся к одной версии банка: во время фоновой миграции v7/v3 -> v8/v4
-    // старый банк остаётся допустимым запасным источником, пока новый ещё наполняется.
-    const prefix = subjectSlug === 'chemistry' ? 'chemistry-bank-%' : 'biology-bank-%';
+    // Для 26-й линии биологии используем только новый усложнённый банк.
+    // Для остальных линий сохраняем широкий префикс, чтобы фоновая миграция банка
+    // не оставляла ученика без заданий.
+    const prefix = subjectSlug === 'biology' && line === 26
+      ? 'biology-bank-v8-line26-hard-%'
+      : subjectSlug === 'chemistry' ? 'chemistry-bank-%' : 'biology-bank-%';
     const candidates = await database.rows(
       `SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key
        FROM questions
