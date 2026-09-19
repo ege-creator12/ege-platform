@@ -12,14 +12,15 @@ async function startStrictLine(line,count,mode='adaptive'){
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||`Не удалось открыть линию ${line}`);
-  if(Number(data.examLine)!==line||Number(data.bankVersion)!==6||data.strictLinePool!==true){
+  const bankVersion=Number(data.bankVersion);
+  if(Number(data.examLine)!==line||!Number.isInteger(bankVersion)||bankVersion<1||data.strictLinePool!==true){
     throw new Error(`Защита линии ${line}: сервер не подтвердил строгий банк`);
   }
   if(!data.session?.id)throw new Error('Сервер не создал тренировку');
   sessionStorage.trainingSession=String(data.session.id);
   sessionStorage.trainingSubject='biology';
   sessionStorage.trainingExamLine=String(line);
-  sessionStorage.trainingBankVersion='6';
+  sessionStorage.trainingBankVersion=String(bankVersion);
   location.hash='training';
 }
 
@@ -58,7 +59,7 @@ function decorateTraining(){
   }
 
   const line=Number(sessionStorage.trainingExamLine||0),version=Number(sessionStorage.trainingBankVersion||0);
-  if(!line||version!==6)return;
+  if(!line||!Number.isInteger(version)||version<1)return;
   if(meta&&!meta.querySelector('[data-strict-line-badge]')){
     const badge=document.createElement('span');badge.className='pill';badge.dataset.strictLineBadge='1';badge.textContent=`Линия ${line} · строгий банк`;meta.prepend(badge);
   }

@@ -3,7 +3,7 @@
 // Keep these values in sync with the current duplicate-free generated-bank namespaces.
 // This module stays tiny so the normal cold-start path can verify readiness without
 // loading the large course/generator modules.
-const BIOLOGY_BANK_VERSION = 'v8';
+const { BIOLOGY_BANK_VERSION_TAG: BIOLOGY_BANK_VERSION } = require('./biology-bank-version');
 const CHEMISTRY_BANK_VERSION = 'v4';
 const CHEMISTRY_MEDIUM_VERSION = 'retired-v1';
 const CHEMISTRY_COURSE_VERSION = 'chemistry-2027-subject-course-v2-fipi-mastery-complete';

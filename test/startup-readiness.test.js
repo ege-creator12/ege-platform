@@ -21,8 +21,8 @@ function dbFixture({bioShort=0,coreShort=0,missingUpgrade=false,throwUpgrade=fal
   },
   rows:async(sql,_subjectId,pattern)=>{
    rowsCalls++;
-   if(pattern==='biology-bank-v7-line%')return counts(28,12,bioShort);
-   if(pattern==='chemistry-bank-v3-line%')return counts(34,10,coreShort);
+   if(pattern==='biology-bank-v8-line%')return counts(28,25,bioShort);
+   if(pattern==='chemistry-bank-v4-line%')return counts(34,25,coreShort);
    throw new Error(`unexpected rows query: ${sql}`);
   }
  };
@@ -38,8 +38,8 @@ test('healthy production content uses only the cheap readiness queries',async()=
  const db=dbFixture();
  assert.equal(await fastContentReady(db),true);
  assert.deepEqual(db.stats(),{rowCalls:3,rowsCalls:2});
- assert.equal(BIOLOGY_BANK_VERSION,'v7');
- assert.equal(CHEMISTRY_BANK_VERSION,'v3');
+ assert.equal(BIOLOGY_BANK_VERSION,'v8');
+ assert.equal(CHEMISTRY_BANK_VERSION,'v4');
  assert.equal(CHEMISTRY_MEDIUM_VERSION,'retired-v1');
  assert.equal(CHEMISTRY_COURSE_VERSION,'chemistry-2027-subject-course-v2-fipi-mastery-complete');
 });

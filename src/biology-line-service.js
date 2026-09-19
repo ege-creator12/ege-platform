@@ -1,6 +1,6 @@
 'use strict';
 
-const BIOLOGY_BANK_VERSION = 7;
+const { BIOLOGY_BANK_VERSION } = require('./biology-bank-version');
 const strictPattern = line => `biology-bank-v${BIOLOGY_BANK_VERSION}-line${Number(line)}-%`;
 
 function safeJson(value) {

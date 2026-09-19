@@ -15,11 +15,11 @@ test('strict biology line patterns are unique for every EGE line', () => {
   const patterns = registry.lines.map(info => strictPattern(info.line));
   assert.equal(new Set(patterns).size, 28);
   registry.lines.forEach(info => {
-    assert.equal(strictPattern(info.line), `biology-bank-v7-line${info.line}-%`);
+    assert.equal(strictPattern(info.line), `biology-bank-v8-line${info.line}-%`);
   });
 });
 
-test('biology line payload scopes count, progress, mistakes and examples to biology v7', async () => {
+test('biology line payload scopes count, progress, mistakes and examples to biology v8', async () => {
   const queries = [];
   const db = {
     async row(sql, ...params) {
@@ -38,7 +38,7 @@ test('biology line payload scopes count, progress, mistakes and examples to biol
   const payload = await biologyLinePayload(db, registry, 19, 123);
   assert.equal(payload.subjectSlug, 'biology');
   assert.equal(payload.strictBank, true);
-  assert.equal(payload.bankVersion, 7);
+  assert.equal(payload.bankVersion, 8);
   assert.equal(payload.questionCount, 12);
 
   const questionQueries = queries.filter(item => /questions q|FROM questions/.test(item.sql));
@@ -49,7 +49,7 @@ test('biology line payload scopes count, progress, mistakes and examples to biol
     assert.match(item.sql, /q\.external_key LIKE \?/);
     assert.ok(item.params.includes(77), 'biology subject id must be passed');
     assert.ok(item.params.includes(19), 'requested line must be passed');
-    assert.ok(item.params.includes('biology-bank-v7-line19-%'), 'strict v7 prefix must be passed');
+    assert.ok(item.params.includes('biology-bank-v8-line19-%'), 'strict v8 prefix must be passed');
   }
 });
 

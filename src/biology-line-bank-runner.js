@@ -5,7 +5,7 @@ const {build:buildCore}=require('./biology-line-bank');
 const {build:buildSupplement}=require('./biology-line-unique-supplement');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
 
-const BANK_VERSION=8;
+const { BIOLOGY_BANK_VERSION: BANK_VERSION }=require('./biology-bank-version');
 
 function parseJson(value){
   if(!value)return {};
