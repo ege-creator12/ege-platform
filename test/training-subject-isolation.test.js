@@ -19,8 +19,8 @@ test('topic training resolves the subject from the topic', () => {
   assert.match(source, /if \(!onlySubjectId\) return json\(res, 404,/);
 });
 
-test('strict biology training is pinned to the duplicate-free v7 bank', () => {
-  assert.match(source, /const BIOLOGY_BANK_VERSION = 7;/);
+test('strict biology training is pinned to the shared duplicate-free v8 bank', () => {
+  assert.match(source, /require\('\.\/src\/biology-bank-version'\)/);
   assert.match(source, /biology-bank-v\$\{BIOLOGY_BANK_VERSION\}-line\$\{line\}-%/);
   assert.match(source, /biology-bank-v\$\{BIOLOGY_BANK_VERSION\}-line\$\{line\}-/);
   assert.match(source, /bankVersion:examLine\?BIOLOGY_BANK_VERSION:null/);
