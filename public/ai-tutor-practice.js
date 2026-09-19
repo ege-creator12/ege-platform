@@ -68,97 +68,40 @@
       return;
     }
 
-    const loading=addBubble(chat,'assistant',`Ищу задания линии ${line} в открытом банке ФИПИ…`,'loading');
+    const loading=addBubble(chat,'assistant',`Загружаю ${count} заданий линии ${line} из банка ОСНОВЫ…`,'loading');
     submit.disabled=true;
     input.disabled=true;
     try{
-      const response=await fetch(`/api/external-exam-line?subject=${encodeURIComponent(subject)}&line=${line}&count=${count}`,{
+      const response=await fetch(`/api/ai-line-tasks?subject=${encodeURIComponent(subject)}&line=${line}&count=${count}`,{
         method:'GET',credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'},
       });
       const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||`Не удалось найти источники для линии ${line}`);
+      if(!response.ok)throw new Error(data.error||`Не удалось загрузить задания линии ${line}`);
+      const tasks=(data.tasks||[]).map((task,index)=>({
+        id:Number(task.id||index+1),
+        prompt:clean(task.prompt),
+        instruction:clean(task.instruction),
+        options:Array.isArray(task.options)?task.options.map(clean).filter(Boolean):[],
+        answer:clean(task.answer),
+        accepted:Array.isArray(task.acceptedAnswers)?task.acceptedAnswers.map(clean).filter(Boolean):[clean(task.answer)].filter(Boolean),
+        explanation:clean(task.explanation||'Сверь решение с правилом этой линии ЕГЭ.'),
+        difficulty:clean(task.difficulty||''),
+        manualReview:Boolean(task.manualReview),
+      })).filter(task=>task.prompt&&task.answer);
+      if(!tasks.length)throw new Error(`В банке линии ${line} пока нет готовых заданий. Повтори через минуту.`);
 
       loading.remove();
       const card=document.createElement('section');
       card.className='ai-practice-card';
-      const head=document.createElement('div');
-      head.className='ai-practice-head';
-      const title=document.createElement('b');
-      title.textContent=`Линия ${line} · ${subject==='chemistry'?'химия':'биология'}`;
-      const source=document.createElement('span');
-      source.textContent='Источник: ФИПИ';
-      head.append(title,source);
-
-      const intro=document.createElement('p');
-      intro.textContent=data.tasks?.length
-        ? `Ниже — реальные задания из открытого банка ФИПИ, привязанные к этой линии официальным навигатором ЕГЭ-2026.`
-        : 'В навигаторе ФИПИ не нашлось прямой ссылки на конкретное задание этой линии. Открой банк ФИПИ по предмету.';
-
-      const list=document.createElement('div');
-      list.style.display='grid';
-      list.style.gap='10px';
-      for(const task of (data.tasks||[])){
-        const row=document.createElement('div');
-        row.style.display='flex';
-        row.style.alignItems='center';
-        row.style.justifyContent='space-between';
-        row.style.gap='12px';
-        row.style.padding='12px';
-        row.style.border='1px solid rgba(143,240,185,.14)';
-        row.style.borderRadius='14px';
-        row.style.background='rgba(143,240,185,.04)';
-
-        const meta=document.createElement('div');
-        const strong=document.createElement('strong');
-        strong.textContent=`ФИПИ · ID ${task.qid}`;
-        const small=document.createElement('small');
-        small.style.display='block';
-        small.style.marginTop='3px';
-        small.style.opacity='.72';
-        small.textContent=`Задание линии ${line}`;
-        meta.append(strong,small);
-
-        const open=document.createElement('a');
-        open.className='btn ghost';
-        open.href=task.url;
-        open.target='_blank';
-        open.rel='noopener noreferrer';
-        open.textContent='Открыть →';
-        row.append(meta,open);
-        list.appendChild(row);
-      }
-
-      const actions=document.createElement('div');
-      actions.className='ai-practice-actions';
-      actions.style.marginTop='14px';
-      const bank=document.createElement('a');
-      bank.className='btn';
-      bank.href=data.bankUrl;
-      bank.target='_blank';
-      bank.rel='noopener noreferrer';
-      bank.textContent='Открыть банк ФИПИ';
-      const navigator=document.createElement('a');
-      navigator.className='btn ghost';
-      navigator.href=data.navigatorUrl;
-      navigator.target='_blank';
-      navigator.rel='noopener noreferrer';
-      navigator.textContent='Навигатор ФИПИ';
-      actions.append(bank,navigator);
-
-      if((data.tasks||[]).length<count){
-        const note=document.createElement('small');
-        note.style.display='block';
-        note.style.marginTop='12px';
-        note.style.opacity='.72';
-        note.textContent=`В официальном навигаторе есть ${data.tasks?.length||0} прямых примеров для этой линии. Я не подменяю недостающие задания выдуманными.`;
-        card.append(head,intro,list,actions,note);
-      }else card.append(head,intro,list,actions);
-
       chat.appendChild(card);
+      renderTask(card,{
+        tasks,index:0,correct:0,originalPrompt:userPrompt,
+        line,subject
+      });
       chat.scrollTop=chat.scrollHeight;
     }catch(error){
       loading.classList.remove('loading');
-      loading.textContent=error.message||'Не удалось получить задания ФИПИ по этой линии.';
+      loading.textContent=error.message||'Не удалось загрузить задания этой линии.';
     }finally{
       submit.disabled=false;
       input.disabled=false;
@@ -283,7 +226,7 @@
     const check=document.createElement('button');
     check.type='submit';
     check.className='btn';
-    check.textContent='Проверить ответ';
+    check.textContent=task.manualReview?'Показать эталон':'Проверить ответ';
     const skip=document.createElement('button');
     skip.type='button';
     skip.className='btn ghost';
@@ -296,17 +239,18 @@
     feedback.hidden=true;
 
     const showResult=(given,skipped=false)=>{
-      const correct=!skipped&&isCorrect(given,task);
+      const manual=Boolean(task.manualReview);
+      const correct=manual?!skipped:(!skipped&&isCorrect(given,task));
       if(correct)state.correct+=1;
       input.disabled=true;
       check.hidden=true;
       skip.hidden=true;
       feedback.hidden=false;
       feedback.classList.toggle('correct',correct);
-      feedback.classList.toggle('wrong',!correct);
+      feedback.classList.toggle('wrong',!correct&&!manual);
       feedback.innerHTML='';
       const verdict=document.createElement('strong');
-      verdict.textContent=correct?'✓ Верно':'✕ Неверно';
+      verdict.textContent=manual?'Сверь свой ответ с эталоном':(correct?'✓ Верно':'✕ Неверно');
       const answer=document.createElement('p');
       answer.textContent=`Правильный ответ: ${task.answer}`;
       const explanation=document.createElement('p');
@@ -406,18 +350,28 @@
       }else input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
     });
 
-    form.addEventListener('submit',event=>{
+    const originalSubmit=form.onsubmit;
+    form.onsubmit=event=>{
       const text=input.value.trim();
-      if(!text)return;
-      if(!armed&&!TASK_REQUEST.test(text))return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      input.value='';
-      armed=false;
-      mode.classList.remove('active');
-      input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
-      generatePractice(modal,text);
-    },true);
+      if(text&&(armed||TASK_REQUEST.test(text))){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        input.value='';
+        armed=false;
+        mode.classList.remove('active');
+        input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
+        generatePractice(modal,text);
+        return false;
+      }
+      return typeof originalSubmit==='function'?originalSubmit.call(form,event):undefined;
+    };
+
+    globalThis.OsnovaAiPractice={
+      isTaskRequest:text=>TASK_REQUEST.test(String(text||'')),
+      requestedLine,
+      requestedSubject,
+      generatePractice:(text)=>generatePractice(modal,String(text||''))
+    };
   }
 
   const observer=new MutationObserver(records=>{
