@@ -2,6 +2,7 @@
 const registry=require('../content/biology/exam-lines.json');
 const {buildStrictV7}=require('./biology-strict-line-bank-v7');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
+const {diversifyQuestion}=require('./question-bank-diversify');
 
 function parseJson(value){
   if(!value)return {};
@@ -100,7 +101,7 @@ async function trustedLineItems(db,subjectId,info){
   return [...map.values()];
 }
 
-async function ensureBiologyLineBank(db,{minimum=12}={}){
+async function ensureBiologyLineBank(db,{minimum=25}={}){
   const subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
   if(!subject)return {ok:false,inserted:0,lines:[]};
   const retired=await retireOldGeneratedBanks(db,subject.id);
@@ -123,7 +124,7 @@ async function ensureBiologyLineBank(db,{minimum=12}={}){
     for(let n=1;n<=240&&count<minimum;n++){
       const key=`biology-bank-v7-line${line}-${n}`;
       if(existingKeys.has(key))continue;
-      const item=buildStrictV7(line,n),fp=fingerprint(item);
+      const item=diversifyQuestion(buildStrictV7(line,n),{n,line,subject:'biology'}),fp=fingerprint(item);
       if(fingerprints.has(fp)||accepted.some(previous=>nearDuplicate(previous,item))){skippedDuplicates++;continue;}
       await insertQuestion(db,{subjectId:subject.id,lesson,line,info,key,item});
       existingKeys.add(key);fingerprints.add(fp);accepted.push(item);count++;added++;inserted++;
