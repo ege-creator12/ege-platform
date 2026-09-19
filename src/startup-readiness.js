@@ -28,12 +28,15 @@ async function fastContentReady(db, { biologyMinimum = 25, chemistryMinimum = 25
     ]);
     if (!biology?.id || !chemistry?.id || !chemistryUpgrade?.version) return false;
 
-    const [biologyCounts, chemistryCore] = await Promise.all([
+    const [biologyCounts, biologyHard26, chemistryCore] = await Promise.all([
       db.rows(`SELECT exam_line,COUNT(*) n FROM questions
         WHERE subject_id=? AND active=1 AND published=1
           AND exam_line BETWEEN 1 AND 28
           AND external_key LIKE ?
         GROUP BY exam_line`, Number(biology.id), `biology-bank-${BIOLOGY_BANK_VERSION}-line%`),
+      db.row(`SELECT COUNT(*) n FROM questions
+        WHERE subject_id=? AND active=1 AND published=1
+          AND exam_line=26 AND external_key LIKE ?`, Number(biology.id), `biology-bank-${BIOLOGY_BANK_VERSION}-line26-hard-%`),
       db.rows(`SELECT exam_line,COUNT(*) n FROM questions
         WHERE subject_id=? AND active=1 AND published=1
           AND exam_line BETWEEN 1 AND 34
@@ -42,6 +45,7 @@ async function fastContentReady(db, { biologyMinimum = 25, chemistryMinimum = 25
     ]);
 
     return completeLineSet(biologyCounts, 28, biologyMinimum)
+      && numeric(biologyHard26?.n) >= biologyMinimum
       && completeLineSet(chemistryCore, 34, chemistryMinimum);
   } catch (error) {
     // A missing state table or a partially migrated database simply falls back to
