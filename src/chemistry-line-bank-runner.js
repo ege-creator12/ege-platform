@@ -2,6 +2,7 @@
 const registry=require('../content/chemistry/exam-lines');
 const builders=require('./chemistry-line-bank');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
+const {diversifyQuestion}=require('./question-bank-diversify');
 const BANK_VERSION='v3';
 const MEDIUM_BANK_VERSION='retired-v1';
 
@@ -86,7 +87,7 @@ async function resolveLineLesson(db,subjectId,info){
  return lesson||null;
 }
 
-async function ensureChemistryLineBank(db,{minimum=10}={}){
+async function ensureChemistryLineBank(db,{minimum=25}={}){
  const subject=await db.row("SELECT id FROM subjects WHERE slug='chemistry'");
  if(!subject)return {ok:false,inserted:0,lines:[],bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
 
@@ -112,7 +113,7 @@ async function ensureChemistryLineBank(db,{minimum=10}={}){
    for(let n=1;count<minimum&&n<=160;n++){
      const key=`${prefix}${n}`;
      if(await db.row('SELECT id FROM questions WHERE external_key=?',key))continue;
-     const raw=build(n);
+     const raw=diversifyQuestion(build(n),{n,line,subject:'chemistry'});
      const item={...raw,difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,n%3===0?3:2)};
      const fp=fingerprint(item);
      if(fingerprints.has(fp)||accepted.some(previous=>nearDuplicate(previous,item))){skippedDuplicates++;continue;}
