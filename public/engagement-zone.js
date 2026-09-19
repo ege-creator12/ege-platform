@@ -22,15 +22,6 @@ const loadState=(solved)=>{
   return s;
 };
 const saveState=s=>localStorage.setItem(STORAGE,JSON.stringify(s));
-const achievements=(stats)=>{
-  const solved=Number(stats.solved)||0,accuracy=Number(stats.accuracy)||0,streak=Number(stats.streak)||0;
-  return [
-    {icon:'⚡',title:'Первый шаг',desc:'Решить 10 заданий',done:solved>=10,progress:Math.min(solved,10),total:10},
-    {icon:'🔥',title:'В ритме',desc:'Серия 7 дней',done:streak>=7,progress:Math.min(streak,7),total:7},
-    {icon:'🎯',title:'Точно в цель',desc:'Точность 80%+',done:accuracy>=80,progress:Math.min(accuracy,80),total:80,suffix:'%'},
-    {icon:'🏆',title:'Сотня',desc:'Решить 100 заданий',done:solved>=100,progress:Math.min(solved,100),total:100}
-  ];
-};
 const render=(data)=>{
   const stats=data.stats||{};
   const solved=Number(stats.solved)||0;
@@ -38,7 +29,6 @@ const render=(data)=>{
   const state=loadState(solved);
   const progress=Math.max(0,Math.min(5,solved-Number(state.startSolved||0)));
   const complete=progress>=5;
-  const ach=achievements(stats);
   return `<section id="${ROOT_ID}" class="engagement-zone">
     <article class="daily-challenge-card ${complete?'is-complete':''}">
       <div class="engagement-kicker">Ежедневный челлендж</div>
@@ -55,15 +45,6 @@ const render=(data)=>{
     <article class="streak-card">
       <div class="streak-fire">🔥</div>
       <div><span>Текущая серия</span><strong>${streak} ${streak===1?'день':(streak>=2&&streak<=4?'дня':'дней')}</strong><small>Заходи и решай задания каждый день, чтобы не сбить ритм.</small></div>
-    </article>
-    <article class="achievements-card">
-      <div class="achievements-head"><div><span>Ачивки</span><h2>Коллекция прогресса</h2></div><b>${ach.filter(x=>x.done).length}/${ach.length}</b></div>
-      <div class="achievement-grid">
-        ${ach.map(a=>`<div class="achievement-item ${a.done?'done':''}">
-          <div class="achievement-icon">${a.icon}</div>
-          <div class="achievement-copy"><strong>${esc(a.title)}</strong><small>${esc(a.desc)}</small><div class="achievement-bar"><i style="width:${Math.min(100,a.progress/a.total*100)}%"></i></div><em>${a.progress}${a.suffix||''} / ${a.total}${a.suffix||''}</em></div>
-        </div>`).join('')}
-      </div>
     </article>
   </section>`;
 };
