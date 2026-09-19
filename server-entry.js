@@ -57,11 +57,35 @@ async function deepContentRepair(){
   if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 25 semantically unique visible questions on every line');
 }
 
+let contentRepairRunning=false;
+async function repairContentInBackground(){
+  if(contentRepairRunning)return;
+  contentRepairRunning=true;
+  try{
+    const ready=await fastContentReady(database);
+    if(ready){
+      console.log('Background content check: banks are already healthy; rebuild skipped.');
+      return;
+    }
+    console.log('Background content repair: started after HTTP server became available.');
+    await deepContentRepair();
+    console.log('Background content repair: completed successfully.');
+  }catch(error){
+    // Content expansion must never take the web service down. The current bank
+    // remains usable and the next deploy/start can retry the repair.
+    console.error('background-content-repair',error);
+  }finally{
+    contentRepairRunning=false;
+  }
+}
+
 (async()=>{
   await database.migrate();
   await Promise.all([ensureAiUsageStorage(),ensureAiCoachStorage()]);
-  const ready=await fastContentReady(database);
-  if(ready) console.log('Fast startup: content banks already healthy; deep rebuild skipped.');
-  else await deepContentRepair();
+
+  // Render requires the service to bind its HTTP port quickly. Building hundreds
+  // of exam tasks can take several minutes on the free instance, so start serving
+  // first and do the heavy content repair only after the gateway is live.
   await require('./server-performance').start();
+  setTimeout(()=>{ void repairContentInBackground(); },1500);
 })().catch(error=>{console.error('startup',error);process.exit(1)});
