@@ -16,7 +16,7 @@ const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.TRAINING_UPSTREAM_PORT || (PORT + 1));
 const trainingModes = new Set(['adaptive', 'mixed', 'new', 'review', 'mistakes', 'errors', 'hard', 'infinite', 'topic']);
 const subjectSlugs = new Set(['biology', 'chemistry']);
-const BIOLOGY_BANK_VERSION = 7;
+const BIOLOGY_BANK_VERSION = 8;
 
 const json = (res, status, data) => {
   res.writeHead(status, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
