@@ -172,6 +172,147 @@ async function fastTopics(userId) {
     ORDER BY t.position,t.id`, userId);
 }
 
+function parseQuestionJson(value, fallback = []) {
+  if (value == null) return fallback;
+  if (typeof value === 'object') return value;
+  try { return JSON.parse(value); } catch { return fallback; }
+}
+
+function formatBankAnswer(question, options) {
+  const rawValue = parseQuestionJson(question.answer_json, []);
+  const raw = Array.isArray(rawValue) ? rawValue.map(String) : [String(rawValue ?? '')].filter(Boolean);
+  const answerData = parseQuestionJson(question.answer_data_json, {}) || {};
+  const acceptedExtra = Array.isArray(answerData.acceptedVariants) ? answerData.acceptedVariants.map(String) : [];
+  const type = String(question.question_type || '');
+  const valueToPosition = new Map(options.map((option, index) => [String(option.value), String(index + 1)]));
+
+  if (type === 'matching' && raw.length) {
+    const pairs = raw.map(value => String(value).match(/^(\d+)-(\d+)$/)).filter(Boolean);
+    if (pairs.length === raw.length) {
+      pairs.sort((a, b) => Number(a[1]) - Number(b[1]));
+      const sequence = pairs.map(pair => String(Number(pair[2]) + 1)).join('');
+      return { answer: sequence, accepted: [sequence, sequence.split('').join(' '), sequence.split('').join(',')] };
+    }
+  }
+
+  if (options.length && raw.length && raw.every(value => valueToPosition.has(String(value)))) {
+    const positions = raw.map(value => valueToPosition.get(String(value)));
+    const compact = positions.join('');
+    return { answer: compact, accepted: [compact, positions.join(' '), positions.join(','), positions.join(';')] };
+  }
+
+  const answer = raw.join(raw.length > 1 ? ' ' : '').trim();
+  return { answer, accepted: [...new Set([answer, ...acceptedExtra].filter(Boolean))] };
+}
+
+async function handleAiLineTasks(req, res, url) {
+  if (req.method !== 'GET' || url.pathname !== '/api/ai-line-tasks') return false;
+
+  const user = await userFor(req);
+  if (!user) {
+    json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
+    return true;
+  }
+
+  const subjectSlug = String(url.searchParams.get('subject') || '').trim();
+  const line = Number(url.searchParams.get('line') || 0);
+  const count = Math.min(10, Math.max(1, Number(url.searchParams.get('count') || 5)));
+  const maxLine = subjectSlug === 'chemistry' ? 34 : subjectSlug === 'biology' ? 28 : 0;
+
+  if (!maxLine || !Number.isInteger(line) || line < 1 || line > maxLine) {
+    json(res, 400, { error: 'Некорректный предмет или номер линии', code: 'INVALID_EXAM_LINE' });
+    return true;
+  }
+
+  try {
+    const subject = await database.row('SELECT id FROM subjects WHERE slug=? AND published=1', subjectSlug);
+    if (!subject) {
+      json(res, 404, { error: 'Предмет не найден', code: 'SUBJECT_NOT_FOUND' });
+      return true;
+    }
+
+    // Берём только активный опубликованный банк нужного предмета и нужной линии.
+    // Не привязываемся к одной версии банка: во время фоновой миграции v7/v3 -> v8/v4
+    // старый банк остаётся допустимым запасным источником, пока новый ещё наполняется.
+    const prefix = subjectSlug === 'chemistry' ? 'chemistry-bank-%' : 'biology-bank-%';
+    const candidates = await database.rows(
+      `SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key
+       FROM questions
+       WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND external_key LIKE ?
+       ORDER BY RANDOM()
+       LIMIT ?`,
+      subject.id,
+      line,
+      prefix,
+      Math.max(count * 3, 18),
+    );
+
+    if (!candidates.length) {
+      json(res, 404, {
+        error: `Банк линии ${line} сейчас достраивается. Повтори запрос через минуту.`,
+        code: 'LINE_BANK_BUILDING',
+      });
+      return true;
+    }
+
+    const tasks = [];
+    const seen = new Set();
+    for (const question of candidates) {
+      if (tasks.length >= count) break;
+      const prompt = String(question.prompt || '').trim();
+      if (!prompt) continue;
+      const promptKey = prompt.toLowerCase().replace(/\s+/g, ' ');
+      if (seen.has(promptKey)) continue;
+      seen.add(promptKey);
+
+      const options = await database.rows(
+        'SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',
+        question.id,
+      );
+      const formatted = formatBankAnswer(question, options);
+      if (!formatted.answer) continue;
+
+      const content = parseQuestionJson(question.content_json, {}) || {};
+      tasks.push({
+        id: Number(question.id),
+        prompt,
+        instruction: String(question.instruction || ''),
+        options: options.map(option => String(option.label)),
+        answer: formatted.answer,
+        acceptedAnswers: formatted.accepted,
+        explanation: String(question.explanation || ''),
+        difficulty: Number(question.difficulty || 1),
+        manualReview: Boolean(content.manualReview || question.question_type === 'extended_answer'),
+        questionType: String(question.question_type || ''),
+        externalKey: String(question.external_key || ''),
+      });
+    }
+
+    if (!tasks.length) {
+      json(res, 404, {
+        error: `В линии ${line} пока нет готовых заданий для показа.`,
+        code: 'LINE_TASKS_EMPTY',
+      });
+      return true;
+    }
+
+    json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_EXAM_BANK' });
+    return true;
+  } catch (error) {
+    console.error('ai-line-tasks', {
+      subject: subjectSlug,
+      line,
+      code: error?.code || 'LINE_TASKS_ERROR',
+      message: String(error?.message || error).slice(0, 500),
+    });
+    json(res, 500, {
+      error: 'Не удалось загрузить задания этой линии. Банк не повреждён — повтори запрос после обновления страницы.',
+      code: 'LINE_TASKS_ERROR',
+    });
+    return true;
+  }
+}
+
 async function handleFastApi(req, res, pathname) {
   if (req.method !== 'GET' || pathname !== '/api/topics') return false;
   const user = await userFor(req);
@@ -317,6 +458,7 @@ async function start() {
       if (await answerExpert.handle(req, res, url)) return;
       if (await adminUserDelete.handle(req, res, url)) return;
       if (await moderator.handle(req, res, url)) return;
+      if (await handleAiLineTasks(req, res, url)) return;
       if (await handleFastApi(req, res, url.pathname)) return;
       if (serveStatic(req, res, url)) return;
       proxy(req, res);
@@ -340,4 +482,4 @@ if (require.main === module) start().catch(error => {
   process.exit(1);
 });
 
-module.exports = { start, fastTopics, handleFastApi, staticCandidate, cacheControl, requireProForAi, sanitizeAiPayload };
+module.exports = { start, fastTopics, handleFastApi, handleAiLineTasks, staticCandidate, cacheControl, requireProForAi, sanitizeAiPayload };
