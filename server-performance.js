@@ -13,6 +13,7 @@ const communityChat = require('./server-community-chat');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
+const siteMaintenance = require('./server-site-maintenance');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -288,6 +289,7 @@ function waitForUpstream(left = 220) {
 
 async function start() {
   await moderator.ensureSchema();
+  await siteMaintenance.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
   await communityChat.ensureSchema();
@@ -305,6 +307,8 @@ async function start() {
     const url = new URL(req.url, 'http://localhost');
     installAiResponseGuard(res, url.pathname);
     try {
+      if (await siteMaintenance.handle(req, res, url)) return;
+      if (await siteMaintenance.enforce(req, res, url)) return;
       if (await subscriptions.handle(req, res, url)) return;
       if (await requireProForAi(req, res, url.pathname)) return;
       if (await communityChat.handle(req, res, url)) return;
