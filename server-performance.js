@@ -13,13 +13,13 @@ const communityChat = require('./server-community-chat');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
-const siteMaintenance = require('./server-site-maintenance');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
 const PUBLIC = resolve(__dirname, 'public');
 
 const mime = {
+  '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
@@ -257,6 +257,23 @@ async function handleAiLineTasks(req, res, url) {
       return true;
     }
 
+    const candidateIds = candidates.map(question => Number(question.id)).filter(Number.isSafeInteger);
+    const optionRows = candidateIds.length
+      ? await database.rows(
+        `SELECT question_id,value,label
+         FROM question_options
+         WHERE question_id IN (${candidateIds.map(() => '?').join(',')})
+         ORDER BY question_id,position`,
+        ...candidateIds,
+      )
+      : [];
+    const optionsByQuestion = new Map();
+    for (const option of optionRows) {
+      const questionId = Number(option.question_id);
+      if (!optionsByQuestion.has(questionId)) optionsByQuestion.set(questionId, []);
+      optionsByQuestion.get(questionId).push({ value: option.value, label: option.label });
+    }
+
     const tasks = [];
     const seen = new Set();
     for (const question of candidates) {
@@ -267,10 +284,7 @@ async function handleAiLineTasks(req, res, url) {
       if (seen.has(promptKey)) continue;
       seen.add(promptKey);
 
-      const options = await database.rows(
-        'SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',
-        question.id,
-      );
+      const options = optionsByQuestion.get(Number(question.id)) || [];
       const formatted = formatBankAnswer(question, options);
       if (!formatted.answer) continue;
 
@@ -330,9 +344,10 @@ function staticCandidate(pathname) {
   let decoded;
   try { decoded = decodeURIComponent(pathname); } catch { return null; }
   if (!decoded.startsWith('/') || decoded.includes('\0')) return null;
-  const extension = extname(decoded).toLowerCase();
+  const requested = decoded === '/' ? '/index.html' : decoded;
+  const extension = extname(requested).toLowerCase();
   if (!mime[extension]) return null;
-  const file = resolve(PUBLIC, '.' + decoded);
+  const file = resolve(PUBLIC, '.' + requested);
   if (file !== PUBLIC && !file.startsWith(PUBLIC + sep)) return null;
   if (!existsSync(file)) return null;
   const stat = statSync(file);
@@ -342,10 +357,11 @@ function staticCandidate(pathname) {
 function cacheControl(url, extension) {
   if (url.searchParams.has('v')) return 'public, max-age=31536000, immutable';
   if (['.png','.webp','.jpg','.jpeg','.svg','.ico','.woff2'].includes(extension)) return 'public, max-age=86400, stale-while-revalidate=604800';
-  // Most feature scripts/styles are intentionally loaded without a version
-  // query. Always revalidate them so a just-deployed bug fix cannot be hidden
-  // behind a ten-minute browser cache.
-  if (extension === '.js' || extension === '.css') return 'public, max-age=0, must-revalidate';
+  if (extension === '.html') return 'public, max-age=0, must-revalidate';
+  // Repeated visits should not download dozens of unchanged feature files.
+  // A short fresh window keeps deploys responsive while stale-while-revalidate
+  // makes navigation and reloads instant on slower connections.
+  if (extension === '.js' || extension === '.css') return 'public, max-age=600, stale-while-revalidate=86400';
   return 'public, max-age=60, must-revalidate';
 }
 
@@ -432,7 +448,6 @@ function waitForUpstream(left = 220) {
 
 async function start() {
   await moderator.ensureSchema();
-  await siteMaintenance.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
   await communityChat.ensureSchema();
@@ -448,10 +463,11 @@ async function start() {
   await waitForUpstream();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    // Static files never need authentication or a database lookup. Serving them
+    // first removes the biggest source of page-load queues on Render.
+    if (serveStatic(req, res, url)) return;
     installAiResponseGuard(res, url.pathname);
     try {
-      if (await siteMaintenance.handle(req, res, url)) return;
-      if (await siteMaintenance.enforce(req, res, url)) return;
       if (await subscriptions.handle(req, res, url)) return;
       if (await requireProForAi(req, res, url.pathname)) return;
       if (await communityChat.handle(req, res, url)) return;
@@ -462,7 +478,6 @@ async function start() {
       if (await moderator.handle(req, res, url)) return;
       if (await handleAiLineTasks(req, res, url)) return;
       if (await handleFastApi(req, res, url.pathname)) return;
-      if (serveStatic(req, res, url)) return;
       proxy(req, res);
     } catch (error) {
       console.error('performance-api', error);

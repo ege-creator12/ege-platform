@@ -34,3 +34,23 @@ test('static assets get long cache only when their URL is versioned',()=>{
  assert.match(source,/max-age=600, stale-while-revalidate=86400/);
  assert.match(source,/etag/);
 });
+
+
+test('static delivery bypasses database-backed middleware',()=>{
+ const start=source.indexOf("const server = http.createServer");
+ const end=source.indexOf("server.listen",start);
+ const handler=source.slice(start,end);
+ assert.ok(handler.indexOf('serveStatic(req, res, url)')<handler.indexOf('installAiResponseGuard'));
+ assert.doesNotMatch(handler,/siteMaintenance/);
+ assert.doesNotMatch(source,/server-site-maintenance/);
+ assert.match(source,/decoded === '\/' \? '\/index\.html'/);
+});
+
+test('AI line task options are loaded in one batch',()=>{
+ const start=source.indexOf('async function handleAiLineTasks');
+ const end=source.indexOf('async function handleFastApi',start);
+ const body=source.slice(start,end);
+ assert.match(body,/optionsByQuestion/);
+ assert.match(body,/question_id IN/);
+ assert.doesNotMatch(body,/WHERE question_id=\? ORDER BY position/);
+});

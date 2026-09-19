@@ -161,7 +161,7 @@
   const main=$('main[data-page="dashboard"]');if(!main)return;
   mounting=true;
   try{
-    const data=await api('/me');
+    const data=typeof state!=='undefined'&&state?.user?{user:state.user,stats:state.stats||{}}:await api('/me');
     if(route()!=='dashboard'||!main.isConnected)return;
     const holder=document.createElement('div');holder.innerHTML=dashboardHtml(data);const node=holder.firstElementChild;
     const top=$('.topbar',main);if(top)top.insertAdjacentElement('afterend',node);else main.prepend(node);
