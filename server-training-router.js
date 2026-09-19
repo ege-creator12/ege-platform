@@ -53,9 +53,9 @@ function examLineMeta(subject,line){
   return registry.lines.find(item=>Number(item.line)===Number(line))||null;
 }
 function bankPatterns(subject,line){
-  return subject==='chemistry'
-    ? [`chemistry-bank-v${CHEMISTRY_BANK_VERSION}-line${line}-%`,`chemistry-bank-v3-line${line}-%`]
-    : [`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`,`biology-bank-v7-line${line}-%`];
+  if(subject==='chemistry')return [`chemistry-bank-v${CHEMISTRY_BANK_VERSION}-line${line}-%`,`chemistry-bank-v3-line${line}-%`];
+  if(Number(line)===26)return [`biology-bank-v${BIOLOGY_BANK_VERSION}-line26-hard-%`];
+  return [`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`,`biology-bank-v7-line${line}-%`];
 }
 function displayAnswerForBankTask(question,options){
   const raw=Array.isArray(parseStoredJson(question.answer_json,[]))?parseStoredJson(question.answer_json,[]):[];
@@ -116,7 +116,7 @@ async function lineTasksForAi(subject,line,count){
   }
   return tasks;
 }
-function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`]}}
+function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[Number(line)===26?`biology-bank-v${BIOLOGY_BANK_VERSION}-line26-hard-%`:`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`]}}
 
 async function questionPool(userId,topicId,mode,limit,options={}){
  const examLine=Number(options.examLine||0),onlySubjectId=Number(options.subjectId||0),publishedOnly=Boolean(options.publishedOnly),strictBiologyLine=Boolean(options.strictBiologyLine&&examLine);
@@ -143,7 +143,7 @@ async function assertBiologyLineIds(ids,line,subject){
  if(!ids.length)return;
  const marks=ids.map(()=>'?').join(',');
  const selected=await rows(`SELECT id,external_key,exam_line,subject_id FROM questions WHERE id IN (${marks})`,...ids);
- const prefix=`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-`;
+ const prefix=Number(line)===26?`biology-bank-v${BIOLOGY_BANK_VERSION}-line26-hard-`:`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-`;
  const bad=selected.filter(q=>Number(q.exam_line)!==Number(line)||Number(q.subject_id)!==Number(subject)||!String(q.external_key||'').startsWith(prefix));
  if(selected.length!==ids.length||bad.length){
   console.error('strict-biology-line-violation',{requestedLine:line,ids,bad});
