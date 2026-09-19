@@ -47,6 +47,75 @@ async function questionExposure(userId,questionIds){
 }
 function emptyMessage(mode){if(mode==='new')return 'Новых заданий сейчас нет — выберите другой режим.';if(mode==='review')return 'Заданий, срок повторения которых наступил, сейчас нет.';if(mode==='mistakes'||mode==='errors')return 'Ошибок для повторения пока нет.';return 'Для выбранной тренировки пока нет заданий.'}
 async function subjectId(slug){const subject=await row('SELECT id FROM subjects WHERE slug=? AND published=1',slug);return Number(subject?.id||0)}
+function parseStoredJson(value,fallback=null){if(value==null)return fallback;if(typeof value==='object')return value;try{return JSON.parse(value)}catch{return fallback}}
+function examLineMeta(subject,line){
+  const registry=subject==='chemistry'?chemistryExamRegistry:biologyExamRegistry;
+  return registry.lines.find(item=>Number(item.line)===Number(line))||null;
+}
+function bankPatterns(subject,line){
+  return subject==='chemistry'
+    ? [`chemistry-bank-v${CHEMISTRY_BANK_VERSION}-line${line}-%`,`chemistry-bank-v3-line${line}-%`]
+    : [`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`,`biology-bank-v7-line${line}-%`];
+}
+function displayAnswerForBankTask(question,options){
+  const raw=Array.isArray(parseStoredJson(question.answer_json,[]))?parseStoredJson(question.answer_json,[]):[];
+  const qtype=String(question.question_type||'');
+  const valueToPosition=new Map(options.map((option,index)=>[String(option.value),String(index+1)]));
+  if(qtype==='matching'&&raw.length){
+    const pairs=raw.map(value=>String(value).match(/^(\d+)-(\d+)$/)).filter(Boolean);
+    if(pairs.length===raw.length){
+      pairs.sort((a,b)=>Number(a[1])-Number(b[1]));
+      const sequence=pairs.map(match=>String(Number(match[2])+1)).join('');
+      return {answer:sequence,accepted:[sequence,sequence.split('').join(' '),sequence.split('').join(',')]};
+    }
+  }
+  if(options.length&&raw.length&&raw.every(value=>valueToPosition.has(String(value)))){
+    const positions=raw.map(value=>valueToPosition.get(String(value)));
+    const joined=positions.join('');
+    return {answer:joined,accepted:[joined,positions.join(' '),positions.join(','),positions.join(';')]};
+  }
+  const answer=raw.map(value=>typeof value==='string'?value:JSON.stringify(value)).join(raw.length>1?' ':'').trim();
+  const answerData=parseStoredJson(question.answer_data_json,{})||{};
+  const accepted=[answer,...(Array.isArray(answerData.acceptedVariants)?answerData.acceptedVariants.map(String):[])].filter(Boolean);
+  return {answer,accepted:[...new Set(accepted)]};
+}
+async function lineTasksForAi(subject,line,count){
+  const subjectRow=await row('SELECT id FROM subjects WHERE slug=? AND published=1',subject);
+  if(!subjectRow)return [];
+  const selected=[];
+  const seen=new Set();
+  for(const pattern of bankPatterns(subject,line)){
+    if(selected.length>=count)break;
+    const batch=await rows(`SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key
+      FROM questions
+      WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND external_key LIKE ?
+      ORDER BY RANDOM() LIMIT ?`,subjectRow.id,line,pattern,count-selected.length);
+    for(const item of batch){
+      if(seen.has(Number(item.id)))continue;
+      seen.add(Number(item.id));selected.push(item);
+    }
+  }
+  const tasks=[];
+  for(const question of selected.slice(0,count)){
+    const options=await rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',question.id);
+    const formatted=displayAnswerForBankTask(question,options);
+    const content=parseStoredJson(question.content_json,{})||{};
+    tasks.push({
+      id:Number(question.id),
+      prompt:String(question.prompt||''),
+      instruction:String(question.instruction||''),
+      options:options.map(option=>String(option.label)),
+      answer:formatted.answer,
+      acceptedAnswers:formatted.accepted,
+      explanation:String(question.explanation||''),
+      difficulty:Number(question.difficulty||1),
+      manualReview:Boolean(content.manualReview||question.question_type==='extended_answer'),
+      questionType:String(question.question_type||''),
+      externalKey:String(question.external_key||'')
+    });
+  }
+  return tasks;
+}
 function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>Number(item.line)===Number(line));if(!info)return null;return {patterns:[`biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`]}}
 
 async function questionPool(userId,topicId,mode,limit,options={}){
@@ -136,6 +205,20 @@ async function createChemistryTraining(req,res){const user=await auth(req,res);i
 function proxy(req,res){const headers={...req.headers,host:`127.0.0.1:${UPSTREAM_PORT}`};const upstream=http.request({hostname:'127.0.0.1',port:UPSTREAM_PORT,path:req.url,method:req.method,headers},upstreamResponse=>{res.writeHead(upstreamResponse.statusCode||502,upstreamResponse.headers);upstreamResponse.pipe(res)});upstream.on('error',error=>{if(!res.headersSent)json(res,503,{error:'Сервис временно запускается'});else res.end();console.warn('training-upstream-error',error?.code||'UNKNOWN')});req.pipe(upstream)}
 function waitForUpstream(left=180){return new Promise((resolve,reject)=>{const test=attemptsLeft=>{const socket=net.createConnection({host:'127.0.0.1',port:UPSTREAM_PORT});socket.once('connect',()=>{socket.destroy();resolve()});socket.once('error',()=>{socket.destroy();if(attemptsLeft<=0)reject(new Error('Training upstream did not start'));else setTimeout(()=>test(attemptsLeft-1),100)})};test(left)})}
 async function start(){const child=spawn(process.execPath,[join(__dirname,'server-ai-review.js')],{cwd:__dirname,env:{...process.env,PORT:String(UPSTREAM_PORT)},stdio:'inherit'});child.on('exit',code=>{if(code)console.error('training upstream exit',code)});await waitForUpstream();const server=http.createServer(async(req,res)=>{const url=new URL(req.url,'http://localhost'),path=url.pathname;try{
+ if(path==='/api/ai-line-tasks'&&req.method==='GET'){
+  const user=await auth(req,res);if(!user)return;
+  const subject=String(url.searchParams.get('subject')||'').trim();
+  const line=Number(url.searchParams.get('line')||0);
+  const count=Math.min(10,Math.max(1,Number(url.searchParams.get('count')||5)));
+  if(!subjectSlugs.has(subject)||!examLineMeta(subject,line)){
+    return json(res,400,{error:'Некорректный предмет или номер линии',code:'INVALID_EXAM_LINE'});
+  }
+  const tasks=await lineTasksForAi(subject,line,count);
+  if(!tasks.length){
+    return json(res,404,{error:`Банк линии ${line} ещё достраивается. Повтори запрос через минуту.`,code:'LINE_BANK_BUILDING'});
+  }
+  return json(res,200,{subject,line,count:tasks.length,tasks,source:'OSNOVA_EXAM_BANK'});
+ }
  if(path==='/api/external-exam-line'&&req.method==='GET'){
   const user=await auth(req,res);if(!user)return;
   const subject=String(url.searchParams.get('subject')||'').trim(),line=Number(url.searchParams.get('line')||0),count=Number(url.searchParams.get('count')||5);
