@@ -350,27 +350,29 @@
       }else input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
     });
 
-    const originalSubmit=form.onsubmit;
-    form.onsubmit=event=>{
+    // Перехватываем запросы заданий в capture-фазе раньше обычного AI-чата.
+    // Иначе базовый обработчик успевает отправить фразу в /api/ai/tutor или
+    // старый launcher тренировки, откуда и появлялось «Не удалось начать тренировку».
+    const interceptTaskSubmit=event=>{
       const text=input.value.trim();
-      if(text&&(armed||TASK_REQUEST.test(text))){
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        input.value='';
-        armed=false;
-        mode.classList.remove('active');
-        input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
-        generatePractice(modal,text);
-        return false;
-      }
-      return typeof originalSubmit==='function'?originalSubmit.call(form,event):undefined;
+      if(!text||(!armed&&!TASK_REQUEST.test(text)))return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      input.value='';
+      armed=false;
+      mode.classList.remove('active');
+      input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
+      void generatePractice(modal,text);
     };
+    form.addEventListener('submit',interceptTaskSubmit,true);
 
     globalThis.OsnovaAiPractice={
       isTaskRequest:text=>TASK_REQUEST.test(String(text||'')),
       requestedLine,
       requestedSubject,
-      generatePractice:(text)=>generatePractice(modal,String(text||''))
+      generatePractice:(text)=>generatePractice(modal,String(text||'')),
+      version:'20260919-bankfix4'
     };
   }
 
