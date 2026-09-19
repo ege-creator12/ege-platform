@@ -3,6 +3,7 @@ const registry=require('../content/biology/exam-lines.json');
 const {buildStrictV7}=require('./biology-strict-line-bank-v7');
 const {build:buildCore}=require('./biology-line-bank');
 const {build:buildSupplement}=require('./biology-line-unique-supplement');
+const {build:buildHardLine26}=require('./biology-line26-hard-bank');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
 
 const { BIOLOGY_BANK_VERSION: BANK_VERSION }=require('./biology-bank-version');
@@ -17,6 +18,7 @@ const generatedKey=key=>/^biology-bank-/i.test(String(key||''));
 
 function lineRule(info){
   const line=Number(info.line);
+  if(line===26)return {line,patterns:[`biology-bank-v${BANK_VERSION}-line26-hard-%`],refs:[]};
   return {line,patterns:[`biology-bank-v${BANK_VERSION}-line${line}-%`],refs:[]};
 }
 function trustedWhere(rule){
@@ -39,6 +41,9 @@ function prepareItem(line,item){
   };
 }
 function candidateItems(line,seed){
+  if(Number(line)===26){
+    try{return [prepareItem(26,buildHardLine26(seed))].filter(Boolean);}catch{return [];}
+  }
   const result=[];
   try{result.push(prepareItem(line,buildStrictV7(line,seed)));}catch{}
   try{result.push(prepareItem(line,buildCore(line,seed)));}catch{}
@@ -189,7 +194,9 @@ async function ensureBiologyLineBank(db,{minimum=25}={}){
     for(let seed=1;seed<=420&&count<minimum;seed++){
       for(const item of candidateItems(line,seed)){
         if(count>=minimum)break;
-        const key=`biology-bank-v${BANK_VERSION}-line${line}-${serial++}`;
+        const key=line===26
+          ? `biology-bank-v${BANK_VERSION}-line26-hard-${serial++}`
+          : `biology-bank-v${BANK_VERSION}-line${line}-${serial++}`;
         if(existingKeys.has(key))continue;
         const fp=fingerprint(item);
         if(fingerprints.has(fp)||accepted.some(previous=>nearDuplicate(previous,item))){
