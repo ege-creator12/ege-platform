@@ -30,6 +30,7 @@ function trustedWhere(rule){
 function prepareItem(line,item){
   if(!item||!isBiologyFipiFormat(line,item)||!Array.isArray(item.solutionSteps)||!item.solutionSteps.length)return null;
   const difficulty=Math.max(1,Math.min(3,Number(item.difficulty)||1));
+  if(difficulty<3)return null;
   return {
     ...item,
     difficulty,
