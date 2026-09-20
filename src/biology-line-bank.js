@@ -256,14 +256,46 @@ function sequenceQuestion(line,n,list,label){const [name,steps]=rotate(list,n);c
 function line3(n){const mode=(n-1)%3;if(mode===0){const total=120+12*n,a=30+2*n,g=(total-2*a)/2;return q({prompt:`В двуцепочечном фрагменте ДНК ${total} нуклеотидов, из них адениновых ${a}. Сколько в этом фрагменте гуаниновых нуклеотидов?`,answer:[String(g)],difficulty:diff(n),explanation:`В двуцепочечной ДНК A=T, G=C. После вычитания A и T оставшиеся нуклеотиды поровну приходятся на G и C: ${g}.`,solutionSteps:['Найдите число T','Вычтите A и T из общего числа','Разделите остаток пополам']});}if(mode===1){const aa=40+n,nt=(aa+1)*3;return q({prompt:`Кодирующая часть мРНК содержит ${nt} нуклеотидов, включая один стоп-кодон. Сколько аминокислот будет в полипептиде?`,answer:[String(aa)],difficulty:diff(n),explanation:`Число кодонов равно ${nt}/3=${aa+1}; стоп-кодон аминокислоту не кодирует, поэтому остаётся ${aa}.`,solutionSteps:['Разделите число нуклеотидов на 3','Учтите стоп-кодон','Запишите число аминокислот']});}const prod=10000+1000*n,level=2+(n%2),ans=prod/(10**level);return q({prompt:`Биомасса продуцентов экосистемы равна ${prod} кг. Используя правило примерно 10%, оцените биомассу консументов ${level}-го порядка. Ответ дайте в килограммах.`,answer:[String(ans)],difficulty:diff(n),explanation:`При каждом переходе сохраняется около 10% энергии/биомассы: ${prod} → ${prod/10}${level===2?` → ${ans}`:` → ${prod/100} → ${ans}`}.`,solutionSteps:['Определите число трофических переходов','Каждый раз делите на 10','Проверьте порядок величины']});}
 function line4(n){const mode=(n-1)%4;if(mode===0){const total=80+16*n,ans=total/4;return q({prompt:`Скрестили двух гетерозигот Aa × Aa. Получено ${total} потомков. Сколько в среднем ожидается особей с рецессивным фенотипом aa?`,answer:[String(ans)],difficulty:diff(n),explanation:`При Aa × Aa вероятность aa равна 1/4, поэтому ${total}/4=${ans}.`,solutionSteps:['Запишите расщепление 1:2:1','Найдите долю aa','Умножьте на число потомков']});}if(mode===1){const total=160+16*n,ans=total*3/16;return q({prompt:`При независимом наследовании генов скрестили AaBb × AaBb и получили ${total} потомков. Сколько в среднем ожидается особей с фенотипом A–bb?`,answer:[String(ans)],difficulty:diff(n),explanation:`P(A–)=3/4, P(bb)=1/4; совместная вероятность 3/16. ${total}×3/16=${ans}.`,solutionSteps:['Найдите вероятность доминантного фенотипа A–','Найдите вероятность bb','Перемножьте независимые вероятности']});}if(mode===2){const total=100+20*n,ans=total/2;return q({prompt:`При анализирующем скрещивании Aa × aa получено ${total} потомков. Сколько в среднем будет иметь доминантный фенотип?`,answer:[String(ans)],difficulty:diff(n),explanation:`При Aa × aa ожидается расщепление 1:1, поэтому половина потомков имеет доминантный фенотип: ${ans}.`,solutionSteps:['Определите типы гамет','Получите соотношение 1:1','Возьмите половину от общего числа']});}const total=320+32*n,ans=total/16;return q({prompt:`Скрестили AaBb × AaBb. Сколько из ${total} потомков в среднем будут двойными рецессивами aabb при независимом наследовании?`,answer:[String(ans)],difficulty:diff(n),explanation:`P(aa)=1/4 и P(bb)=1/4, поэтому P(aabb)=1/16. ${total}/16=${ans}.`,solutionSteps:['Рассчитайте вероятность aa','Рассчитайте вероятность bb','Перемножьте вероятности']});}
 function extendedQuestion(line,n){const item=rotate(extended[line],n);if(line===22){const [theme,ind,dep,controls]=item;const criteria=[`Независимая переменная: ${ind}.`,`Зависимая переменная: ${dep}.`,`Контролируемые условия: ${controls}.`,'Нужна контрольная группа или исходный уровень, отличающийся только исследуемым фактором.'];return q({prompt:`Спланируйте эксперимент: ${theme}. Укажите гипотезу, независимую и зависимую переменные, не менее двух контролируемых условий и принцип контрольной группы.`,type:'text',questionType:'extended_answer',answer:[criteria.join(' ')],difficulty:diff(n),content:{manualReview:true,criteria},explanation:criteria.join(' '),solutionSteps:criteria,maxScore:3});}const [prompt,criteria]=item;return q({prompt,type:'text',questionType:'extended_answer',answer:[criteria.join(' ')],difficulty:diff(n),content:{manualReview:true,criteria},explanation:criteria.join(' '),solutionSteps:criteria,maxScore:line===26?4:3});}
+
+function strictLine2(n){
+ const cases=[
+  ['После интенсивной физической нагрузки',['Кровоток в работающих мышцах увеличивается','Потребление кислорода мышцами увеличивается'],['Частота сердечных сокращений уменьшается','Распад АТФ прекращается','Теплопродукция уменьшается']],
+  ['При обезвоживании',['Секреция АДГ увеличивается','Реабсорбция воды усиливается'],['Объём мочи увеличивается','Секреция АДГ прекращается','Реабсорбция воды уменьшается']],
+  ['После углеводной пищи',['Секреция инсулина увеличивается','Запасание глюкозы в форме гликогена усиливается'],['Инсулин повышает глюкозу крови','Секреция глюкагона обязательно возрастает','Поглощение глюкозы тканями прекращается']],
+  ['На ярком свету',['Зрачок сужается','Круговые мышцы радужки сокращаются'],['Зрачок расширяется','Круговые мышцы расслабляются','Поступление света на сетчатку увеличивается из-за расширения зрачка']]
+ ];
+ const [context,good,bad]=cases[(Math.max(1,Number(n)||1)-1)%cases.length],all=[...good,...bad],shift=(Math.max(1,Number(n)||1)-1)%all.length,shown=all.slice(shift).concat(all.slice(0,shift)),set=new Set(good);
+ return q({prompt:`${context}. Выберите два верных утверждения.`,type:'multiple',questionType:'multiple_answer',
+  options:shown.map((label,i)=>({value:String(i),label})),answer:shown.map((x,i)=>set.has(x)?String(i):null).filter(x=>x!==null),
+  difficulty:diff(n),explanation:'Каждый показатель оценивают отдельно по физиологическому механизму.',
+  solutionSteps:['Определите направление регулирующей реакции','Проверьте каждое утверждение отдельно','Выберите два верных пункта']});
+}
+function strictLine8(n){
+ const pairs=[
+  ['Репликация','удвоение ДНК'],['Транскрипция','синтез РНК на матрице ДНК'],['Трансляция','синтез полипептида'],
+  ['Митоз','расхождение сестринских хроматид'],['Мейоз I','расхождение гомологичных хромосом'],
+  ['Гликолиз','расщепление глюкозы в цитоплазме'],['Цикл Кребса','реакции в матриксе митохондрии'],
+  ['Световая фаза фотосинтеза','процессы на тилакоидной мембране']
+ ];
+ const N=Math.max(1,Number(n)||1),selected=Array.from({length:5},(_,i)=>pairs[(N-1+i)%pairs.length]);
+ const right=[...new Set(selected.map(x=>x[1]))];
+ for(const pair of pairs){if(right.length>=6)break;if(!right.includes(pair[1]))right.push(pair[1]);}
+ const shift=(N-1)%right.length,shown=right.slice(shift).concat(right.slice(0,shift)),index=new Map(shown.map((x,i)=>[x,i]));
+ return q({prompt:'Установите соответствие между клеточными процессами и их характеристиками.',type:'matching',questionType:'matching',
+  answer:selected.map(x=>String(index.get(x[1]))),difficulty:diff(n),
+  content:{left:selected.map(x=>x[0]),right:shown,answerEncoding:'indexes'},
+  explanation:'Сопоставьте название процесса с его ключевым результатом или местом протекания.',
+  solutionSteps:['Определите сущность каждого процесса','Подберите характеристику','Проверьте порядок цифр']});
+}
 function build(line,n){
  if(line===1)return shortQuestion(line,n,science,'Задание на биологические науки и методы');
- if(line===2)return matchingQuestion(line,n,expScenarios.map(x=>[x[0],`В опыте изменяют ${x[0]}`]),'Методология эксперимента');
+ if(line===2)return strictLine2(n);
  if(line===3)return line3(n); if(line===4)return line4(n);
  if(line===5)return shortQuestion(line,n,organelles,'На учебной схеме структура описана следующими признаками');
  if(line===6)return matchingQuestion(line,n,cellPairs,'Клетка и органоиды');
  if([7,11,15,17,18,21].includes(line))return multipleQuestion(line,n,multiGroups[line],registry.lines.find(x=>x.line===line).title);
- if([8,12,16].includes(line))return sequenceQuestion(line,n,processes[line],registry.lines.find(x=>x.line===line).title);
+ if(line===8)return strictLine8(n);
+ if([12,16].includes(line))return sequenceQuestion(line,n,processes[line],registry.lines.find(x=>x.line===line).title);
  if(line===9)return shortQuestion(line,n,diversityId,'Определите объект многообразия по описанию');
  if(line===10)return matchingQuestion(line,n,diversityPairs,'Многообразие организмов');
  if(line===13)return shortQuestion(line,n,humanId,'Определите структуру организма человека по описанию');
