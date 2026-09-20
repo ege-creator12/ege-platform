@@ -25,23 +25,19 @@ const changeScenarios=[
 ];
 function line2(n){
  const [context,a,b,aa,bb]=rot(changeScenarios,n);
- const dir=value=>Number(value)===1?'увеличится':Number(value)===2?'уменьшится':'существенно не изменится';
- const correct=[`${a} — ${dir(aa)}`,`${b} — ${dir(bb)}`];
- const alternatives=['увеличится','уменьшится','существенно не изменится'];
- const falseA=alternatives.filter(x=>x!==dir(aa)).map(x=>`${a} — ${x}`);
- const falseB=alternatives.filter(x=>x!==dir(bb)).map(x=>`${b} — ${x}`);
- const falsePool=[...falseA,...falseB],variant=Math.floor((Math.max(1,Number(n)||1)-1)/changeScenarios.length)%4;
- const wrong=[falsePool[variant%4],falsePool[(variant+1)%4],falsePool[(variant+2)%4]];
- const all=[...correct,...wrong],shift=(n-1)%all.length,shown=all.slice(shift).concat(all.slice(0,shift));
+ const right=['увеличится','уменьшится','не изменится'];
+ const answer=[String(Math.max(0,Number(aa)-1)),String(Math.max(0,Number(bb)-1))];
  return base({
-  prompt:`${context}. Выберите два верных утверждения об изменении указанных показателей.`,
-  type:'multiple',questionType:'multiple_answer',
-  answer:correct.map(x=>String(shown.indexOf(x))),
-  options:shown.map((label,i)=>({value:String(i),label})),
-  difficulty:diff(n),
-  content:{strictFipi2027:true,strictExamLine:2},
-  explanation:`В этих условиях: ${a} — ${dir(aa)}; ${b} — ${dir(bb)}.`,
-  solutionSteps:['Определите направление изменения первого показателя','Отдельно оцените второй показатель','Выберите два соответствующих утверждения']
+  prompt:`${context}. Определите, как по сравнению с исходным состоянием изменятся два указанных показателя. Для каждого показателя выберите: 1) увеличится; 2) уменьшится; 3) не изменится. Цифры в ответе могут повторяться.`,
+  type:'matching',questionType:'matching',
+  answer,difficulty:diff(n),
+  content:{
+    strictFipi2027:true,strictExamLine:2,
+    left:[a,b],right,answerEncoding:'indexes',
+    table:{columns:['Показатель','Характер изменения'],rows:[[a,'А'],[b,'Б']]}
+  },
+  explanation:`${a}: ${right[Number(aa)-1]}; ${b}: ${right[Number(bb)-1]}.`,
+  solutionSteps:['Для первого показателя определите направление изменения.','Отдельно оцените второй показатель.','Запишите две цифры в порядке А, Б; цифры могут повторяться.']
  });
 }
 
@@ -125,14 +121,33 @@ const tableCases=[
  ['Органоид','Функция','митохондрия','синтез АТФ при аэробном дыхании'],['Ткань','Функция','ксилема','транспорт воды и минеральных веществ'],['Клетка','Функция','эритроцит','перенос кислорода'],['Процесс','Результат','митоз','образование генетически близких дочерних клеток'],['Гормон','Эффект','инсулин','снижение концентрации глюкозы крови'],['Экологическая группа','Роль','редуценты','разложение органических остатков'],['Структура','Функция','рибосома','синтез полипептида'],['Орган','Функция','тонкая кишка','основное всасывание продуктов пищеварения']
 ];
 function line20(n){
- const [c1,c2,leftVal,rightVal]=rot(tableCases,n);
+ const N=Math.max(1,Number(n)||1),len=tableCases.length;
+ const step=[1,3,5,7][Math.floor((N-1)/len)%4];
+ const selected=[];let cursor=(N-1)%len;
+ while(selected.length<3){
+  const item=tableCases[cursor%len];
+  if(!selected.some(x=>x[2]===item[2]))selected.push(item);
+  cursor=(cursor+step)%len;
+ }
+ const correct=selected.map(x=>x[3]);
+ const distractors=[];
+ for(const item of tableCases){
+  if(!correct.includes(item[3])&&!distractors.includes(item[3]))distractors.push(item[3]);
+ }
+ const right=[...correct,...distractors.slice((N-1)%Math.max(1,distractors.length)),...distractors].filter((x,i,a)=>a.indexOf(x)===i).slice(0,8);
+ const shift=(N-1)%right.length,shown=right.slice(shift).concat(right.slice(0,shift));
+ const index=new Map(shown.map((x,i)=>[x,i]));
+ const labels=['А','Б','В'];
  return base({
-  prompt:'Заполните пропуск в биологической таблице. Запишите термин или характеристику, которая должна стоять вместо знака вопроса.',
-  type:'text',questionType:'short_answer',answer:[rightVal],difficulty:diff(n),
-  content:{strictFipi2027:true,strictExamLine:20,table:{columns:[c1,c2],rows:[[leftVal,'?']]}},
-  options:[],
-  explanation:`Для «${leftVal}» верная характеристика: ${rightVal}.`,
-  solutionSteps:['Определите объект в первой колонке','Вспомните его ключевую функцию или характеристику','Запишите ответ без лишних слов']
+  prompt:`Заполните пропуски А–В в биологической таблице для объектов: ${selected.map(x=>x[2]).join(', ')}. Для каждого пропуска выберите элемент из пронумерованного перечня и запишите последовательность цифр.`,
+  type:'matching',questionType:'matching',
+  answer:correct.map(x=>String(index.get(x))),difficulty:diff(n),
+  content:{
+    strictFipi2027:true,strictExamLine:20,left:labels,right:shown,answerEncoding:'indexes',
+    table:{columns:['Объект или процесс','Характеристика'],rows:selected.map((x,i)=>[x[2],labels[i]])}
+  },
+  explanation:selected.map((x,i)=>`${labels[i]} — ${x[3]}`).join('; ')+'.',
+  solutionSteps:['Определите характеристику каждого объекта в таблице.','Найдите соответствующие элементы в пронумерованном перечне.','Запишите три цифры в порядке А, Б, В.']
  });
 }
 
