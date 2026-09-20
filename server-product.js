@@ -8,6 +8,8 @@ const database = require('./src/db');
 const planner = require('./src/ai-study-planner');
 const { normalizeOnboarding, chooseDiagnosticQuestions, collectAnalytics } = require('./src/product-analytics');
 const { needsManualReview } = require('./src/question-answer');
+const { BIOLOGY_BANK_VERSION } = require('./src/biology-bank-version');
+const { BANK_VERSION: CHEMISTRY_BANK_VERSION } = require('./src/chemistry-line-bank-runner');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PRODUCT_UPSTREAM_PORT || (PORT + 1));
@@ -119,7 +121,7 @@ async function startDiagnostic(userId,options={}){
 
   const subject=await database.row('SELECT id FROM subjects WHERE slug=? AND published=1',slug);
   if(!subject)throw Object.assign(new Error('Предмет не найден'),{status:404});
-  const prefix=slug==='biology'?'biology-bank-v6-line%':'chemistry-bank-v2-line%';
+  const prefix=slug==='biology'?`biology-bank-v${BIOLOGY_BANK_VERSION}-line%`:`chemistry-bank-${CHEMISTRY_BANK_VERSION}-line%`;
   const objective="COALESCE(q.question_type,'') NOT IN ('extended_answer','extended')";
   const freshRows=await database.rows(`SELECT q.id,q.exam_line,q.difficulty,q.estimated_seconds,q.type,q.question_type,q.answer_json,q.answer_data_json,q.content_json FROM questions q
       WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND q.external_key LIKE ? AND ${objective}
@@ -130,8 +132,8 @@ async function startDiagnostic(userId,options={}){
   let picked=chooseDiagnosticQuestions(pool,8);
   if(picked.length<8){
     const fallbackRows=await database.rows(`SELECT q.id,q.exam_line,q.difficulty,q.estimated_seconds,q.type,q.question_type,q.answer_json,q.answer_data_json,q.content_json FROM questions q
-      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND ${objective}
-      ORDER BY RANDOM() LIMIT 240`,subject.id);
+      WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line IS NOT NULL AND q.external_key LIKE ? AND ${objective}
+      ORDER BY RANDOM() LIMIT 240`,subject.id,prefix);
     const fallback=fallbackRows.filter(question=>!needsManualReview(question));
     pool=[...fresh,...fallback];
     picked=chooseDiagnosticQuestions(pool,8);
