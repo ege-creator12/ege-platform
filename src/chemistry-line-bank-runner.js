@@ -19,8 +19,9 @@ const sourceModules=[
 ];
 const {build:buildSupplement}=require('./chemistry-bank-unique-supplement');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
+const {CHEMISTRY_BANK_VERSION}=require('./chemistry-bank-version');
 
-const BANK_VERSION='v5';
+const BANK_VERSION=CHEMISTRY_BANK_VERSION;
 const MEDIUM_BANK_VERSION='retired-v1';
 
 function parseJson(value){
