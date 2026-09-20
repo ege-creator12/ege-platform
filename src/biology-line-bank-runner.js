@@ -150,7 +150,7 @@ async function insertQuestion(db,{subjectId,lesson,line,info,key,item}){
 
 async function trustedLineItems(db,subjectId,info){
   const rule=lineRule(info),trusted=trustedWhere(rule);
-  const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.image_url,q.type,q.question_type,
+  const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.image_url,q.type,q.question_type,q.answer_json,q.explanation_json,q.max_score,
     qo.value option_value,qo.label option_label,qo.position option_position
     FROM questions q LEFT JOIN question_options qo ON qo.question_id=q.id
     WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND ${trusted.sql}
@@ -159,12 +159,27 @@ async function trustedLineItems(db,subjectId,info){
   for(const row of rows){
     let item=map.get(Number(row.id));
     if(!item){
-      item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,image_url:row.image_url,type:row.type,questionType:row.question_type,options:[]};
+      const explanationData=parseJson(row.explanation_json)||{};
+      item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,image_url:row.image_url,type:row.type,questionType:row.question_type,
+        answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],options:[]};
       map.set(item.id,item);
     }
     if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
   }
   return [...map.values()];
+}
+
+async function removeInvalidFipiQuestions(db,subjectId){
+  let hidden=0;
+  for(const info of registry.lines){
+    const items=await trustedLineItems(db,subjectId,info);
+    for(const item of items){
+      if(isBiologyFipiFormat(Number(info.line),item))continue;
+      await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);
+      hidden++;
+    }
+  }
+  return hidden;
 }
 
 async function ensureBiologyLineBank(db,{minimum=25}={}){
@@ -173,6 +188,7 @@ async function ensureBiologyLineBank(db,{minimum=25}={}){
 
   const retired=await retireOldGeneratedBanks(db,subject.id);
   const detached=await sanitizeExamLineAssignments(db,subject.id);
+  const invalidFormat=await removeInvalidFipiQuestions(db,subject.id);
   const cleanup=await removeSemanticGeneratedDuplicates(db,subject.id);
   const fingerprints=cleanup.fingerprints;
   const keyRows=await db.rows('SELECT external_key FROM questions WHERE subject_id=? AND external_key IS NOT NULL',subject.id);
@@ -223,11 +239,12 @@ async function ensureBiologyLineBank(db,{minimum=25}={}){
 
   const ok=lines.every(x=>x.count>=minimum);
   if(retired)console.log(`Biology bank cleanup: retired ${retired} older generated questions.`);
+  if(invalidFormat)console.log(`Biology strict-format cleanup: hidden ${invalidFormat} questions that violate FIPI line mechanics.`);
   if(cleanup.hidden)console.log(`Biology semantic duplicate cleanup: hidden ${cleanup.hidden} generated duplicates.`);
   if(ok)console.log(`Biology v${BANK_VERSION} bank ready: >=${minimum} genuinely distinct tasks on all 28 lines; generated ${inserted}.`);
   else console.warn(`Biology v${BANK_VERSION} bank incomplete:`,lines.filter(x=>x.count<minimum));
   return {
-    ok,inserted,lines,deduplicated:cleanup.hidden,retiredOldBank:retired,
+    ok,inserted,lines,deduplicated:cleanup.hidden,invalidFormat,retiredOldBank:retired,
     detachedMisclassified:detached,bankVersion:BANK_VERSION
   };
 }
