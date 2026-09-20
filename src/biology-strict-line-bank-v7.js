@@ -114,9 +114,15 @@ function makeMultiple(prompt,good,bad,n,content={}){
 function line17(n){const [lead,good,bad]=evolutionCases[(n-1)%evolutionCases.length];return makeMultiple(`${lead} Выберите три верных утверждения.`,good,bad,n,{strictFipi2027:true,strictExamLine:17});}
 function line20(n){
  const [c1,c2,leftVal,rightVal]=tableCases[(n-1)%tableCases.length];
- const distractors=tableCases.map(x=>x[3]).filter(x=>x!==rightVal);
- const labels=rotate([rightVal,...distractors.slice(0,4)],n),answer=String(labels.indexOf(rightVal));
- return {type:'single',questionType:'short_answer',prompt:'Заполните пропуск в биологической таблице. Выберите элемент, который должен стоять вместо знака вопроса.',instruction:'Выберите один верный вариант.',options:labels.map((label,i)=>({value:String(i),label})),answer:[answer],difficulty:2+(n%2),content:{strictFipi2027:true,strictExamLine:20,table:{columns:[c1,c2],rows:[[leftVal,'?']]}},explanation:`Для «${leftVal}» верная характеристика: ${rightVal}.`,solutionSteps:['Определите объект в первой колонке.','Вспомните его ключевой признак или функцию.','Выберите подходящий элемент.']};
+ return {
+  type:'text',questionType:'short_answer',
+  prompt:'Заполните пропуск в биологической таблице. Запишите термин или характеристику, которая должна стоять вместо знака вопроса.',
+  instruction:'Запишите краткий ответ.',
+  options:[],answer:[rightVal],difficulty:2+(n%2),
+  content:{strictFipi2027:true,strictExamLine:20,table:{columns:[c1,c2],rows:[[leftVal,'?']]}},
+  explanation:`Для «${leftVal}» верная характеристика: ${rightVal}.`,
+  solutionSteps:['Определите объект в первой колонке.','Вспомните его ключевой признак или функцию.','Запишите только пропущенный элемент.']
+ };
 }
 function line21(n){
  const c=experimentCases[(n-1)%experimentCases.length];
