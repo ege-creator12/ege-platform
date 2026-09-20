@@ -23,15 +23,15 @@ function fixture() {
   `);
   const add=sqlite.prepare('INSERT INTO questions (id,subject_id,topic_id,exam_line,external_key,active,published,type,prompt,difficulty) VALUES(?,?,?,?,?,?,?,?,?,?)');
   const questions=[
-    [1,1,1,1,'biology-bank-v8-line1-valid',1,1,'multiple','Первый',1],
-    [2,1,1,1,'biology-bank-v8-line1-fixed',1,1,'multiple','Второй',1],
-    [3,1,1,2,'biology-bank-v8-line2-valid',1,1,'multiple','Третий',1],
-    [4,2,2,1,'biology-bank-v8-line1-other-subject',1,1,'multiple','Химия',1],
+    [1,1,1,1,'biology-bank-v9-line1-valid',1,1,'multiple','Первый',1],
+    [2,1,1,1,'biology-bank-v9-line1-fixed',1,1,'multiple','Второй',1],
+    [3,1,1,2,'biology-bank-v9-line2-valid',1,1,'multiple','Третий',1],
+    [4,2,2,1,'biology-bank-v9-line1-other-subject',1,1,'multiple','Химия',1],
     [5,1,1,1,'biology-bank-v7-line1-old',1,1,'multiple','Старый',1],
-    [6,1,1,1,'biology-bank-v8-line10-mismatch',1,1,'multiple','Другая линия',1],
-    [7,1,1,1,'biology-bank-v8-line1-inactive',0,1,'multiple','Неактивный',1],
-    [8,1,1,2,'biology-bank-v8-line2-hidden',1,0,'multiple','Скрытый',1],
-    [9,1,1,28,'biology-bank-v8-line28-valid',1,1,'multiple','Последний',1],
+    [6,1,1,1,'biology-bank-v9-line10-mismatch',1,1,'multiple','Другая линия',1],
+    [7,1,1,1,'biology-bank-v9-line1-inactive',0,1,'multiple','Неактивный',1],
+    [8,1,1,2,'biology-bank-v9-line2-hidden',1,0,'multiple','Скрытый',1],
+    [9,1,1,28,'biology-bank-v9-line28-valid',1,1,'multiple','Последний',1],
   ];
   questions.forEach(q=>add.run(...q));
   const attempt=sqlite.prepare('INSERT INTO attempts VALUES(?,?,?,?,?)');
@@ -53,7 +53,7 @@ test('28-line summary uses four queries while preserving detail progress and str
     assert.equal(result.lines[0].progress.attempted,4);
     assert.equal(result.lines[0].progress.correct,1);
     assert.equal(result.lines[0].progress.accuracy,25);
-    assert.deepEqual(result.lines[0].progress.wrongQuestionRefs,['biology-bank-v8-line1-inactive','biology-bank-v8-line1-valid']);
+    assert.deepEqual(result.lines[0].progress.wrongQuestionRefs,['biology-bank-v9-line1-inactive','biology-bank-v9-line1-valid']);
     for(const summary of result.lines) {
       const detail=await biologyLinePayload(f.db,f.registry,summary.line,1);
       assert.deepEqual(summary.progress,detail.progress);
@@ -66,9 +66,9 @@ test('28-line summary uses four queries while preserving detail progress and str
     assert.equal(other.lines[0].progress.attempted,1);
     assert.equal(other.lines[0].progress.correct,1);
     assert.deepEqual(other.lines[0].progress.wrongQuestionRefs,[]);
-    assert.deepEqual(other.lines[1].progress.wrongQuestionRefs,['biology-bank-v8-line2-valid']);
+    assert.deepEqual(other.lines[1].progress.wrongQuestionRefs,['biology-bank-v9-line2-valid']);
     assert.equal(result.strictBank,true);
-    assert.equal(result.bankVersion,8);
+    assert.equal(result.bankVersion,9);
   } finally { f.sqlite.close(); }
 });
 
