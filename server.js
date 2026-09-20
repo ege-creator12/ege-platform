@@ -55,7 +55,7 @@ const trainingModes=new Set(['adaptive','mixed','new','review','mistakes','error
 async function questionPool(userId,topicId,mode,limit,examLine=0){
  const scope=`WITH RECURSIVE tree(id) AS (SELECT CAST(? AS BIGINT) UNION ALL SELECT t.id FROM topics t JOIN tree ON t.parent_id=tree.id),
  latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?)`;
- const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=0':mode==='hard'?'q.difficulty>=2':'1=1';
+ const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=0':mode==='hard'?'q.difficulty>=3':'1=1';
  return (await rows(`${scope} SELECT q.id FROM questions q LEFT JOIN latest a ON a.question_id=q.id AND a.rn=1
    WHERE q.active=1 AND (?=0 OR q.topic_id IN (SELECT id FROM tree)) AND (?=0 OR q.exam_line=?) AND ${filter}
    ORDER BY CASE
