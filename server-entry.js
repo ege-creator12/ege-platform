@@ -17,6 +17,7 @@ database.run = (sql, ...params) => originalRun(
 
 require('./server-problem-moderation-patch');
 require('./server-community-chat-live-patch');
+require('./server-staff-chat-patch');
 require('./server-teacher-patch');
 
 async function ensureAiUsageStorage(){
