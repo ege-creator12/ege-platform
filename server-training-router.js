@@ -17,7 +17,7 @@ const UPSTREAM_PORT = Number(process.env.TRAINING_UPSTREAM_PORT || (PORT + 1));
 const trainingModes = new Set(['adaptive', 'mixed', 'new', 'review', 'mistakes', 'errors', 'hard', 'infinite', 'topic']);
 const subjectSlugs = new Set(['biology', 'chemistry']);
 const { BIOLOGY_BANK_VERSION } = require('./src/biology-bank-version');
-const { BANK_VERSION: CHEMISTRY_BANK_VERSION } = require('./src/chemistry-line-bank-runner');
+const { CHEMISTRY_BANK_VERSION } = require('./src/chemistry-bank-version');
 
 const json = (res, status, data) => {
   res.writeHead(status, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
