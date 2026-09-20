@@ -9,7 +9,7 @@ const planner = require('./src/ai-study-planner');
 const { normalizeOnboarding, chooseDiagnosticQuestions, collectAnalytics } = require('./src/product-analytics');
 const { needsManualReview } = require('./src/question-answer');
 const { BIOLOGY_BANK_VERSION } = require('./src/biology-bank-version');
-const { BANK_VERSION: CHEMISTRY_BANK_VERSION } = require('./src/chemistry-line-bank-runner');
+const { CHEMISTRY_BANK_VERSION } = require('./src/chemistry-bank-version');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PRODUCT_UPSTREAM_PORT || (PORT + 1));
