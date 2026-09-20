@@ -13,6 +13,7 @@ function dbFixture({bioShort=0,coreShort=0,missingUpgrade=false,throwUpgrade=fal
    rowCalls++;
    if(sql.includes("slug='biology'"))return{id:1};
    if(sql.includes("slug='chemistry'"))return{id:2};
+   if(sql.includes('COUNT(*) n FROM questions')&&sql.includes('exam_line=26'))return {n:25};
    if(sql.includes('chemistry_upgrade_state')){
     if(throwUpgrade)throw new Error('missing table');
     return missingUpgrade?undefined:{version:param};
@@ -21,8 +22,8 @@ function dbFixture({bioShort=0,coreShort=0,missingUpgrade=false,throwUpgrade=fal
   },
   rows:async(sql,_subjectId,pattern)=>{
    rowsCalls++;
-   if(pattern==='biology-bank-v8-line%')return counts(28,25,bioShort);
-   if(pattern==='chemistry-bank-v4-line%')return counts(34,25,coreShort);
+   if(pattern==='biology-bank-v9-line%')return counts(28,25,bioShort);
+   if(pattern==='chemistry-bank-v5-line%')return counts(34,25,coreShort);
    throw new Error(`unexpected rows query: ${sql}`);
   }
  };
@@ -37,9 +38,9 @@ test('completeLineSet requires every expected line at or above minimum',()=>{
 test('healthy production content uses only the cheap readiness queries',async()=>{
  const db=dbFixture();
  assert.equal(await fastContentReady(db),true);
- assert.deepEqual(db.stats(),{rowCalls:3,rowsCalls:2});
- assert.equal(BIOLOGY_BANK_VERSION,'v8');
- assert.equal(CHEMISTRY_BANK_VERSION,'v4');
+ assert.deepEqual(db.stats(),{rowCalls:4,rowsCalls:2});
+ assert.equal(BIOLOGY_BANK_VERSION,'v9');
+ assert.equal(CHEMISTRY_BANK_VERSION,'v5');
  assert.equal(CHEMISTRY_MEDIUM_VERSION,'retired-v1');
  assert.equal(CHEMISTRY_COURSE_VERSION,'chemistry-2027-subject-course-v2-fipi-mastery-complete');
 });
