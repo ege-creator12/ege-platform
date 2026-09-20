@@ -28,12 +28,11 @@ function line2(n){
  const dir=value=>Number(value)===1?'увеличится':Number(value)===2?'уменьшится':'существенно не изменится';
  const correct=[`${a} — ${dir(aa)}`,`${b} — ${dir(bb)}`];
  const alternatives=['увеличится','уменьшится','существенно не изменится'];
- const wrong=[
-  `${a} — ${alternatives.find(x=>x!==dir(aa))}`,
-  `${b} — ${alternatives.find(x=>x!==dir(bb))}`,
-  `оба показателя существенно не изменятся`
- ].filter(x=>!correct.includes(x));
- const all=[...correct,...wrong].slice(0,5),shift=(n-1)%all.length,shown=all.slice(shift).concat(all.slice(0,shift));
+ const falseA=alternatives.filter(x=>x!==dir(aa)).map(x=>`${a} — ${x}`);
+ const falseB=alternatives.filter(x=>x!==dir(bb)).map(x=>`${b} — ${x}`);
+ const falsePool=[...falseA,...falseB],variant=Math.floor((Math.max(1,Number(n)||1)-1)/changeScenarios.length)%4;
+ const wrong=[falsePool[variant%4],falsePool[(variant+1)%4],falsePool[(variant+2)%4]];
+ const all=[...correct,...wrong],shift=(n-1)%all.length,shown=all.slice(shift).concat(all.slice(0,shift));
  return base({
   prompt:`${context}. Выберите два верных утверждения об изменении указанных показателей.`,
   type:'multiple',questionType:'multiple_answer',
@@ -71,7 +70,13 @@ const cellProcessPairs=[
 ];
 function line8(n){
  const N=Math.max(1,Number(n)||1),shift=(N-1)%cellProcessPairs.length;
- const selected=Array.from({length:5},(_,i)=>cellProcessPairs[(shift+i*2)%cellProcessPairs.length]);
+ const step=[1,2,5,7][Math.floor((N-1)/cellProcessPairs.length)%4];
+ const selected=[];let cursor=shift;
+ while(selected.length<5){
+  const pair=cellProcessPairs[cursor%cellProcessPairs.length];
+  if(!selected.includes(pair))selected.push(pair);
+  cursor=(cursor+step)%cellProcessPairs.length;
+ }
  const right=[...new Set(selected.map(x=>x[1]))];
  for(const pair of cellProcessPairs){
   if(right.length>=6)break;
