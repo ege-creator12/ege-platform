@@ -14,6 +14,7 @@ const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
 const { isChemistryFipiFormat, isBiologyFipiFormat } = require('./src/ege-fipi-format');
+const { BIOLOGY_BANK_VERSION } = require('./src/biology-bank-version');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -238,7 +239,7 @@ async function handleAiLineTasks(req, res, url) {
 
     const prefix = subjectSlug === 'chemistry'
       ? `chemistry-bank-v5-line${line}-%`
-      : line === 26 ? 'biology-bank-v9-line26-hard-%' : `biology-bank-v9-line${line}-%`;
+      : line === 26 ? `biology-bank-v${BIOLOGY_BANK_VERSION}-line26-hard-%` : `biology-bank-v${BIOLOGY_BANK_VERSION}-line${line}-%`;
 
     const candidates = await database.rows(
       `SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key,image_url
