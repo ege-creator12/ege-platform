@@ -5,7 +5,7 @@ const { BANK_VERSION, MEDIUM_BANK_VERSION } = require('../src/chemistry-line-ban
 const { semanticFingerprint } = require('../src/question-semantic-quality');
 
 test('chemistry generated banks use duplicate-free stable namespaces', () => {
-  assert.equal(BANK_VERSION, 'v3');
+  assert.equal(BANK_VERSION, 'v5');
   assert.equal(MEDIUM_BANK_VERSION, 'retired-v1');
 });
 
