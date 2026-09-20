@@ -13,6 +13,7 @@ const communityChat = require('./server-community-chat');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
+const { isChemistryFipiFormat, isBiologyFipiFormat } = require('./src/ege-fipi-format');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.PERFORMANCE_UPSTREAM_PORT || (PORT + 1));
@@ -178,7 +179,7 @@ function parseQuestionJson(value, fallback = []) {
   try { return JSON.parse(value); } catch { return fallback; }
 }
 
-function formatBankAnswer(question, options) {
+function formatBankAnswer(question, options, content = {}) {
   const rawValue = parseQuestionJson(question.answer_json, []);
   const raw = Array.isArray(rawValue) ? rawValue.map(String) : [String(rawValue ?? '')].filter(Boolean);
   const answerData = parseQuestionJson(question.answer_data_json, {}) || {};
@@ -193,6 +194,10 @@ function formatBankAnswer(question, options) {
       const sequence = pairs.map(pair => String(Number(pair[2]) + 1)).join('');
       return { answer: sequence, accepted: [sequence, sequence.split('').join(' '), sequence.split('').join(',')] };
     }
+    if (raw.every(value => /^\d+$/.test(value)) && Array.isArray(content?.right)) {
+      const sequence = raw.map(value => String(Number(value) + 1)).join('');
+      return { answer: sequence, accepted: [sequence, sequence.split('').join(' '), sequence.split('').join(',')] };
+    }
   }
 
   if (options.length && raw.length && raw.every(value => valueToPosition.has(String(value)))) {
@@ -203,128 +208,6 @@ function formatBankAnswer(question, options) {
 
   const answer = raw.join(raw.length > 1 ? ' ' : '').trim();
   return { answer, accepted: [...new Set([answer, ...acceptedExtra].filter(Boolean))] };
-}
-
-const CEREBRAS_TASK_KEY = process.env.CEREBRAS_API_KEY || '';
-const CEREBRAS_TASK_MODEL = process.env.CEREBRAS_TASK_MODEL || process.env.CEREBRAS_ANSWER_MODEL || 'gpt-oss-120b';
-const CEREBRAS_TASK_URL = 'https://api.cerebras.ai/v1/chat/completions';
-
-function cleanGeneratedTask(task, index) {
-  const prompt = String(task?.prompt || '').trim();
-  const instruction = String(task?.instruction || '').trim();
-  const explanation = String(task?.explanation || '').trim();
-  const questionType = String(task?.questionType || 'short_answer').trim();
-  const options = Array.isArray(task?.options) ? task.options.map(x => String(x || '').trim()).filter(Boolean).slice(0, 10) : [];
-  const answer = String(task?.answer ?? '').trim();
-  const acceptedAnswers = Array.isArray(task?.acceptedAnswers)
-    ? task.acceptedAnswers.map(x => String(x ?? '').trim()).filter(Boolean).slice(0, 12)
-    : [];
-  if (!prompt || !answer) return null;
-  if (options.length && /^\\d+$/.test(answer)) {
-    const n = Number(answer);
-    if (n < 1 || n > options.length) return null;
-  }
-  return {
-    id: -(index + 1),
-    prompt,
-    instruction,
-    options,
-    answer,
-    acceptedAnswers: [...new Set([answer, ...acceptedAnswers])],
-    explanation,
-    difficulty: Math.max(1, Math.min(5, Number(task?.difficulty) || 3)),
-    manualReview: Boolean(task?.manualReview),
-    questionType,
-    externalKey: `ai-generated-${Date.now()}-${index + 1}`,
-    generated: true,
-  };
-}
-
-async function generateAiLineTasks(subjectSlug, line, count, examples) {
-  if (!CEREBRAS_TASK_KEY) throw Object.assign(new Error('AI generator is not configured'), { code: 'AI_GENERATOR_NOT_CONFIGURED' });
-
-  const subjectLabel = subjectSlug === 'chemistry' ? 'химии' : 'биологии';
-  const maxLine = subjectSlug === 'chemistry' ? 34 : 28;
-  const exemplarText = examples.slice(0, 7).map((q, i) => {
-    const opts = Array.isArray(q.options) && q.options.length ? `\\nВарианты: ${q.options.map((x, j) => `${j + 1}) ${x}`).join(' | ')}` : '';
-    return `ПРИМЕР ${i + 1}:\\nИнструкция: ${q.instruction || '-'}\\nУсловие: ${q.prompt}${opts}\\nТип: ${q.questionType || '-'}\\nОтвет: ${q.answer}`;
-  }).join('\\n\\n');
-
-  const schema = {
-    type: 'object',
-    additionalProperties: false,
-    required: ['tasks'],
-    properties: {
-      tasks: {
-        type: 'array',
-        minItems: count,
-        maxItems: count,
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['prompt','instruction','options','answer','acceptedAnswers','explanation','difficulty','manualReview','questionType'],
-          properties: {
-            prompt: { type: 'string' },
-            instruction: { type: 'string' },
-            options: { type: 'array', items: { type: 'string' }, maxItems: 10 },
-            answer: { type: 'string' },
-            acceptedAnswers: { type: 'array', items: { type: 'string' }, maxItems: 12 },
-            explanation: { type: 'string' },
-            difficulty: { type: 'integer', minimum: 1, maximum: 5 },
-            manualReview: { type: 'boolean' },
-            questionType: { type: 'string' },
-          },
-        },
-      },
-    },
-  };
-
-  const system = `Ты — методист ЕГЭ по ${subjectLabel}. Генерируй НОВЫЕ задания только для линии ${line} из ${maxLine}, строго сохраняя проверяемый навык, механику, форму ответа и уровень официального экзамена. Опирайся на переданные примеры как на шаблон формата линии, но НЕ копируй их текст, числа, наборы объектов и варианты ответа. Не утверждай, что задания официально опубликованы ФИПИ: это авторские задания ОСНОВЫ, составленные по формату ЕГЭ. Перед выдачей молча перепроверь научную корректность, однозначность условия и ответа.
-
-ЖЁСТКИЕ ПРАВИЛА:
-1) Никаких вопросов "какой сильнее/больше" без точного критерия. Используй экзаменационные формулировки.
-2) Если в примерах линия имеет множественный выбор, соответствие, последовательность или расчёт — сохрани именно эту механику.
-3) Для закрытого задания ответ должен однозначно следовать из условия. Для вариантов ответа поле answer содержит номер/последовательность номеров так, как ученик вводит в бланк.
-4) options содержит только текст вариантов без номеров. acceptedAnswers содержит эквивалентные допустимые записи.
-5) Не делай задания заметно проще примеров. Избегай школьных викторин и расплывчатых формулировок.
-6) Для химии перепроверь электронные конфигурации, степени окисления, коэффициенты, формулы и расчёты. Для биологии — термины, причинно-следственные связи, генетику и цитологические расчёты.
-7) Не используй факты, требующие спорной трактовки. Не добавляй подсказку в условие.
-8) Сгенерируй ровно ${count} разных заданий. Каждое должно отличаться не только числами, но и объектами/контекстом.
-9) explanation кратко объясняет, почему ответ верен, и служит дополнительной самопроверкой.
-10) Если линия предполагает развёрнутый ответ, manualReview=true, answer — краткий эталон по смысловым элементам; иначе manualReview=false.`;
-
-  const prompt = `Ниже примеры уже используемых заданий линии ${line}. По их структуре создай ${count} новых, не повторяющихся заданий.\\n\\n${exemplarText}`;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 26000);
-  let response;
-  try {
-    response = await fetch(CEREBRAS_TASK_URL, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${CEREBRAS_TASK_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model: CEREBRAS_TASK_MODEL,
-        messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-        temperature: 0.18,
-        reasoning_effort: 'medium',
-        max_completion_tokens: 4200,
-        response_format: { type: 'json_schema', json_schema: { name: 'ege_generated_tasks', strict: true, schema } },
-      }),
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data?.error?.message || 'AI generation failed'), { code: 'AI_GENERATION_FAILED', status: response.status });
-  let parsed;
-  try { parsed = JSON.parse(String(data?.choices?.[0]?.message?.content || '').replace(/^\`\`\`(?:json)?\\s*/i, '').replace(/\\s*\`\`\`$/i, '')); }
-  catch { throw Object.assign(new Error('AI returned invalid JSON'), { code: 'AI_INVALID_JSON' }); }
-
-  const tasks = (Array.isArray(parsed?.tasks) ? parsed.tasks : []).map(cleanGeneratedTask).filter(Boolean);
-  if (tasks.length !== count) throw Object.assign(new Error('AI generated an incomplete task set'), { code: 'AI_INCOMPLETE_SET' });
-  return tasks;
 }
 
 async function handleAiLineTasks(req, res, url) {
@@ -353,11 +236,12 @@ async function handleAiLineTasks(req, res, url) {
       return true;
     }
 
-    const prefix = subjectSlug === 'biology' && line === 26
-      ? 'biology-bank-v8-line26-hard-%'
-      : subjectSlug === 'chemistry' ? 'chemistry-bank-%' : 'biology-bank-%';
+    const prefix = subjectSlug === 'chemistry'
+      ? `chemistry-bank-v5-line${line}-%`
+      : line === 26 ? 'biology-bank-v9-line26-hard-%' : `biology-bank-v9-line${line}-%`;
+
     const candidates = await database.rows(
-      `SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key
+      `SELECT id,prompt,instruction,answer_json,answer_data_json,explanation,question_type,type,content_json,difficulty,external_key,image_url
        FROM questions
        WHERE subject_id=? AND exam_line=? AND active=1 AND published=1 AND external_key LIKE ?
        ORDER BY RANDOM()
@@ -365,7 +249,7 @@ async function handleAiLineTasks(req, res, url) {
       subject.id,
       line,
       prefix,
-      Math.max(count * 4, 20),
+      Math.max(count * 5, 30),
     );
 
     const candidateIds = candidates.map(question => Number(question.id)).filter(Number.isSafeInteger);
@@ -385,67 +269,74 @@ async function handleAiLineTasks(req, res, url) {
       optionsByQuestion.get(questionId).push({ value: option.value, label: option.label });
     }
 
-    const examples = [];
+    const validate = subjectSlug === 'chemistry' ? isChemistryFipiFormat : isBiologyFipiFormat;
+    const tasks = [];
     const seen = new Set();
     for (const question of candidates) {
+      if (tasks.length >= count) break;
       const prompt = String(question.prompt || '').trim();
       if (!prompt) continue;
-      const promptKey = prompt.toLowerCase().replace(/\\s+/g, ' ');
+      const promptKey = prompt.toLowerCase().replace(/\s+/g, ' ');
       if (seen.has(promptKey)) continue;
-      seen.add(promptKey);
+
       const options = optionsByQuestion.get(Number(question.id)) || [];
-      const formatted = formatBankAnswer(question, options);
+      const content = parseQuestionJson(question.content_json, {}) || {};
+      const rawAnswer = parseQuestionJson(question.answer_json, []);
+      const item = {
+        ...question,
+        questionType: String(question.question_type || ''),
+        content,
+        answer: Array.isArray(rawAnswer) ? rawAnswer : [rawAnswer],
+        options,
+        imageUrl: question.image_url || null,
+        manualReview: Boolean(content.manualReview || question.question_type === 'extended_answer'),
+      };
+      if (!validate(line, item)) {
+        console.warn('strict-line-task-rejected', { subject: subjectSlug, line, id: question.id, key: question.external_key });
+        continue;
+      }
+
+      const formatted = formatBankAnswer(question, options, content);
       if (!formatted.answer) continue;
-      examples.push({
+      seen.add(promptKey);
+
+      tasks.push({
+        id: Number(question.id),
         prompt,
         instruction: String(question.instruction || ''),
         options: options.map(option => String(option.label)),
+        content,
+        imageUrl: question.image_url || null,
         answer: formatted.answer,
         acceptedAnswers: formatted.accepted,
         explanation: String(question.explanation || ''),
+        difficulty: Number(question.difficulty || 1),
+        manualReview: item.manualReview,
         questionType: String(question.question_type || ''),
+        type: String(question.type || ''),
+        externalKey: String(question.external_key || ''),
+        generated: false,
+        strictFipiFormat: true,
       });
-      if (examples.length >= 7) break;
     }
 
-    if (examples.length < 2) {
+    if (tasks.length < Math.min(1, count)) {
       json(res, 404, {
-        error: `Недостаточно проверенных примеров линии ${line}, чтобы безопасно генерировать новые задания.`,
-        code: 'LINE_EXAMPLES_MISSING',
+        error: `Для линии ${line} сейчас нет заданий, прошедших строгую проверку формата ФИПИ. Банк перестраивается.`,
+        code: 'STRICT_LINE_BANK_BUILDING',
       });
       return true;
     }
 
-    try {
-      const tasks = await generateAiLineTasks(subjectSlug, line, count, examples);
-      json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_AI_GENERATED', generated: true });
-      return true;
-    } catch (generationError) {
-      console.warn('ai-line-generation-fallback', {
-        subject: subjectSlug,
-        line,
-        code: generationError?.code || 'AI_GENERATION_FAILED',
-        message: String(generationError?.message || generationError).slice(0, 300),
-      });
-    }
-
-    // Надёжный резерв: если модель/провайдер временно недоступны, ученик всё равно
-    // получает корректные задания из проверенного банка этой же линии.
-    const tasks = examples.slice(0, count).map((question, index) => ({
-      id: Number(candidates[index]?.id || index + 1),
-      prompt: question.prompt,
-      instruction: question.instruction,
-      options: question.options,
-      answer: question.answer,
-      acceptedAnswers: question.acceptedAnswers,
-      explanation: question.explanation,
-      difficulty: Number(candidates[index]?.difficulty || 1),
-      manualReview: Boolean(parseQuestionJson(candidates[index]?.content_json, {})?.manualReview || candidates[index]?.question_type === 'extended_answer'),
-      questionType: question.questionType,
-      externalKey: String(candidates[index]?.external_key || ''),
+    json(res, 200, {
+      subject: subjectSlug,
+      line,
+      count: tasks.length,
+      tasks,
+      source: 'OSNOVA_STRICT_FIPI_FORMAT_BANK',
       generated: false,
-    }));
-    json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_EXAM_BANK_FALLBACK', generated: false });
+      strictFipiFormat: true,
+    });
     return true;
   } catch (error) {
     console.error('ai-line-tasks', {
@@ -455,7 +346,7 @@ async function handleAiLineTasks(req, res, url) {
       message: String(error?.message || error).slice(0, 500),
     });
     json(res, 500, {
-      error: 'Не удалось подготовить задания этой линии. Попробуй ещё раз через несколько секунд.',
+      error: 'Не удалось загрузить проверенные задания этой линии. Попробуй ещё раз после обновления банка.',
       code: 'LINE_TASKS_ERROR',
     });
     return true;
