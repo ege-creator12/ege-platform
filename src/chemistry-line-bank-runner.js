@@ -1,6 +1,9 @@
 'use strict';
 const registry=require('../content/chemistry/exam-lines');
+const strictFipi=require('./chemistry-bank-fipi-2027');
+const {isChemistryFipiFormat}=require('./ege-fipi-format');
 const sourceModules=[
+  strictFipi,
   require('./chemistry-bank-foundations'),
   require('./chemistry-bank-inorganic'),
   require('./chemistry-bank-organic'),
@@ -17,7 +20,7 @@ const sourceModules=[
 const {build:buildSupplement}=require('./chemistry-bank-unique-supplement');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
 
-const BANK_VERSION='v4';
+const BANK_VERSION='v5';
 const MEDIUM_BANK_VERSION='retired-v1';
 
 function parseJson(value){
@@ -32,10 +35,17 @@ function buildersFor(line){
  return builds;
 }
 function prepareItem(line,raw,seed){
- if(!raw)return null;
+ if(!raw||!isChemistryFipiFormat(line,raw))return null;
  return {
    ...raw,
-   difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,seed%3===0?3:2)
+   difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,seed%3===0?3:2),
+   content:{
+     ...(raw.content||{}),
+     strictFipi2027:true,
+     strictExamLine:Number(line),
+     strictFormatValidated:true,
+     qualityBankVersion:BANK_VERSION
+   }
  };
 }
 
