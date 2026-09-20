@@ -54,6 +54,12 @@ function matchFromPairs(prompt,pairs,rightPool,n,leftCount,rightCount,explanatio
     if(!chosen.some(x=>x[0]===p[0]))chosen.push(p);
     cursor=(cursor+step)%pairs.length;guard++;
   }
+  if(chosen.length<leftCount){
+    for(const p of rotate(pairs,N)){
+      if(!chosen.some(x=>x[0]===p[0]))chosen.push(p);
+      if(chosen.length>=leftCount)break;
+    }
+  }
   const needed=uniq(chosen.map(x=>x[1]));
   const extras=rotate(rightPool.filter(x=>!needed.includes(x)),N);
   const right=[...needed,...extras].slice(0,rightCount);
@@ -97,17 +103,40 @@ function build5(n){
 }
 
 // Lines 6, 9, 16, 23 use ordered X/Y positions.
-const l6=[
- {chain:'X + HCl → CO2↑; Y + NaOH → осадок гидроксида',x:'Na2CO3',y:'CuSO4',wrong:['NaCl','KNO3','HNO3','CaCl2'],explanation:'Карбонат с кислотой выделяет CO2, Cu2+ со щёлочью образует Cu(OH)2.'},
- {chain:'X + AgNO3 → белый осадок; Y + BaCl2 → белый осадок',x:'NaCl',y:'Na2SO4',wrong:['KNO3','NaOH','HCl','NH4NO3'],explanation:'Cl− осаждает AgCl, SO4²− — BaSO4.'},
- {chain:'X даёт щелочную среду из-за гидролиза; Y даёт кислую среду из-за гидролиза',x:'Na2CO3',y:'NH4Cl',wrong:['NaCl','KNO3','Na2SO4','KCl'],explanation:'CO3²− гидролизуется по аниону, NH4+ — по катиону.'},
- {chain:'X + NaOH(изб.) растворяет осадок амфотерного гидроксида; Y + HCl выделяет SO2',x:'AlCl3',y:'Na2SO3',wrong:['NaCl','KNO3','CaCl2','Na2SO4'],explanation:'Al(OH)3 амфотерен; сульфит с кислотой выделяет SO2.'},
- {chain:'X + NH4Cl при нагревании выделяет NH3; Y + HCl выделяет H2',x:'NaOH',y:'Zn',wrong:['NaCl','Cu','Ag','KNO3'],explanation:'Щёлочь выделяет NH3 из NH4+, Zn стоит до водорода.'},
- {chain:'X + H2SO4 → BaSO4↓; Y + NaOH → NH3↑ при нагревании',x:'BaCl2',y:'NH4Cl',wrong:['NaCl','KNO3','HCl','Cu'],explanation:'Ba2+ осаждает сульфат; NH4+ со щёлочью выделяет аммиак.'},
- {chain:'X + CO2(изб.) образует гидрокарбонат; Y + HCl образует белый осадок AgCl',x:'Ca(OH)2',y:'AgNO3',wrong:['NaNO3','KOH','HNO3','CuSO4'],explanation:'Избыток CO2 переводит CaCO3 в гидрокарбонат; Ag+ осаждает Cl−.'},
- {chain:'X + HCl → H2S↑; Y + NaOH → голубой осадок',x:'Na2S',y:'CuSO4',wrong:['NaCl','KNO3','BaCl2','HNO3'],explanation:'Сульфид с кислотой выделяет H2S; Cu2+ даёт Cu(OH)2.'}
+const l6Diagnostics=[
+ ['Na2CO3','при добавлении HCl выделяется CO2'],
+ ['Na2SO3','при добавлении HCl выделяется SO2'],
+ ['Na2S','при добавлении HCl выделяется H2S'],
+ ['NH4Cl','при нагревании со щёлочью выделяется NH3'],
+ ['BaCl2','с сульфат-ионами образует белый осадок'],
+ ['AgNO3','с хлорид-ионами образует белый осадок'],
+ ['CuSO4','со щёлочью образует голубой осадок'],
+ ['FeCl3','со щёлочью образует бурый осадок'],
+ ['AlCl3','со щёлочью сначала образует белый осадок, растворимый в избытке щёлочи'],
+ ['ZnSO4','со щёлочью образует белый осадок, растворимый в избытке щёлочи'],
+ ['Ca(OH)2','с CO2 сначала образует белый осадок CaCO3'],
+ ['HCl','с карбонатом сопровождается выделением CO2'],
+ ['NaOH','с солью аммония при нагревании выделяет NH3'],
+ ['KBr','с хлорной водой образует Br2'],
+ ['KI','с хлорной водой образует I2'],
+ ['FeSO4','со щёлочью образует Fe(OH)2'],
+ ['CaCl2','с карбонат-ионами образует CaCO3'],
+ ['Na3PO4','с AgNO3 образует жёлтый осадок фосфата серебра']
 ];
-function build6(n){return pairTask('Из перечня веществ выберите X и Y, удовлетворяющие условиям: {chain}.',pick(l6,n),n);}
+function build6(n){
+ const N=Math.max(1,Number(n)||1),len=l6Diagnostics.length;
+ let a=(N-1)%len,b=(N*5+Math.floor((N-1)/len)*3)%len;
+ if(b===a)b=(b+1)%len;
+ const first=l6Diagnostics[a],second=l6Diagnostics[b];
+ const allSubstances=l6Diagnostics.map(x=>x[0]);
+ const wrong=rotate(allSubstances.filter(x=>x!==first[0]&&x!==second[0]),N).slice(0,3);
+ const right=[first[0],second[0],...wrong];
+ return matching(
+  `Из перечня веществ выберите X и Y. Для X верно: ${first[1]}. Для Y верно: ${second[1]}.`,
+  ['X','Y'],right,[first[0],second[0]],N,
+  `X = ${first[0]}, Y = ${second[0]}. Признаки основаны на характерных реакциях и наблюдаемых эффектах.`
+ );
+}
 
 const l9=[
  {chain:'Fe → FeCl2 → Fe(OH)2',x:'HCl',y:'NaOH',wrong:['Cl2','H2O','CO2','AgNO3'],explanation:'Fe с HCl даёт FeCl2, затем щёлочь осаждает Fe(OH)2.'},
