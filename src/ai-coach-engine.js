@@ -145,8 +145,8 @@ function extractLoad(message, plan) {
 
 function requestedExamLine(message) {
   const q = String(message || '').toLowerCase().replace(/ё/g, 'е');
-  let match = q.match(/(?:лини(?:я|и|ю|е)?|задани(?:е|я))\s*№?\s*(\d{1,2})/);
-  if (!match) match = q.match(/\b(\d{1,2})\s*(?:-?я\s*)?лини(?:я|и|ю|е)?\b/);
+  let match = q.match(/(?:лини(?:я|и|ю|е)?|задани(?:е|я|й))\s*№?\s*(\d{1,2})/);
+  if (!match) match = q.match(/(\d{1,2})\s*(?:-?(?:я|й)\s*)?лини(?:я|и|ю|е)?/);
   const line = Number(match?.[1] || 0);
   return Number.isInteger(line) && line > 0 ? line : 0;
 }
