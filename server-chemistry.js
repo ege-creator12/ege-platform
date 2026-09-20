@@ -64,7 +64,7 @@ async function createChemistryTraining(userId,b){
  const pattern=`chemistry-bank-${CHEMISTRY_BANK_VERSION}-line${line}-%`;
  const target=Math.min(100,Math.max(1,Number(b.targetQuestions)||10));const mode=['adaptive','new','review','mistakes','errors','hard'].includes(b.mode)?b.mode:'adaptive';
  const latest=`LEFT JOIN (SELECT * FROM (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) z WHERE rn=1) a ON a.question_id=q.id`;
- const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=FALSE':mode==='hard'?'q.difficulty>=2':'1=1';
+ const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=FALSE':mode==='hard'?'q.difficulty>=3':'1=1';
  let ids=(await rows(`SELECT q.id FROM questions q ${latest} WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND q.external_key LIKE ? AND ${filter} ORDER BY CASE WHEN a.id IS NOT NULL AND a.correct=FALSE THEN 0 WHEN a.id IS NULL THEN 1 ELSE 2 END,q.difficulty,RANDOM() LIMIT ?`,userId,subject.id,line,pattern,target)).map(x=>Number(x.id));
  if(!ids.length&&mode!=='adaptive')ids=(await rows(`SELECT q.id FROM questions q WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND q.external_key LIKE ? ORDER BY q.difficulty,RANDOM() LIMIT ?`,subject.id,line,pattern,target)).map(x=>Number(x.id));
  if(!ids.length)throw Object.assign(new Error('Для этой линии пока нет заданий'),{status:404});
