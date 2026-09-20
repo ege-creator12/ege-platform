@@ -41,9 +41,9 @@ function matching(prompt,left,right,pairs,n,explanation){
   const shown=rotate(right,n),index=new Map(shown.map((x,i)=>[x,i]));
   if(new Set(shown).size!==shown.length)throw new Error('Matching choices must be unique');
   return {type:'matching',questionType:'matching',prompt,instruction:'Установите соответствие.',
-    answer:pairs.map((label,i)=>`${i}-${index.get(label)}`),
+    answer:pairs.map(label=>String(index.get(label))),
     difficulty:Math.max(2,diff(n)),explanation,
-    content:{strictFipi2027:true,left,right:shown,answerEncoding:'pairs'},
+    content:{strictFipi2027:true,left,right:shown,answerEncoding:'indexes'},
     solutionSteps:['Рассмотрите каждый пункт слева отдельно.','Подберите ему соответствующую позицию справа.','Проверьте порядок цифр в ответе.']};
 }
 function matchFromPairs(prompt,pairs,rightPool,n,leftCount,rightCount,explanation){
