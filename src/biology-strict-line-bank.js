@@ -23,7 +23,28 @@ const changeScenarios=[
  ['При длительной работе мышцы','потребление кислорода тканью','запас гликогена в мышце','1','2'],
  ['При снижении температуры окружающей среды','теплопродукция организма','кровоток в коже','1','2']
 ];
-function line2(n){const [context,a,b,aa,bb]=rot(changeScenarios,n);return base({prompt:`${context}. Как изменятся показатели? Для каждой величины выберите: 1) увеличится; 2) уменьшится; 3) существенно не изменится.`,type:'matching',questionType:'matching',answer:[`0-${Number(aa)-1}`,`1-${Number(bb)-1}`],difficulty:diff(n),content:{strictFipi2027:true,strictExamLine:2,left:[a,b],right:['увеличится','уменьшится','не изменится'],answerEncoding:'pairs'},explanation:`Для первого показателя верно ${aa}, для второго — ${bb}.`,solutionSteps:['Определите физиологическое направление реакции','Оцените каждый показатель отдельно','Запишите две цифры в нужном порядке']});}
+function line2(n){
+ const [context,a,b,aa,bb]=rot(changeScenarios,n);
+ const dir=value=>Number(value)===1?'увеличится':Number(value)===2?'уменьшится':'существенно не изменится';
+ const correct=[`${a} — ${dir(aa)}`,`${b} — ${dir(bb)}`];
+ const alternatives=['увеличится','уменьшится','существенно не изменится'];
+ const wrong=[
+  `${a} — ${alternatives.find(x=>x!==dir(aa))}`,
+  `${b} — ${alternatives.find(x=>x!==dir(bb))}`,
+  `оба показателя существенно не изменятся`
+ ].filter(x=>!correct.includes(x));
+ const all=[...correct,...wrong].slice(0,5),shift=(n-1)%all.length,shown=all.slice(shift).concat(all.slice(0,shift));
+ return base({
+  prompt:`${context}. Выберите два верных утверждения об изменении указанных показателей.`,
+  type:'multiple',questionType:'multiple_answer',
+  answer:correct.map(x=>String(shown.indexOf(x))),
+  options:shown.map((label,i)=>({value:String(i),label})),
+  difficulty:diff(n),
+  content:{strictFipi2027:true,strictExamLine:2},
+  explanation:`В этих условиях: ${a} — ${dir(aa)}; ${b} — ${dir(bb)}.`,
+  solutionSteps:['Определите направление изменения первого показателя','Отдельно оцените второй показатель','Выберите два соответствующих утверждения']
+ });
+}
 
 const cellStructures=[
  {num:'1',name:'ядро',clues:['содержит основную часть ДНК эукариотической клетки','имеет ядерную оболочку с порами','содержит хроматин и ядрышко','регулирует экспрессию генов клетки','участвует в хранении наследственной информации','является центром управления эукариотической клетки']},
@@ -33,6 +54,41 @@ const cellStructures=[
 ];
 function line5(n){const s=cellStructures[(n-1)%4],clue=s.clues[Math.floor((n-1)/4)%s.clues.length];return base({prompt:`Рассмотрите рисунок клетки. Какой цифрой обозначена структура, которая ${clue}?`,answer:[s.num],difficulty:diff(n),imageUrl:'/images/biology/exam/strict-cell.svg',explanation:`Это ${s.name}, на схеме она обозначена цифрой ${s.num}.`,solutionSteps:['Найдите структуру по диагностическому признаку','Сопоставьте её с номером на рисунке','Запишите только цифру']});}
 function line6(n){const shift=(n-1)%4,selected=[0,1,2,3,0,1].map((x,i)=>(x+shift+i)%4),left=selected.map((idx,i)=>cellStructures[idx].clues[(n+i)%6]),answer=selected.map((idx,i)=>`${i}-${idx}`);return base({prompt:'Рассмотрите рисунок клетки. Установите соответствие между характеристиками и структурами, обозначенными цифрами 1–4.',type:'matching',questionType:'matching',answer,difficulty:diff(n),imageUrl:'/images/biology/exam/strict-cell.svg',content:{strictFipi2027:true,strictExamLine:6,left,right:cellStructures.map(x=>`${x.num}) ${x.name}`),answerEncoding:'pairs'},explanation:'Каждая характеристика относится к конкретной структуре клетки, отмеченной на схеме.',solutionSteps:['Определите органоид по каждой характеристике','Найдите его номер на схеме','Проверьте все позиции']});}
+
+const cellProcessPairs=[
+ ['репликация ДНК','удвоение наследственного материала перед делением'],
+ ['транскрипция','синтез РНК на матрице ДНК'],
+ ['трансляция','синтез полипептида на рибосоме'],
+ ['митоз','сохранение числа хромосом в дочерних клетках'],
+ ['мейоз I','расхождение гомологичных хромосом'],
+ ['гликолиз','расщепление глюкозы в цитоплазме'],
+ ['цикл Кребса','реакции в матриксе митохондрии'],
+ ['окислительное фосфорилирование','синтез АТФ на внутренней мембране митохондрии'],
+ ['световая фаза фотосинтеза','фотолиз воды и образование АТФ на тилакоидах'],
+ ['темновая фаза фотосинтеза','фиксация CO₂ в строме хлоропласта'],
+ ['фагоцитоз','захват клеткой крупной частицы'],
+ ['экзоцитоз','выведение содержимого пузырька через плазматическую мембрану']
+];
+function line8(n){
+ const N=Math.max(1,Number(n)||1),shift=(N-1)%cellProcessPairs.length;
+ const selected=Array.from({length:5},(_,i)=>cellProcessPairs[(shift+i*2)%cellProcessPairs.length]);
+ const right=[...new Set(selected.map(x=>x[1]))];
+ for(const pair of cellProcessPairs){
+  if(right.length>=6)break;
+  if(!right.includes(pair[1]))right.push(pair[1]);
+ }
+ const rotated=right.slice((N-1)%right.length).concat(right.slice(0,(N-1)%right.length));
+ const index=new Map(rotated.map((x,i)=>[x,i]));
+ return base({
+  prompt:'Установите соответствие между клеточными процессами и их характеристиками.',
+  type:'matching',questionType:'matching',
+  answer:selected.map((x,i)=>`${i}-${index.get(x[1])}`),
+  difficulty:diff(n),
+  content:{strictFipi2027:true,strictExamLine:8,left:selected.map(x=>x[0]),right:rotated,answerEncoding:'pairs'},
+  explanation:'Каждый процесс сопоставляется с его ключевым клеточным механизмом или местом протекания.',
+  solutionSteps:['Определите сущность каждого процесса','Сопоставьте его с характеристикой','Проверьте все позиции']
+ });
+}
 
 const animals=[
  {num:'1',name:'акула',clues:['имеет полностью хрящевой скелет','дышит жабрами и не имеет плавательного пузыря','относится к хрящевым рыбам','имеет жаберные щели, не прикрытые жаберной крышкой','обитает в воде и имеет двухкамерное сердце','имеет парные плавники и хрящевой внутренний скелет']},
@@ -63,7 +119,17 @@ function line17(n){const [text,good,bad]=rot(evoTexts,n),all=[...good,...bad],sh
 const tableCases=[
  ['Органоид','Функция','митохондрия','синтез АТФ при аэробном дыхании'],['Ткань','Функция','ксилема','транспорт воды и минеральных веществ'],['Клетка','Функция','эритроцит','перенос кислорода'],['Процесс','Результат','митоз','образование генетически близких дочерних клеток'],['Гормон','Эффект','инсулин','снижение концентрации глюкозы крови'],['Экологическая группа','Роль','редуценты','разложение органических остатков'],['Структура','Функция','рибосома','синтез полипептида'],['Орган','Функция','тонкая кишка','основное всасывание продуктов пищеварения']
 ];
-function line20(n){const [c1,c2,leftVal,rightVal]=rot(tableCases,n),distr=[rightVal,'выделение кислорода','образование антител','синтез крахмала','проведение нервного импульса','накопление мочевины'].slice(0,5),shift=n%distr.length,opts=distr.slice(shift).concat(distr.slice(0,shift)),answer=String(opts.indexOf(rightVal));return base({prompt:'Заполните пропуск в биологической таблице. Выберите элемент, который должен стоять вместо знака вопроса.',type:'single',questionType:'short_answer',answer:[answer],difficulty:diff(n),content:{strictFipi2027:true,strictExamLine:20,table:{columns:[c1,c2],rows:[[leftVal,'?']] }},options:opts.map((label,i)=>({value:String(i),label})),explanation:`Для «${leftVal}» верная характеристика: ${rightVal}.`,solutionSteps:['Определите объект в первой колонке','Вспомните его ключевую функцию','Выберите подходящий элемент']});}
+function line20(n){
+ const [c1,c2,leftVal,rightVal]=rot(tableCases,n);
+ return base({
+  prompt:'Заполните пропуск в биологической таблице. Запишите термин или характеристику, которая должна стоять вместо знака вопроса.',
+  type:'text',questionType:'short_answer',answer:[rightVal],difficulty:diff(n),
+  content:{strictFipi2027:true,strictExamLine:20,table:{columns:[c1,c2],rows:[[leftVal,'?']]}},
+  options:[],
+  explanation:`Для «${leftVal}» верная характеристика: ${rightVal}.`,
+  solutionSteps:['Определите объект в первой колонке','Вспомните его ключевую функцию или характеристику','Запишите ответ без лишних слов']
+ });
+}
 
 function line21(n){const k=1+(n%4),rows=[[10,2*k],[20,4*k],[30,6*k],[40,6*k]],good=[`При переходе от 10 к 30 единицам показатель увеличился в ${3} раза.`,'Максимальное значение в таблице наблюдается при 30 и 40 единицах.'],bad=['Показатель непрерывно уменьшается с ростом фактора.','При 20 единицах показатель выше, чем при 40.','По таблице доказано, что такая зависимость сохранится при любых значениях фактора.'],all=[...good,...bad],shift=n%all.length,shown=all.slice(shift).concat(all.slice(0,shift)),answer=good.map(x=>String(shown.indexOf(x)));return base({prompt:'Проанализируйте экспериментальные данные в таблице и выберите два утверждения, которые прямо следуют из представленных значений.',type:'multiple',questionType:'multiple_answer',answer,difficulty:diff(n),content:{strictFipi2027:true,strictExamLine:21,table:{columns:['Значение фактора','Измеренный показатель'],rows}},options:shown.map((label,i)=>({value:String(i),label})),explanation:'Нужно выбирать только выводы, непосредственно подтверждаемые числовыми данными.',solutionSteps:['Сравните значения по строкам','Не делайте выводов за пределами данных','Выберите два подтверждённых утверждения'],maxScore:1});}
 
@@ -81,6 +147,7 @@ function buildStrict(line,n){
  if(line===2)return line2(n);
  if(line===5)return line5(n);
  if(line===6)return line6(n);
+ if(line===8)return line8(n);
  if(line===9)return line9(n);
  if(line===10)return line10(n);
  if(line===13)return line13(n);
