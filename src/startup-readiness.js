@@ -4,7 +4,7 @@
 // This module stays tiny so the normal cold-start path can verify readiness without
 // loading the large course/generator modules.
 const { BIOLOGY_BANK_VERSION_TAG: BIOLOGY_BANK_VERSION } = require('./biology-bank-version');
-const CHEMISTRY_BANK_VERSION = 'v5';
+const { CHEMISTRY_BANK_VERSION } = require('./chemistry-bank-version');
 const CHEMISTRY_MEDIUM_VERSION = 'retired-v1';
 const CHEMISTRY_COURSE_VERSION = 'chemistry-2027-subject-course-v2-fipi-mastery-complete';
 
@@ -19,7 +19,7 @@ function completeLineSet(rows, lineCount, minimum) {
   return true;
 }
 
-async function fastContentReady(db, { biologyMinimum = 25, chemistryMinimum = 25 } = {}) {
+async function fastContentReady(db, { biologyMinimum = 10, chemistryMinimum = 10 } = {}) {
   try {
     const [biology, chemistry, chemistryUpgrade] = await Promise.all([
       db.row("SELECT id FROM subjects WHERE slug='biology' AND published=1"),
