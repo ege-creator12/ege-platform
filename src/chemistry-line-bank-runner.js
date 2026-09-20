@@ -18,6 +18,7 @@ const sourceModules=[
   require('./chemistry-bank-line33-diverse')
 ];
 const {build:buildSupplement}=require('./chemistry-bank-unique-supplement');
+const {build:buildHardExpansion}=require('./chemistry-hard-expansion');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
 const {CHEMISTRY_BANK_VERSION}=require('./chemistry-bank-version');
 
@@ -32,6 +33,7 @@ function parseJson(value){
 function fingerprint(item){return semanticFingerprint({...item,content:item.content||parseJson(item.content_json)});}
 function buildersFor(line){
  const builds=sourceModules.map(module=>module?.[line]).filter(fn=>typeof fn==='function');
+ builds.push(seed=>buildHardExpansion(line,seed));
  builds.push(seed=>buildSupplement(line,seed));
  return builds;
 }
@@ -170,7 +172,7 @@ async function resolveLineLesson(db,subjectId,info){
  return lesson||null;
 }
 
-async function ensureChemistryLineBank(db,{minimum=25}={}){
+async function ensureChemistryLineBank(db,{minimum=30}={}){
  const subject=await db.row("SELECT id FROM subjects WHERE slug='chemistry'");
  if(!subject)return {ok:false,inserted:0,lines:[],bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION};
 
