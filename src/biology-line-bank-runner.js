@@ -6,6 +6,7 @@ const {build:buildSupplement}=require('./biology-line-unique-supplement');
 const {build:buildHardLine26}=require('./biology-line26-hard-bank');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
 const {isBiologyFipiFormat}=require('./ege-fipi-format');
+const {build:buildHardExpansion}=require('./biology-hard-expansion');
 
 const { BIOLOGY_BANK_VERSION: BANK_VERSION }=require('./biology-bank-version');
 
@@ -49,6 +50,10 @@ function candidateItems(line,seed){
   const result=[];
   try{result.push(prepareItem(line,buildStrictV7(line,seed)));}catch{}
   try{result.push(prepareItem(line,buildCore(line,seed)));}catch{}
+  try{
+    const hard=buildHardExpansion(line,seed);
+    if(hard)result.push(prepareItem(line,hard));
+  }catch{}
   try{
     const extra=buildSupplement(line,seed);
     if(extra)result.push(prepareItem(line,extra));
@@ -182,7 +187,7 @@ async function removeInvalidFipiQuestions(db,subjectId){
   return hidden;
 }
 
-async function ensureBiologyLineBank(db,{minimum=25}={}){
+async function ensureBiologyLineBank(db,{minimum=30}={}){
   const subject=await db.row("SELECT id FROM subjects WHERE slug='biology'");
   if(!subject)return {ok:false,inserted:0,lines:[],bankVersion:BANK_VERSION};
 
