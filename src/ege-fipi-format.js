@@ -15,7 +15,7 @@ const CHEMISTRY_FORMATS=Object.freeze({
   3:{kind:'multiple',options:5,answers:2},
   4:{kind:'multiple',options:5,answers:2},
   5:{kind:'matching',left:3,right:9},
-  6:{kind:'multiple',options:5,answers:2},
+  6:{kind:'matching',left:2,right:5},
   7:{kind:'matching',left:4,right:5},
   8:{kind:'matching',left:4,right:6},
   9:{kind:'matching',left:2,right:5},
