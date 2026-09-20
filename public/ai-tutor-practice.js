@@ -82,6 +82,10 @@
         prompt:clean(task.prompt),
         instruction:clean(task.instruction),
         options:Array.isArray(task.options)?task.options.map(clean).filter(Boolean):[],
+        content:task.content&&typeof task.content==='object'?task.content:{},
+        imageUrl:clean(task.imageUrl||''),
+        type:clean(task.type||''),
+        questionType:clean(task.questionType||''),
         answer:clean(task.answer),
         accepted:Array.isArray(task.acceptedAnswers)?task.acceptedAnswers.map(clean).filter(Boolean):[clean(task.answer)].filter(Boolean),
         explanation:clean(task.explanation||'Сверь решение с правилом этой линии ЕГЭ.'),
@@ -207,11 +211,46 @@
     p.textContent=task.prompt;
     prompt.appendChild(p);
 
-    if(task.options.length){
+    const content=task.content&&typeof task.content==='object'?task.content:{};
+    if(content.table&&Array.isArray(content.table.columns)&&Array.isArray(content.table.rows)){
+      const wrap=document.createElement('div');
+      wrap.className='ai-practice-table-wrap';
+      const table=document.createElement('table');
+      const thead=document.createElement('thead');
+      const trh=document.createElement('tr');
+      content.table.columns.forEach(value=>{const th=document.createElement('th');th.textContent=clean(value);trh.appendChild(th)});
+      thead.appendChild(trh);table.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      content.table.rows.forEach(row=>{const tr=document.createElement('tr');(Array.isArray(row)?row:[]).forEach(value=>{const td=document.createElement('td');td.textContent=clean(value);tr.appendChild(td)});tbody.appendChild(tr)});
+      table.appendChild(tbody);wrap.appendChild(table);prompt.appendChild(wrap);
+    }
+
+    if(task.type==='matching'&&Array.isArray(content.left)&&Array.isArray(content.right)){
+      const left=document.createElement('div');
+      left.className='ai-practice-matching';
+      const leftTitle=document.createElement('b');leftTitle.textContent='А–Е';
+      const leftList=document.createElement('ol');
+      leftList.type='A';
+      content.left.forEach(value=>{const li=document.createElement('li');li.textContent=clean(value);leftList.appendChild(li)});
+      const rightTitle=document.createElement('b');rightTitle.textContent='Варианты';
+      const rightList=document.createElement('ol');
+      content.right.forEach(value=>{const li=document.createElement('li');li.textContent=clean(value);rightList.appendChild(li)});
+      left.append(leftTitle,leftList,rightTitle,rightList);
+      prompt.appendChild(left);
+    }else if(task.options.length){
       const options=document.createElement('ol');
       options.className='ai-practice-options';
       task.options.forEach(option=>{const li=document.createElement('li');li.textContent=option;options.appendChild(li)});
       prompt.appendChild(options);
+    }
+
+    if(task.imageUrl){
+      const img=document.createElement('img');
+      img.className='ai-practice-image';
+      img.src=task.imageUrl;
+      img.alt='Схема к заданию';
+      img.loading='lazy';
+      prompt.appendChild(img);
     }
 
     const form=document.createElement('form');
@@ -220,7 +259,7 @@
     input.rows=2;
     input.maxLength=1200;
     input.placeholder='Твой ответ…';
-    input.setAttribute('aria-label','Ответ на сгенерированное задание');
+    input.setAttribute('aria-label','Ответ на задание ЕГЭ');
     const actions=document.createElement('div');
     actions.className='ai-practice-actions';
     const check=document.createElement('button');
