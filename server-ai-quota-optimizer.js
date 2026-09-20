@@ -108,8 +108,6 @@ if (!globalThis.__OSNOVA_AI_QUOTA_OPTIMIZER__) {
     'Подсказка': 'hint',
     'Объяснение проще': 'simplify',
     'Почему мой ответ неверный?': 'why_wrong',
-    'Похожее задание': 'similar',
-    'Задание сложнее': 'harder',
   });
 
   function reviewInfo(prompt) {
@@ -226,7 +224,7 @@ if (!globalThis.__OSNOVA_AI_QUOTA_OPTIMIZER__) {
 
     const data = await response.json().catch(() => null);
     const bundle = extractJson(geminiText(data));
-    if (bundle && ['full', 'hint', 'simplify', 'why_wrong', 'similar', 'harder'].every(key => typeof bundle[key] === 'string' && bundle[key].trim())) {
+    if (bundle && ['full', 'hint', 'simplify', 'why_wrong'].every(key => typeof bundle[key] === 'string' && bundle[key].trim())) {
       reviewBundles.set(info.key, { expiresAt: now() + REVIEW_TTL_MS, bundle });
       trimCache(reviewBundles, MAX_REVIEW_CACHE);
       log('review bundle generated');
