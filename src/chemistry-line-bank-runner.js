@@ -39,9 +39,11 @@ function buildersFor(line){
 }
 function prepareItem(line,raw,seed){
  if(!raw||!isChemistryFipiFormat(line,raw)||!Array.isArray(raw.solutionSteps)||!raw.solutionSteps.length)return null;
+ const difficulty=Number(raw.difficulty)||1;
+ if(difficulty<3)return null;
  return {
    ...raw,
-   difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,seed%3===0?3:2),
+   difficulty:3,
    content:{
      ...(raw.content||{}),
      strictFipi2027:true,
