@@ -48,7 +48,7 @@ const CHEMISTRY_FORMATS=Object.freeze({
 
 const BIOLOGY_FORMATS=Object.freeze({
   1:{kind:'short',table:true},
-  2:{kind:'multiple',minOptions:5,minAnswers:2},
+  2:{kind:'matching',left:2,right:3},
   3:{kind:'short'},
   4:{kind:'short'},
   5:{kind:'short',image:true},
@@ -66,7 +66,7 @@ const BIOLOGY_FORMATS=Object.freeze({
  17:{kind:'multiple',minOptions:5,minAnswers:3},
  18:{kind:'multiple',minOptions:5,minAnswers:3},
  19:{kind:'matching'},
- 20:{kind:'short',table:true},
+ 20:{kind:'matching',left:3,minRight:6,table:true},
  21:{kind:'multiple',minOptions:5,minAnswers:2,table:true},
  22:{kind:'extended'},
  23:{kind:'extended'},
@@ -136,6 +136,7 @@ function validateAgainst(rule,item){
     const shape=matchingShape(item);
     if(rule.left!=null&&shape.left.length!==rule.left)return false;
     if(rule.right!=null&&shape.right.length!==rule.right)return false;
+    if(rule.minRight!=null&&shape.right.length<rule.minRight)return false;
     if(!shape.left.length||!shape.right.length||shape.answer.length!==shape.left.length)return false;
   }else return false;
 
