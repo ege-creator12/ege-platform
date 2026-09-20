@@ -287,6 +287,22 @@ function strictLine8(n){
   explanation:'Сопоставьте название процесса с его ключевым результатом или местом протекания.',
   solutionSteps:['Определите сущность каждого процесса','Подберите характеристику','Проверьте порядок цифр']});
 }
+
+function strictLine20(n){
+ const cases=[
+  ['Органоид','Функция','рибосома','синтез полипептида'],
+  ['Ткань растения','Функция','ксилема','транспорт воды и минеральных веществ'],
+  ['Клетка крови','Функция','эритроцит','перенос кислорода'],
+  ['Процесс','Результат','митоз','образование генетически близких дочерних клеток'],
+  ['Структура','Функция','нефрон','образование мочи']
+ ];
+ const [c1,c2,left,right]=cases[(Math.max(1,Number(n)||1)-1)%cases.length];
+ return q({prompt:'Заполните пропуск в биологической таблице. Запишите пропущенный термин или характеристику.',
+  type:'text',questionType:'short_answer',answer:[right],difficulty:diff(n),options:[],
+  content:{table:{columns:[c1,c2],rows:[[left,'?']]}},
+  explanation:`Для «${left}» верная характеристика: ${right}.`,
+  solutionSteps:['Определите объект в первой колонке','Вспомните его функцию или признак','Запишите только пропущенный элемент']});
+}
 function build(line,n){
  if(line===1)return shortQuestion(line,n,science,'Задание на биологические науки и методы');
  if(line===2)return strictLine2(n);
@@ -301,7 +317,7 @@ function build(line,n){
  if(line===13)return shortQuestion(line,n,humanId,'Определите структуру организма человека по описанию');
  if(line===14)return matchingQuestion(line,n,humanPairs,'Органы и функции человека');
  if(line===19)return matchingQuestion(line,n,evoEcoPairs,'Эволюция и экология');
- if(line===20)return matchingQuestion(line,n,tablePairs,'Заполните биологическую таблицу: сопоставьте процесс и характеристику');
+ if(line===20)return strictLine20(n);
  if(line>=22&&line<=28)return extendedQuestion(line,n);
  throw new Error(`No builder for biology line ${line}`);
 }
