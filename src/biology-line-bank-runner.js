@@ -5,6 +5,7 @@ const {build:buildCore}=require('./biology-line-bank');
 const {build:buildSupplement}=require('./biology-line-unique-supplement');
 const {build:buildHardLine26}=require('./biology-line26-hard-bank');
 const {semanticFingerprint,nearDuplicate}=require('./question-semantic-quality');
+const {isBiologyFipiFormat}=require('./ege-fipi-format');
 
 const { BIOLOGY_BANK_VERSION: BANK_VERSION }=require('./biology-bank-version');
 
@@ -26,7 +27,7 @@ function trustedWhere(rule){
   return {sql:`(${parts.join(' OR ')})`,params};
 }
 function prepareItem(line,item){
-  if(!item)return null;
+  if(!item||!isBiologyFipiFormat(line,item))return null;
   const difficulty=Math.max(1,Math.min(3,Number(item.difficulty)||1));
   return {
     ...item,
@@ -36,6 +37,7 @@ function prepareItem(line,item){
       strictFipi2027:true,
       strictExamLine:line,
       strictBankVersion:BANK_VERSION,
+      strictFormatValidated:true,
       qualityTier:difficulty>=3?'hard':'medium'
     }
   };
