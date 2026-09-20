@@ -10,8 +10,8 @@ const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('all server-side biology line routes share one bank version', () => {
-  assert.equal(BIOLOGY_BANK_VERSION, 8);
-  assert.equal(BIOLOGY_BANK_VERSION_TAG, 'v8');
+  assert.equal(BIOLOGY_BANK_VERSION, 9);
+  assert.equal(BIOLOGY_BANK_VERSION_TAG, 'v9');
   for (const file of [
     'src/biology-line-service.js',
     'src/biology-line-bank-runner.js',
