@@ -121,7 +121,7 @@ function biologyLineRule(line){const info=biologyExamRegistry.lines.find(item=>N
 
 async function questionPool(userId,topicId,mode,limit,options={}){
  const examLine=Number(options.examLine||0),onlySubjectId=Number(options.subjectId||0),publishedOnly=Boolean(options.publishedOnly),strictBiologyLine=Boolean(options.strictBiologyLine&&examLine),strictChemistryLine=Boolean(options.strictChemistryLine&&examLine);
- const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=0':mode==='hard'?'q.difficulty>=2':'1=1';
+ const filter=mode==='new'?'a.id IS NULL':mode==='review'?"a.id IS NOT NULL AND a.next_review_at<=CURRENT_TIMESTAMP":['mistakes','errors'].includes(mode)?'a.id IS NOT NULL AND a.correct=0':mode==='hard'?'q.difficulty>=3':'1=1';
  let strictClause='',strictParams=[];
  if(strictBiologyLine){const rule=biologyLineRule(examLine);if(!rule)return [];strictClause=` AND (${rule.patterns.map(()=>`q.external_key LIKE ?`).join(' OR ')})`;strictParams=[...rule.patterns];}
  if(strictChemistryLine){strictClause=' AND q.external_key LIKE ?';strictParams=[`chemistry-bank-${CHEMISTRY_BANK_VERSION}-line${examLine}-%`];}
