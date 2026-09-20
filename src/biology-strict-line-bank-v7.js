@@ -161,7 +161,7 @@ function buildStrictV7(line,n){
  line=Number(line);n=Math.max(1,Number(n)||1);
  let item;
  if(line===17)item=line17(n);
- else if(line===20)item=line20(n);
+ else if(line===20)item=clone(buildStrict(20,n));
  else if(line===21)item=line21(n);
  else item=clone(buildStrict(line,n));
  if(line===24)item=enrich24(item,n);
