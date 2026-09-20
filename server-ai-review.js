@@ -6,6 +6,7 @@ const { spawn } = require('node:child_process');
 const { join } = require('node:path');
 const database = require('./src/db');
 const { row, rows, run, transaction } = database;
+const { lineSources } = require('./content/external-exam-sources');
 
 const PORT = Number(process.env.PORT || 3000);
 const UPSTREAM_PORT = Number(process.env.AI_REVIEW_UPSTREAM_PORT || (PORT + 1));
@@ -231,8 +232,8 @@ async function reserveReviewQuota(userId, questionId) {
 async function latestTrainingItem(sessionId, userId) {
   return row(
     `SELECT tsq.question_id,tsq.position,tsq.state,tsq.answered_at,
-            q.topic_id,q.prompt,q.instruction,q.answer_json,q.explanation,q.solution_steps_json,q.question_type,q.type,
-            t.title topic,s.title subject,a.answer_json given_json,a.result_json
+            q.topic_id,q.exam_line,q.prompt,q.instruction,q.answer_json,q.explanation,q.solution_steps_json,q.question_type,q.type,
+            t.title topic,s.title subject,s.slug subject_slug,a.answer_json given_json,a.result_json
      FROM training_session_questions tsq
      JOIN training_sessions sess ON sess.id=tsq.session_id
      JOIN questions q ON q.id=tsq.question_id
@@ -463,6 +464,36 @@ async function handleReview(req, res, path) {
   const item = await latestTrainingItem(sessionId, user.id);
   if (!item) {
     json(res, 404, { error: 'Сначала проверьте ответ на задание', code: 'AI_NOT_FOUND' });
+    return true;
+  }
+
+  if (action === 'similar' || action === 'harder') {
+    const source = lineSources(String(item.subject_slug || ''), Number(item.exam_line || 0), action === 'harder' ? 5 : 3);
+    const actions = (source?.tasks || []).map(task => ({
+      type: 'external_source',
+      label: `ФИПИ · ID ${task.qid}`,
+      url: task.url,
+      payload: { line: Number(item.exam_line || 0), qid: task.qid, source: 'fipi' },
+    }));
+    if (source?.bankUrl) actions.push({
+      type: 'external_source',
+      label: 'Открыть банк ФИПИ',
+      url: source.bankUrl,
+      payload: { line: Number(item.exam_line || 0), source: 'fipi-bank' },
+    });
+    json(res, 200, {
+      answer: actions.length
+        ? `Новое задание здесь не генерирую. Для линии ${Number(item.exam_line || 0)} даю только задания из открытого банка ФИПИ — выбери официальный источник ниже.`
+        : 'Новое задание не генерирую: для этой линии не найден подтверждённый официальный источник.',
+      action,
+      title: ACTIONS[action].title,
+      remaining: await quotaRemaining(user.id),
+      reviewCharged: false,
+      reviewExpiresInMinutes: REVIEW_TTL_MINUTES,
+      questionId: Number(item.question_id),
+      actions,
+      source: 'fipi-line-router',
+    });
     return true;
   }
 
