@@ -1,6 +1,7 @@
 'use strict';
 const builders=require('../../src/chemistry-line-bank');
 const registry=require('./exam-lines');
+const {isChemistryFipiFormat}=require('../../src/ege-fipi-format');
 
 const SOURCE='Авторские варианты ОСНОВЫ по структуре проекта КИМ ФИПИ ЕГЭ-2027; задания официального банка дословно не копируются.';
 const VARIANT_COUNT=12;
@@ -30,7 +31,7 @@ function variantQuestions(variant=1){
   const n=itemNumber(info.line,variant),q=builders[info.line](n);
   const maxScore=Number(q.maxScore||info.maxScore||1);
   if(maxScore!==Number(info.maxScore))throw new Error(`Chemistry mock line ${info.line}: score mismatch ${maxScore} != ${info.maxScore}`);
-  return {
+  const result={
    key:`chemistry-mock-v${variant}-l${String(info.line).padStart(2,'0')}-q${String(n).padStart(2,'0')}`,
    line:info.line,part:info.part,type:q.type,questionType:q.questionType||q.type,
    prompt:q.prompt,instruction:q.instruction||'',content:q.content||{},options:q.options||[],answer:q.answer,
@@ -39,6 +40,8 @@ function variantQuestions(variant=1){
    explanation:q.explanation||'',solutionSteps:q.solutionSteps||[],scoringPoints:q.scoringPoints||q.content?.criteria||[],
    commonMistakes:q.commonMistakes||info.commonTraps||[],hint:q.hint||info.strategy?.[0]||'',
   };
+  if(!isChemistryFipiFormat(info.line,result))throw new Error(`Chemistry mock line ${info.line} does not match FIPI mechanics`);
+  return result;
  });
 }
 
