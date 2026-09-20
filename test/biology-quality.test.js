@@ -9,6 +9,7 @@ const {finalize}=require('../scripts/finalize-biology-quality');
 const controls=require('../public/question-controls');
 const {needsManualReview,isCorrectAnswer}=require('../src/question-answer');
 const course=require('../content/biology/course.json');
+const {isBiologyFipiFormat}=require('../src/ege-fipi-format');
 const snapshot=q=>({...q,answerJson:JSON.stringify(q.answer)});
 
 test('all 84 reviewed exam tasks have usable controls, media, score modes and complete answer keys',()=>{
@@ -20,6 +21,7 @@ test('all 84 reviewed exam tasks have usable controls, media, score modes and co
   assert.equal(qs.slice(21).reduce((sum,q)=>sum+q.maxScore,0),22);
   for(const q of qs){
    assert(!keys.has(q.key));keys.add(q.key);
+   assert.equal(isBiologyFipiFormat(q.line,q),true,`line ${q.line}, variant ${v}: FIPI format mismatch`);
    const html=controls.render({...q,contentJson:q.content,mediaJson:q.image?{path:q.image}:{}},q.answer);
    if(q.type==='matching'){
     assert.equal((html.match(/data-match=/g)||[]).length,q.content.left.length);
