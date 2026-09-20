@@ -36,7 +36,7 @@ function buildersFor(line){
  return builds;
 }
 function prepareItem(line,raw,seed){
- if(!raw||!isChemistryFipiFormat(line,raw))return null;
+ if(!raw||!isChemistryFipiFormat(line,raw)||!Array.isArray(raw.solutionSteps)||!raw.solutionSteps.length)return null;
  return {
    ...raw,
    difficulty:line>=29?3:Math.max(Number(raw.difficulty)||1,seed%3===0?3:2),
@@ -107,7 +107,7 @@ async function sanitizeExamLineAssignments(db,subjectId){
 
 async function bankItems(db,subjectId,line){
  const prefix=`chemistry-bank-${BANK_VERSION}-line${line}-%`;
- const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.type,q.question_type,q.answer_json,q.explanation_json,q.max_score,
+ const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.type,q.question_type,q.answer_json,q.explanation_json,q.solution_steps_json,q.max_score,
    qo.value option_value,qo.label option_label,qo.position option_position
    FROM questions q LEFT JOIN question_options qo ON qo.question_id=q.id
    WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND q.external_key LIKE ?
@@ -118,7 +118,7 @@ async function bankItems(db,subjectId,line){
   if(!item){
     const explanationData=parseJson(row.explanation_json)||{};
     item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,type:row.type,questionType:row.question_type,
-      answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],options:[]};
+      answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],solutionSteps:parseJson(row.solution_steps_json)||[],options:[]};
     map.set(item.id,item);
   }
   if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
@@ -131,7 +131,7 @@ async function removeInvalidFipiQuestions(db,subjectId){
  for(const info of registry.lines){
   const items=await bankItems(db,subjectId,Number(info.line));
   for(const item of items){
-   if(isChemistryFipiFormat(Number(info.line),item))continue;
+   if(isChemistryFipiFormat(Number(info.line),item)&&Array.isArray(item.solutionSteps)&&item.solutionSteps.length)continue;
    await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);
    hidden++;
   }
