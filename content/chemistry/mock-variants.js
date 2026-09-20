@@ -41,6 +41,7 @@ function variantQuestions(variant=1){
    commonMistakes:q.commonMistakes||info.commonTraps||[],hint:q.hint||info.strategy?.[0]||'',
   };
   if(!isChemistryFipiFormat(info.line,result))throw new Error(`Chemistry mock line ${info.line} does not match FIPI mechanics`);
+  if(!Array.isArray(result.solutionSteps)||!result.solutionSteps.length)throw new Error(`Chemistry mock line ${info.line} is missing worked solution steps`);
   return result;
  });
 }
