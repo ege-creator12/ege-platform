@@ -205,6 +205,128 @@ function formatBankAnswer(question, options) {
   return { answer, accepted: [...new Set([answer, ...acceptedExtra].filter(Boolean))] };
 }
 
+const CEREBRAS_TASK_KEY = process.env.CEREBRAS_API_KEY || '';
+const CEREBRAS_TASK_MODEL = process.env.CEREBRAS_TASK_MODEL || process.env.CEREBRAS_ANSWER_MODEL || 'gpt-oss-120b';
+const CEREBRAS_TASK_URL = 'https://api.cerebras.ai/v1/chat/completions';
+
+function cleanGeneratedTask(task, index) {
+  const prompt = String(task?.prompt || '').trim();
+  const instruction = String(task?.instruction || '').trim();
+  const explanation = String(task?.explanation || '').trim();
+  const questionType = String(task?.questionType || 'short_answer').trim();
+  const options = Array.isArray(task?.options) ? task.options.map(x => String(x || '').trim()).filter(Boolean).slice(0, 10) : [];
+  const answer = String(task?.answer ?? '').trim();
+  const acceptedAnswers = Array.isArray(task?.acceptedAnswers)
+    ? task.acceptedAnswers.map(x => String(x ?? '').trim()).filter(Boolean).slice(0, 12)
+    : [];
+  if (!prompt || !answer) return null;
+  if (options.length && /^\\d+$/.test(answer)) {
+    const n = Number(answer);
+    if (n < 1 || n > options.length) return null;
+  }
+  return {
+    id: -(index + 1),
+    prompt,
+    instruction,
+    options,
+    answer,
+    acceptedAnswers: [...new Set([answer, ...acceptedAnswers])],
+    explanation,
+    difficulty: Math.max(1, Math.min(5, Number(task?.difficulty) || 3)),
+    manualReview: Boolean(task?.manualReview),
+    questionType,
+    externalKey: `ai-generated-${Date.now()}-${index + 1}`,
+    generated: true,
+  };
+}
+
+async function generateAiLineTasks(subjectSlug, line, count, examples) {
+  if (!CEREBRAS_TASK_KEY) throw Object.assign(new Error('AI generator is not configured'), { code: 'AI_GENERATOR_NOT_CONFIGURED' });
+
+  const subjectLabel = subjectSlug === 'chemistry' ? 'химии' : 'биологии';
+  const maxLine = subjectSlug === 'chemistry' ? 34 : 28;
+  const exemplarText = examples.slice(0, 7).map((q, i) => {
+    const opts = Array.isArray(q.options) && q.options.length ? `\\nВарианты: ${q.options.map((x, j) => `${j + 1}) ${x}`).join(' | ')}` : '';
+    return `ПРИМЕР ${i + 1}:\\nИнструкция: ${q.instruction || '-'}\\nУсловие: ${q.prompt}${opts}\\nТип: ${q.questionType || '-'}\\nОтвет: ${q.answer}`;
+  }).join('\\n\\n');
+
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['tasks'],
+    properties: {
+      tasks: {
+        type: 'array',
+        minItems: count,
+        maxItems: count,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['prompt','instruction','options','answer','acceptedAnswers','explanation','difficulty','manualReview','questionType'],
+          properties: {
+            prompt: { type: 'string' },
+            instruction: { type: 'string' },
+            options: { type: 'array', items: { type: 'string' }, maxItems: 10 },
+            answer: { type: 'string' },
+            acceptedAnswers: { type: 'array', items: { type: 'string' }, maxItems: 12 },
+            explanation: { type: 'string' },
+            difficulty: { type: 'integer', minimum: 1, maximum: 5 },
+            manualReview: { type: 'boolean' },
+            questionType: { type: 'string' },
+          },
+        },
+      },
+    },
+  };
+
+  const system = `Ты — методист ЕГЭ по ${subjectLabel}. Генерируй НОВЫЕ задания только для линии ${line} из ${maxLine}, строго сохраняя проверяемый навык, механику, форму ответа и уровень официального экзамена. Опирайся на переданные примеры как на шаблон формата линии, но НЕ копируй их текст, числа, наборы объектов и варианты ответа. Не утверждай, что задания официально опубликованы ФИПИ: это авторские задания ОСНОВЫ, составленные по формату ЕГЭ. Перед выдачей молча перепроверь научную корректность, однозначность условия и ответа.
+
+ЖЁСТКИЕ ПРАВИЛА:
+1) Никаких вопросов "какой сильнее/больше" без точного критерия. Используй экзаменационные формулировки.
+2) Если в примерах линия имеет множественный выбор, соответствие, последовательность или расчёт — сохрани именно эту механику.
+3) Для закрытого задания ответ должен однозначно следовать из условия. Для вариантов ответа поле answer содержит номер/последовательность номеров так, как ученик вводит в бланк.
+4) options содержит только текст вариантов без номеров. acceptedAnswers содержит эквивалентные допустимые записи.
+5) Не делай задания заметно проще примеров. Избегай школьных викторин и расплывчатых формулировок.
+6) Для химии перепроверь электронные конфигурации, степени окисления, коэффициенты, формулы и расчёты. Для биологии — термины, причинно-следственные связи, генетику и цитологические расчёты.
+7) Не используй факты, требующие спорной трактовки. Не добавляй подсказку в условие.
+8) Сгенерируй ровно ${count} разных заданий. Каждое должно отличаться не только числами, но и объектами/контекстом.
+9) explanation кратко объясняет, почему ответ верен, и служит дополнительной самопроверкой.
+10) Если линия предполагает развёрнутый ответ, manualReview=true, answer — краткий эталон по смысловым элементам; иначе manualReview=false.`;
+
+  const prompt = `Ниже примеры уже используемых заданий линии ${line}. По их структуре создай ${count} новых, не повторяющихся заданий.\\n\\n${exemplarText}`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 26000);
+  let response;
+  try {
+    response = await fetch(CEREBRAS_TASK_URL, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${CEREBRAS_TASK_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: CEREBRAS_TASK_MODEL,
+        messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+        temperature: 0.18,
+        reasoning_effort: 'medium',
+        max_completion_tokens: 4200,
+        response_format: { type: 'json_schema', json_schema: { name: 'ege_generated_tasks', strict: true, schema } },
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(data?.error?.message || 'AI generation failed'), { code: 'AI_GENERATION_FAILED', status: response.status });
+  let parsed;
+  try { parsed = JSON.parse(String(data?.choices?.[0]?.message?.content || '').replace(/^\`\`\`(?:json)?\\s*/i, '').replace(/\\s*\`\`\`$/i, '')); }
+  catch { throw Object.assign(new Error('AI returned invalid JSON'), { code: 'AI_INVALID_JSON' }); }
+
+  const tasks = (Array.isArray(parsed?.tasks) ? parsed.tasks : []).map(cleanGeneratedTask).filter(Boolean);
+  if (tasks.length !== count) throw Object.assign(new Error('AI generated an incomplete task set'), { code: 'AI_INCOMPLETE_SET' });
+  return tasks;
+}
+
 async function handleAiLineTasks(req, res, url) {
   if (req.method !== 'GET' || url.pathname !== '/api/ai-line-tasks') return false;
 
@@ -231,9 +353,6 @@ async function handleAiLineTasks(req, res, url) {
       return true;
     }
 
-    // Для 26-й линии биологии используем только новый усложнённый банк.
-    // Для остальных линий сохраняем широкий префикс, чтобы фоновая миграция банка
-    // не оставляла ученика без заданий.
     const prefix = subjectSlug === 'biology' && line === 26
       ? 'biology-bank-v8-line26-hard-%'
       : subjectSlug === 'chemistry' ? 'chemistry-bank-%' : 'biology-bank-%';
@@ -246,16 +365,8 @@ async function handleAiLineTasks(req, res, url) {
       subject.id,
       line,
       prefix,
-      Math.max(count * 3, 18),
+      Math.max(count * 4, 20),
     );
-
-    if (!candidates.length) {
-      json(res, 404, {
-        error: `Банк линии ${line} сейчас достраивается. Повтори запрос через минуту.`,
-        code: 'LINE_BANK_BUILDING',
-      });
-      return true;
-    }
 
     const candidateIds = candidates.map(question => Number(question.id)).filter(Number.isSafeInteger);
     const optionRows = candidateIds.length
@@ -274,45 +385,67 @@ async function handleAiLineTasks(req, res, url) {
       optionsByQuestion.get(questionId).push({ value: option.value, label: option.label });
     }
 
-    const tasks = [];
+    const examples = [];
     const seen = new Set();
     for (const question of candidates) {
-      if (tasks.length >= count) break;
       const prompt = String(question.prompt || '').trim();
       if (!prompt) continue;
-      const promptKey = prompt.toLowerCase().replace(/\s+/g, ' ');
+      const promptKey = prompt.toLowerCase().replace(/\\s+/g, ' ');
       if (seen.has(promptKey)) continue;
       seen.add(promptKey);
-
       const options = optionsByQuestion.get(Number(question.id)) || [];
       const formatted = formatBankAnswer(question, options);
       if (!formatted.answer) continue;
-
-      const content = parseQuestionJson(question.content_json, {}) || {};
-      tasks.push({
-        id: Number(question.id),
+      examples.push({
         prompt,
         instruction: String(question.instruction || ''),
         options: options.map(option => String(option.label)),
         answer: formatted.answer,
         acceptedAnswers: formatted.accepted,
         explanation: String(question.explanation || ''),
-        difficulty: Number(question.difficulty || 1),
-        manualReview: Boolean(content.manualReview || question.question_type === 'extended_answer'),
         questionType: String(question.question_type || ''),
-        externalKey: String(question.external_key || ''),
       });
+      if (examples.length >= 7) break;
     }
 
-    if (!tasks.length) {
+    if (examples.length < 2) {
       json(res, 404, {
-        error: `В линии ${line} пока нет готовых заданий для показа.`,
-        code: 'LINE_TASKS_EMPTY',
+        error: `Недостаточно проверенных примеров линии ${line}, чтобы безопасно генерировать новые задания.`,
+        code: 'LINE_EXAMPLES_MISSING',
       });
       return true;
     }
 
-    json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_EXAM_BANK' });
+    try {
+      const tasks = await generateAiLineTasks(subjectSlug, line, count, examples);
+      json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_AI_GENERATED', generated: true });
+      return true;
+    } catch (generationError) {
+      console.warn('ai-line-generation-fallback', {
+        subject: subjectSlug,
+        line,
+        code: generationError?.code || 'AI_GENERATION_FAILED',
+        message: String(generationError?.message || generationError).slice(0, 300),
+      });
+    }
+
+    // Надёжный резерв: если модель/провайдер временно недоступны, ученик всё равно
+    // получает корректные задания из проверенного банка этой же линии.
+    const tasks = examples.slice(0, count).map((question, index) => ({
+      id: Number(candidates[index]?.id || index + 1),
+      prompt: question.prompt,
+      instruction: question.instruction,
+      options: question.options,
+      answer: question.answer,
+      acceptedAnswers: question.acceptedAnswers,
+      explanation: question.explanation,
+      difficulty: Number(candidates[index]?.difficulty || 1),
+      manualReview: Boolean(parseQuestionJson(candidates[index]?.content_json, {})?.manualReview || candidates[index]?.question_type === 'extended_answer'),
+      questionType: question.questionType,
+      externalKey: String(candidates[index]?.external_key || ''),
+      generated: false,
+    }));
+    json(res, 200, { subject: subjectSlug, line, count: tasks.length, tasks, source: 'OSNOVA_EXAM_BANK_FALLBACK', generated: false });
     return true;
   } catch (error) {
     console.error('ai-line-tasks', {
@@ -322,13 +455,12 @@ async function handleAiLineTasks(req, res, url) {
       message: String(error?.message || error).slice(0, 500),
     });
     json(res, 500, {
-      error: 'Не удалось загрузить задания этой линии. Банк не повреждён — повтори запрос после обновления страницы.',
+      error: 'Не удалось подготовить задания этой линии. Попробуй ещё раз через несколько секунд.',
       code: 'LINE_TASKS_ERROR',
     });
     return true;
   }
 }
-
 async function handleFastApi(req, res, pathname) {
   if (req.method !== 'GET' || pathname !== '/api/topics') return false;
   const user = await userFor(req);
