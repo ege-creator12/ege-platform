@@ -116,7 +116,7 @@ function line5(n){
 function matchingImage(line,prompt,items,image,n){
  const N=Math.max(1,Number(n)||1),shift=(N-1)%items.length,cycle=Math.floor((N-1)/items.length);
  const selected=[0,1,2,3,0,2].map((x,i)=>(x+shift+i)%items.length);
- const left=selected.map((idx,i)=>items[idx].clues[(cycle*2+i*3)%items[idx].clues.length]);
+ const left=selected.map((idx,i)=>items[idx].clues[(cycle+i*3)%items[idx].clues.length]);
  const right=items.map(x=>`${x.num}) ${x.name}`);
  return base({
   prompt,type:'matching',questionType:'matching',imageUrl:image,
