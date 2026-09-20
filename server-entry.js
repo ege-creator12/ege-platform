@@ -50,12 +50,19 @@ async function deepContentRepair(){
   const {ensureBiologyLineBank}=require('./src/biology-line-bank-runner');
   const {ensureChemistryCourse}=require('./src/chemistry-course-upgrade');
   const {ensureChemistryLineBank}=require('./src/chemistry-line-bank-runner');
+
+  // Rebuild/clean both subjects independently. A shortage of semantically unique
+  // biology tasks must never prevent retirement of stale chemistry line banks.
   await ensureExamLineBank(database,{minimum:15});
-  const biology=await ensureBiologyLineBank(database,{minimum:25});
-  if(!biology.ok)throw new Error('Biology question bank did not reach 25 semantically unique visible questions on every exam line');
   await ensureChemistryCourse(database);
+
   const chemistry=await ensureChemistryLineBank(database,{minimum:25});
-  if(!chemistry.ok)throw new Error('Chemistry question bank did not reach 25 semantically unique visible questions on every line');
+  if(!chemistry.ok)console.warn('Strict chemistry bank is below the 25-task target on some lines:',chemistry.lines.filter(x=>x.count<25));
+
+  const biology=await ensureBiologyLineBank(database,{minimum:25});
+  if(!biology.ok)console.warn('Strict biology bank is below the 25-task target on some lines:',biology.lines.filter(x=>x.count<25));
+
+  return {biology,chemistry};
 }
 
 let contentRepairRunning=false;
