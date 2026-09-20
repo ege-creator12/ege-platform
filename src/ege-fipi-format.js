@@ -48,7 +48,7 @@ const CHEMISTRY_FORMATS=Object.freeze({
 
 const BIOLOGY_FORMATS=Object.freeze({
   1:{kind:'short',table:true},
-  2:{kind:'matching',left:2,right:3},
+  2:{kind:'multiple',options:5,minAnswers:2,maxAnswers:3},
   3:{kind:'short'},
   4:{kind:'short'},
   5:{kind:'short',image:true},
