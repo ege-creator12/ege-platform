@@ -12,6 +12,8 @@ test('all chemistry line builders obey the official FIPI 2026/2027 response mech
       const q=builders[line](n);
       assert.equal(isChemistryFipiFormat(line,q),true,
         `line ${line}, item ${n}: wrong control/answer shape: ${q?.type}/${q?.questionType}`);
+      assert(Array.isArray(q.solutionSteps)&&q.solutionSteps.length>=1,
+        `line ${line}, item ${n}: missing worked solution steps`);
     }
   }
 });
