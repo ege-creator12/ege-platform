@@ -107,7 +107,7 @@ async function sanitizeExamLineAssignments(db,subjectId){
 
 async function bankItems(db,subjectId,line){
  const prefix=`chemistry-bank-${BANK_VERSION}-line${line}-%`;
- const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.type,q.question_type,
+ const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.type,q.question_type,q.answer_json,q.explanation_json,q.max_score,
    qo.value option_value,qo.label option_label,qo.position option_position
    FROM questions q LEFT JOIN question_options qo ON qo.question_id=q.id
    WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND q.external_key LIKE ?
@@ -116,12 +116,27 @@ async function bankItems(db,subjectId,line){
  for(const row of rows){
   let item=map.get(Number(row.id));
   if(!item){
-    item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,type:row.type,questionType:row.question_type,options:[]};
+    const explanationData=parseJson(row.explanation_json)||{};
+    item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,type:row.type,questionType:row.question_type,
+      answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],options:[]};
     map.set(item.id,item);
   }
   if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
  }
  return [...map.values()];
+}
+
+async function removeInvalidFipiQuestions(db,subjectId){
+ let hidden=0;
+ for(const info of registry.lines){
+  const items=await bankItems(db,subjectId,Number(info.line));
+  for(const item of items){
+   if(isChemistryFipiFormat(Number(info.line),item))continue;
+   await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);
+   hidden++;
+  }
+ }
+ return hidden;
 }
 
 async function removeSemanticDuplicates(db,subjectId){
@@ -161,6 +176,7 @@ async function ensureChemistryLineBank(db,{minimum=25}={}){
 
  const retired=await retireOldGeneratedBanks(db,subject.id);
  const detached=await sanitizeExamLineAssignments(db,subject.id);
+ const invalidFormat=await removeInvalidFipiQuestions(db,subject.id);
  const deduplicated=await removeSemanticDuplicates(db,subject.id);
  const keyRows=await db.rows('SELECT external_key FROM questions WHERE subject_id=? AND external_key IS NOT NULL',subject.id);
  const existingKeys=new Set(keyRows.map(row=>String(row.external_key)));
@@ -221,13 +237,14 @@ async function ensureChemistryLineBank(db,{minimum=25}={}){
  const ok=lines.length===34&&lines.every(x=>x.count>=minimum);
  if(retired)console.log(`Chemistry bank cleanup: retired ${retired} older generated questions.`);
  if(detached)console.log(`Chemistry line cleanup: detached ${detached} non-${BANK_VERSION} questions from strict line routing.`);
+ if(invalidFormat)console.log(`Chemistry strict-format cleanup: hidden ${invalidFormat} questions that violate FIPI line mechanics.`);
  if(deduplicated)console.log(`Chemistry semantic duplicate cleanup: hidden ${deduplicated} ${BANK_VERSION} duplicates.`);
  if(ok)console.log(`Chemistry ${BANK_VERSION} bank ready: >=${minimum} genuinely distinct questions on all 34 lines; generated ${inserted}.`);
  else console.warn(`Chemistry ${BANK_VERSION} line bank incomplete:`,lines.filter(x=>x.count<minimum));
 
  return {
    ok,inserted,lines,bankVersion:BANK_VERSION,mediumBankVersion:MEDIUM_BANK_VERSION,
-   retiredOldBank:retired,detachedMisclassified:detached,deduplicated
+   retiredOldBank:retired,detachedMisclassified:detached,deduplicated,invalidFormat
  };
 }
 
