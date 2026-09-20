@@ -27,7 +27,7 @@ function trustedWhere(rule){
   return {sql:`(${parts.join(' OR ')})`,params};
 }
 function prepareItem(line,item){
-  if(!item||!isBiologyFipiFormat(line,item))return null;
+  if(!item||!isBiologyFipiFormat(line,item)||!Array.isArray(item.solutionSteps)||!item.solutionSteps.length)return null;
   const difficulty=Math.max(1,Math.min(3,Number(item.difficulty)||1));
   return {
     ...item,
@@ -150,7 +150,7 @@ async function insertQuestion(db,{subjectId,lesson,line,info,key,item}){
 
 async function trustedLineItems(db,subjectId,info){
   const rule=lineRule(info),trusted=trustedWhere(rule);
-  const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.image_url,q.type,q.question_type,q.answer_json,q.explanation_json,q.max_score,
+  const rows=await db.rows(`SELECT q.id,q.external_key,q.prompt,q.content_json,q.image_url,q.type,q.question_type,q.answer_json,q.explanation_json,q.solution_steps_json,q.max_score,
     qo.value option_value,qo.label option_label,qo.position option_position
     FROM questions q LEFT JOIN question_options qo ON qo.question_id=q.id
     WHERE q.subject_id=? AND q.exam_line=? AND q.active=1 AND q.published=1 AND ${trusted.sql}
@@ -161,7 +161,7 @@ async function trustedLineItems(db,subjectId,info){
     if(!item){
       const explanationData=parseJson(row.explanation_json)||{};
       item={id:Number(row.id),external_key:row.external_key,prompt:row.prompt,content_json:row.content_json,image_url:row.image_url,type:row.type,questionType:row.question_type,
-        answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],options:[]};
+        answer_json:row.answer_json,maxScore:Number(row.max_score||1),scoringPoints:Array.isArray(explanationData.scoringPoints)?explanationData.scoringPoints:[],solutionSteps:parseJson(row.solution_steps_json)||[],options:[]};
       map.set(item.id,item);
     }
     if(row.option_value!==null&&row.option_value!==undefined)item.options.push({value:row.option_value,label:row.option_label});
@@ -174,7 +174,7 @@ async function removeInvalidFipiQuestions(db,subjectId){
   for(const info of registry.lines){
     const items=await trustedLineItems(db,subjectId,info);
     for(const item of items){
-      if(isBiologyFipiFormat(Number(info.line),item))continue;
+      if(isBiologyFipiFormat(Number(info.line),item)&&Array.isArray(item.solutionSteps)&&item.solutionSteps.length)continue;
       await db.run('UPDATE questions SET active=FALSE,published=FALSE WHERE id=?',item.id);
       hidden++;
     }
