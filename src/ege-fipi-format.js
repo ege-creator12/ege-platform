@@ -90,7 +90,7 @@ function itemAnswer(item){
 function itemOptions(item){return Array.isArray(item?.options)?item.options:[];}
 function normalizedType(item){return String(item?.type||'').trim();}
 function questionType(item){return String(item?.questionType||item?.question_type||'').trim();}
-function hasImage(item){return Boolean(item?.imageUrl||item?.image_url);}
+function hasImage(item){return Boolean(item?.imageUrl||item?.image_url||item?.image);}
 function hasTable(item){return Boolean(itemContent(item)?.table);}
 function matchingShape(item){
   const content=itemContent(item);
