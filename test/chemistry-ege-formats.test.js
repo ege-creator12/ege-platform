@@ -26,8 +26,17 @@ test('chemistry line 2 is an ordered three-position task, never a one-answer com
   }
 });
 
+test('chemistry line 6 is a two-of-five selection task',()=>{
+  for(let n=1;n<=25;n++){
+    const q=builders[6](n);
+    assert.equal(q.type,'multiple',`line 6, item ${n}: expected multiple selection`);
+    assert.equal(q.options.length,5);
+    assert.equal(q.answer.length,2);
+  }
+});
+
 test('FIPI correspondence lines are rendered as correspondences, not generic multiple choice',()=>{
-  for(const line of [5,6,7,8,9,10,14,15,16,17,19,20,22,23,24,25]){
+  for(const line of [5,7,8,9,10,14,15,16,17,19,20,22,23,24,25]){
     for(let n=1;n<=10;n++)assert.equal(builders[line](n).type,'matching',`line ${line}, item ${n}`);
   }
 });
