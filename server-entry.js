@@ -56,11 +56,11 @@ async function deepContentRepair(){
   await ensureExamLineBank(database,{minimum:15});
   await ensureChemistryCourse(database);
 
-  const chemistry=await ensureChemistryLineBank(database,{minimum:25});
-  if(!chemistry.ok)console.warn('Strict chemistry bank is below the 25-task target on some lines:',chemistry.lines.filter(x=>x.count<25));
+  const chemistry=await ensureChemistryLineBank(database,{minimum:30});
+  if(!chemistry.ok)console.warn('Strict chemistry bank is below the 25-task target on some lines:',chemistry.lines.filter(x=>x.count<30));
 
-  const biology=await ensureBiologyLineBank(database,{minimum:25});
-  if(!biology.ok)console.warn('Strict biology bank is below the 25-task target on some lines:',biology.lines.filter(x=>x.count<25));
+  const biology=await ensureBiologyLineBank(database,{minimum:30});
+  if(!biology.ok)console.warn('Strict biology bank is below the 25-task target on some lines:',biology.lines.filter(x=>x.count<30));
 
   return {biology,chemistry};
 }
