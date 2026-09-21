@@ -13,6 +13,7 @@ const communityChat = require('./server-community-chat');
 const adminUserDelete = require('./server-admin-user-delete');
 const answerExpert = require('./server-answer-expert');
 const subscriptions = require('./server-subscriptions');
+const siteMaintenance = require('./server-site-maintenance');
 const { isChemistryFipiFormat, isBiologyFipiFormat } = require('./src/ege-fipi-format');
 const { BIOLOGY_BANK_VERSION } = require('./src/biology-bank-version');
 const { CHEMISTRY_BANK_VERSION } = require('./src/chemistry-bank-version');
@@ -473,6 +474,7 @@ function waitForUpstream(left = 220) {
 
 async function start() {
   await moderator.ensureSchema();
+  await siteMaintenance.ensureSchema();
   await moderatorAi.ensureSchema();
   await problemReports.ensureSchema();
   await communityChat.ensureSchema();
@@ -488,8 +490,16 @@ async function start() {
   await waitForUpstream();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
-    // Static files never need authentication or a database lookup. Serving them
-    // first removes the biggest source of page-load queues on Render.
+    try {
+      if (await siteMaintenance.handle(req, res, url)) return;
+      if (await siteMaintenance.enforce(req, res, url)) return;
+    } catch (error) {
+      console.error('site-maintenance', error);
+      if (!res.headersSent) json(res, 500, { error: 'Не удалось проверить состояние сайта' });
+      return;
+    }
+    // Static files never need authentication or a database lookup after the
+    // maintenance gate has confirmed that the platform is open.
     if (serveStatic(req, res, url)) return;
     installAiResponseGuard(res, url.pathname);
     try {
