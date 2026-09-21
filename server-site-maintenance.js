@@ -32,15 +32,26 @@ async function userFor(req) {
   );
 }
 
-async function currentState() {
+let stateCache = null;
+let stateCacheAt = 0;
+
+async function currentState(force = false) {
+  if (!force && stateCache && Date.now() - stateCacheAt < 2000) return stateCache;
   const state = await row('SELECT active,activated_by,activated_at,deactivated_by,deactivated_at FROM site_maintenance WHERE id=1');
-  return {
+  stateCache = {
     active: Boolean(Number(state?.active || 0)),
     activatedBy: state?.activated_by == null ? null : Number(state.activated_by),
     activatedAt: state?.activated_at || null,
     deactivatedBy: state?.deactivated_by == null ? null : Number(state.deactivated_by),
     deactivatedAt: state?.deactivated_at || null,
   };
+  stateCacheAt = Date.now();
+  return stateCache;
+}
+
+function invalidateStateCache() {
+  stateCache = null;
+  stateCacheAt = 0;
 }
 
 async function moderatorRecord(userId) {
@@ -54,31 +65,39 @@ function maintenancePage() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#091411">
-<title>ОСНОВА — технические работы</title>
+<meta name="theme-color" content="#07110e">
+<title>ОСНОВА — последняя страница</title>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#07110e;color:#eefbf5;font-family:Manrope,Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px}
-  .card{width:min(560px,100%);padding:34px;border:1px solid rgba(142,255,199,.16);border-radius:28px;background:linear-gradient(145deg,rgba(16,36,29,.96),rgba(7,17,14,.98));box-shadow:0 24px 80px rgba(0,0,0,.35)}
-  .brand{font-size:13px;font-weight:800;letter-spacing:.18em;color:#7cf0b6;margin-bottom:28px}
-  h1{font-size:clamp(28px,7vw,46px);line-height:1.05;margin:0 0 16px}
-  p{margin:0;color:#a9bbb3;font-size:16px;line-height:1.6}
-  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffbe55;margin-right:8px;box-shadow:0 0 22px rgba(255,190,85,.5)}
-  .owner{display:inline-block;margin-top:28px;color:#6f857c;font-size:12px;text-decoration:none}
-  .owner:hover{color:#9db2a9}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;overflow:hidden;background:
+    radial-gradient(circle at 50% -10%,rgba(73,122,102,.18),transparent 38%),
+    linear-gradient(180deg,#09130f 0%,#050907 100%);color:#eef7f2;font-family:Manrope,Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px}
+  body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background:linear-gradient(115deg,transparent 0 48%,rgba(255,255,255,.025) 49% 50%,transparent 51% 100%);background-size:22px 22px}
+  .card{position:relative;width:min(650px,100%);padding:clamp(30px,7vw,58px);border:1px solid rgba(173,211,192,.12);border-radius:30px;background:linear-gradient(145deg,rgba(15,29,23,.92),rgba(6,12,9,.96));box-shadow:0 32px 100px rgba(0,0,0,.48);backdrop-filter:blur(14px)}
+  .brand{font-size:12px;font-weight:800;letter-spacing:.22em;color:#75cda3;margin-bottom:42px}
+  .eyebrow{margin-bottom:13px;color:#74877e;font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
+  h1{max-width:560px;font-size:clamp(32px,7vw,54px);line-height:1.04;letter-spacing:-.035em;margin:0 0 22px;font-weight:800}
+  p{max-width:540px;margin:0;color:#9fafA7;font-size:clamp(15px,3.8vw,18px);line-height:1.72}
+  .line{width:46px;height:2px;margin:34px 0 22px;background:linear-gradient(90deg,#69be96,transparent);opacity:.65}
+  .note{color:#6e8178;font-size:13px;line-height:1.55}
+  .owner{display:inline-block;margin-top:34px;color:#52645b;font-size:11px;text-decoration:none;transition:color .15s ease}
+  .owner:hover{color:#91aa9e}
+  @media(max-width:560px){.card{border-radius:24px}.brand{margin-bottom:34px}}
 </style>
 </head>
 <body>
   <main class="card">
     <div class="brand">ОСНОВА</div>
-    <h1><span class="dot"></span>Сервис временно недоступен</h1>
-    <p>Сейчас проводятся технические работы. Доступ будет восстановлен позже.</p>
+    <div class="eyebrow">Последняя страница</div>
+    <h1>Похоже, пришло время сделать паузу.</h1>
+    <p>Тысячи заданий, куча бессонных часов и огромные планы. Но сейчас сайт временно прекращает работу. Возможно, однажды мы снова встретимся здесь.</p>
+    <div class="line"></div>
+    <div class="note">Спасибо каждому, кто был здесь.</div>
     <a class="owner" href="/owner-login">Вход владельца</a>
   </main>
 </body>
 </html>`;
 }
-
 function ownerLoginPage() {
   return `<!doctype html>
 <html lang="ru">
@@ -157,7 +176,8 @@ async function handle(req, res, url) {
       'UPDATE site_maintenance SET active=1,activated_by=?,activated_at=CURRENT_TIMESTAMP,deactivated_by=NULL,deactivated_at=NULL WHERE id=1',
       user.id,
     );
-    json(res, 200, { ok: true, ...(await currentState()) });
+    invalidateStateCache();
+    json(res, 200, { ok: true, ...(await currentState(true)) });
     return true;
   }
 
@@ -170,7 +190,8 @@ async function handle(req, res, url) {
       'UPDATE site_maintenance SET active=0,deactivated_by=?,deactivated_at=CURRENT_TIMESTAMP WHERE id=1',
       user.id,
     );
-    json(res, 200, { ok: true, ...(await currentState()) });
+    invalidateStateCache();
+    json(res, 200, { ok: true, ...(await currentState(true)) });
     return true;
   }
 
@@ -190,7 +211,7 @@ async function enforce(req, res, url) {
 
   if (path.startsWith('/api/')) {
     json(res, 503, {
-      error: 'Сервис временно недоступен. Проводятся технические работы.',
+      error: 'Сайт временно приостановил работу.',
       code: 'MAINTENANCE_MODE',
     });
     return true;
