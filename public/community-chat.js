@@ -25,7 +25,7 @@ style.textContent=`
 .community-chat-overlay{position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.58);backdrop-filter:blur(9px);display:flex;align-items:stretch;justify-content:flex-end}
 .community-chat-panel{width:min(720px,100%);height:100%;background:linear-gradient(180deg,rgba(9,20,16,.985),rgba(7,14,11,.995));border-left:1px solid rgba(143,208,174,.18);box-shadow:-24px 0 70px rgba(0,0,0,.35);display:grid;grid-template-rows:auto 1fr auto;color:#edf8f1}
 .community-chat-head{padding:20px 22px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(255,255,255,.015)}
-.community-chat-head h2{margin:2px 0 3px;font-size:22px;letter-spacing:-.02em}.community-chat-head p{margin:0;font-size:12px;opacity:.58}.community-chat-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#76e7a7;font-weight:800}.community-chat-close{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:inherit;border-radius:12px;width:40px;height:40px;font-size:24px;cursor:pointer}
+.community-chat-head h2{margin:2px 0 3px;font-size:22px;letter-spacing:-.02em}.community-chat-head p{margin:0;font-size:12px;opacity:.58}.community-chat-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#76e7a7;font-weight:800}.community-chat-head-actions{display:flex;align-items:center;gap:8px}.community-chat-clear{border:1px solid rgba(255,100,100,.24);background:rgba(255,80,80,.08);color:#ffc4c4;border-radius:11px;height:40px;padding:0 13px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.community-chat-clear:hover{background:rgba(255,80,80,.14);border-color:rgba(255,120,120,.38)}.community-chat-clear:disabled{opacity:.5;cursor:wait}.community-chat-close{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:inherit;border-radius:12px;width:40px;height:40px;font-size:24px;cursor:pointer}
 .community-chat-feed{overflow:auto;padding:20px 22px 28px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}.community-chat-empty{margin:auto;text-align:center;opacity:.58;padding:50px 20px}.community-chat-empty b{display:block;font-size:18px;margin-bottom:5px}
 .community-chat-message{max-width:82%;align-self:flex-start;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075);border-radius:18px 18px 18px 5px;padding:11px 13px 10px;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.08)}.community-chat-message.mine{align-self:flex-end;border-radius:18px 18px 5px 18px;background:rgba(74,210,132,.12);border-color:rgba(84,226,145,.18)}.community-chat-message.pending{opacity:.78}.community-chat-message.pending .community-chat-time{color:#8ceab2;opacity:.72}.community-chat-message.optimistic:not(.pending) .community-chat-time{color:#8ceab2;opacity:.62}
 .community-chat-meta{display:flex;align-items:center;gap:7px;margin-bottom:6px;min-height:19px}.community-chat-name{font-size:12px;font-weight:800}.community-chat-badge{font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:3px 6px;border-radius:999px;background:rgba(91,232,151,.12);border:1px solid rgba(91,232,151,.2);color:#9af0bd}.community-chat-time{font-size:10px;opacity:.4;margin-left:auto}.community-chat-text{font-size:14px;line-height:1.48;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -63,6 +63,8 @@ function combinedMessages(nextMessages){
 function renderMessages(data={},initial=false){
   if(!overlay)return;
   me=data.me||me;
+  const clearButton=overlay.querySelector('.community-chat-clear');
+  if(clearButton)clearButton.hidden=!me.admin;
   const feed=overlay.querySelector('.community-chat-feed');
   if(!feed)return;
   const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<90;
@@ -135,6 +137,33 @@ async function unmuteMessage(id,button){
     toast('Мут снят');
     await loadChat();
   }catch(e){toast(e.message||'Не удалось снять мут');button.disabled=false}
+}
+
+async function clearChat(button){
+  if(!me.admin||!button||button.dataset.busy==='1')return;
+  const ok=window.confirm('Очистить общий чат для всех пользователей? Все сообщения будут удалены без возможности восстановления.');
+  if(!ok)return;
+
+  button.dataset.busy='1';
+  button.disabled=true;
+  const old=button.textContent;
+  button.textContent='Очищаем…';
+  try{
+    const r=await fetch('/api/community-chat/messages',{method:'DELETE',credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||'Не удалось очистить общий чат');
+    serverMessages=[];
+    renderSignature='';
+    renderMessages({messages:[],me},true);
+    toast(Number(d.deleted||0)>0?`Общий чат очищен: удалено ${Number(d.deleted)} сообщений`:'Общий чат уже пуст');
+    await loadChat(true);
+  }catch(e){
+    toast(e.message||'Не удалось очистить общий чат');
+  }finally{
+    button.dataset.busy='0';
+    button.disabled=false;
+    button.textContent=old;
+  }
 }
 
 async function loadChat(initial=false){
@@ -224,9 +253,10 @@ function openChat(){
 
   overlay=document.createElement('div');
   overlay.className='community-chat-overlay';
-  overlay.innerHTML=`<section class="community-chat-panel" role="dialog" aria-modal="true" aria-label="Общий чат"><header class="community-chat-head"><div><div class="community-chat-eyebrow">Сообщество ОСНОВЫ</div><h2>Общий чат</h2><p>Обсуждайте задания, темы и подготовку вместе.</p></div><button type="button" class="community-chat-close" aria-label="Закрыть">×</button></header><div class="community-chat-feed"><div class="community-chat-empty"><b>Загружаем чат…</b></div></div><footer class="community-chat-compose"><div class="community-chat-muted"></div><div class="community-chat-form"><textarea maxlength="900" rows="1" placeholder="Напишите сообщение…"></textarea><button type="button" class="community-chat-send">Отправить</button></div><div class="community-chat-hint">Enter — отправить · Shift + Enter — новая строка</div></footer></section>`;
+  overlay.innerHTML=`<section class="community-chat-panel" role="dialog" aria-modal="true" aria-label="Общий чат"><header class="community-chat-head"><div><div class="community-chat-eyebrow">Сообщество ОСНОВЫ</div><h2>Общий чат</h2><p>Обсуждайте задания, темы и подготовку вместе.</p></div><div class="community-chat-head-actions"><button type="button" class="community-chat-clear" hidden>Очистить чат</button><button type="button" class="community-chat-close" aria-label="Закрыть">×</button></div></header><div class="community-chat-feed"><div class="community-chat-empty"><b>Загружаем чат…</b></div></div><footer class="community-chat-compose"><div class="community-chat-muted"></div><div class="community-chat-form"><textarea maxlength="900" rows="1" placeholder="Напишите сообщение…"></textarea><button type="button" class="community-chat-send">Отправить</button></div><div class="community-chat-hint">Enter — отправить · Shift + Enter — новая строка</div></footer></section>`;
   document.body.appendChild(overlay);
   overlay.querySelector('.community-chat-close').addEventListener('click',closeChat);
+  overlay.querySelector('.community-chat-clear').addEventListener('click',e=>clearChat(e.currentTarget));
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeChat()});
   const area=overlay.querySelector('textarea');
   area.addEventListener('input',()=>{area.style.height='auto';area.style.height=Math.min(area.scrollHeight,130)+'px'});
