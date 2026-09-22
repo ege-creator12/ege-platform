@@ -34,6 +34,12 @@ const mime = {
   '.woff2': 'font/woff2',
 };
 
+function applySecurityHeaders(res) {
+  res.setHeader('x-content-type-options', 'nosniff');
+  res.setHeader('x-frame-options', 'DENY');
+  res.setHeader('referrer-policy', 'strict-origin-when-cross-origin');
+}
+
 const json = (res, status, data) => {
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
@@ -487,6 +493,7 @@ async function start() {
 
   await waitForUpstream();
   const server = http.createServer(async (req, res) => {
+    applySecurityHeaders(res);
     const url = new URL(req.url, 'http://localhost');
     // Static files never need authentication or a database lookup. Serving them
     // first removes the biggest source of page-load queues on Render.
