@@ -277,6 +277,20 @@ async function unmuteFromMessage(res, user, messageId) {
   return true;
 }
 
+async function clearMessages(res, user) {
+  const actor = await staffInfo(user);
+  if (!actor.admin) {
+    json(res, 403, { error: 'Очистить общий чат может только администратор' });
+    return true;
+  }
+
+  const before = await row('SELECT COUNT(*) count FROM community_chat_messages');
+  await run('DELETE FROM community_chat_messages');
+  recentSends.clear();
+  json(res, 200, { ok: true, deleted: Number(before?.count || 0) });
+  return true;
+}
+
 async function deleteMessage(res, user, messageId) {
   const actor = await staffInfo(user);
   if (!actor.staff) {
@@ -352,6 +366,7 @@ async function handle(req, res, url) {
 
   if (path === '/api/community-chat' && req.method === 'GET') return listMessages(res, user);
   if (path === '/api/community-chat/messages' && req.method === 'POST') return sendMessage(req, res, user);
+  if (path === '/api/community-chat/messages' && req.method === 'DELETE') return clearMessages(res, user);
 
   let match = path.match(/^\/api\/community-chat\/messages\/(\d+)\/mute$/);
   if (match && req.method === 'POST') return muteFromMessage(req, res, user, Number(match[1]));
