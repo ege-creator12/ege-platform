@@ -19,7 +19,7 @@ function completeLineSet(rows, lineCount, minimum) {
   return true;
 }
 
-async function fastContentReady(db, { biologyMinimum = 30, chemistryMinimum = 30 } = {}) {
+async function fastContentReady(db, { biologyMinimum = 25, chemistryMinimum = 25 } = {}) {
   try {
     const [biology, chemistry, chemistryUpgrade] = await Promise.all([
       db.row("SELECT id FROM subjects WHERE slug='biology' AND published=1"),
