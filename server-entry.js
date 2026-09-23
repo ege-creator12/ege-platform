@@ -95,5 +95,6 @@ async function repairContentInBackground(){
   // of exam tasks can take several minutes on the free instance, so start serving
   // first and do the heavy content repair only after the gateway is live.
   await require('./server-performance').start();
-  setTimeout(()=>{ void repairContentInBackground(); },1500);
+  const repairDelay=Math.max(15000,Number(process.env.CONTENT_REPAIR_DELAY_MS)||60000);
+  setTimeout(()=>{ void repairContentInBackground(); },repairDelay);
 })().catch(error=>{console.error('startup',error);process.exit(1)});
