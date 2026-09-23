@@ -48,8 +48,14 @@ async function fastContentReady(db, { biologyMinimum = 30, chemistryMinimum = 30
       && numeric(biologyHard26?.n) >= biologyMinimum
       && completeLineSet(chemistryCore, 34, chemistryMinimum);
   } catch (error) {
-    // A missing state table or a partially migrated database simply falls back to
-    // the deep startup repair path. Never make startup correctness depend on this gate.
+    const code = String(error?.code || '');
+    const message = String(error?.message || '');
+    const unavailable = ['ECONNRESET','ETIMEDOUT','57P01','57P02','57P03','53300'].includes(code)
+      || /timeout exceeded when trying to connect|connection terminated|server closed the connection unexpectedly|max clients reached|EMAXCONNSESSION|ECONNRESET|ETIMEDOUT/i.test(message);
+    // A connectivity failure says nothing about content health. Treating it as
+    // "bank incomplete" starts a huge rebuild exactly when the DB is struggling.
+    if (unavailable) throw error;
+    // Schema/content mismatches may still be repaired in the background.
     return false;
   }
 }
