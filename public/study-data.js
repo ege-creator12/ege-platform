@@ -67,9 +67,14 @@
   }
 
   function canRetry(path, method) {
-    if (method === 'GET' || method === 'HEAD') return true;
     try {
-      return method === 'POST' && new URL(path, origin).pathname === '/api/ai-pro/coach';
+      const pathname = new URL(path, origin).pathname;
+      // Bootstrap/auth reads must never amplify a database outage. The server
+      // already reports a transient failure; retrying /me and /topics in the
+      // browser can turn one slow login into several concurrent DB attempts.
+      if ((method === 'GET' || method === 'HEAD') && ['/api/me','/api/topics','/api/health'].includes(pathname)) return false;
+      if (method === 'GET' || method === 'HEAD') return true;
+      return method === 'POST' && pathname === '/api/ai-pro/coach';
     } catch {
       return false;
     }
