@@ -19,7 +19,9 @@ if (postgres) {
     max,
     min: 0,
     idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 10000,
+    // Fail fast instead of letting one unavailable database connection stall
+    // the entire login chain for 10s (and then retry for another 10s).
+    connectionTimeoutMillis: Math.max(1000, Math.min(10000, Number(process.env.PG_CONNECT_TIMEOUT_MS) || 2500)),
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
   });
 } else {
@@ -41,14 +43,23 @@ function transientPgReadError(error) {
   return ['ECONNRESET','ETIMEDOUT','57P01','57P02','57P03','53300'].includes(code)
     || /timeout exceeded when trying to connect|connection terminated|server closed the connection unexpectedly|max clients reached|EMAXCONNSESSION|ECONNRESET|ETIMEDOUT/i.test(message);
 }
+function retryablePgReadError(error) {
+  const code = String(error?.code || '');
+  const message = String(error?.message || '');
+  // A broken established connection may recover immediately. Connection
+  // acquisition timeouts / exhausted poolers should fail fast: retrying them
+  // doubles latency and creates a thundering herd during login.
+  return ['ECONNRESET','57P01','57P02','57P03'].includes(code)
+    || /connection terminated|server closed the connection unexpectedly|ECONNRESET/i.test(message);
+}
 async function pgRead(sql, params) {
   const text = pgSql(sql);
   try {
     return await pool.query(text, params);
   } catch (error) {
-    if (!transientPgReadError(error)) throw error;
+    if (!retryablePgReadError(error)) throw error;
     console.warn('pg-read-retry', error?.code || 'TRANSIENT', String(error?.message || '').slice(0, 160));
-    await sleep(150 + Math.floor(Math.random() * 151));
+    await sleep(100 + Math.floor(Math.random() * 101));
     return pool.query(text, params);
   }
 }
