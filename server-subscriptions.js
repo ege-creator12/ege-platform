@@ -111,22 +111,34 @@ async function grant(adminId, userId, body) {
 
 async function handle(req, res, url) {
   if (!url.pathname.startsWith('/api/subscription')) return false;
-  const user = await currentUser(req);
-  if (!user) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
 
   if (url.pathname === '/api/subscription/status' && req.method === 'GET') {
-    const own = await subscriptionForUser(user.id);
-    const adminAccess = user.role === 'admin';
+    const token = (req.headers.cookie || '').match(/(?:^|; )session=([^;]+)/)?.[1];
+    if (!token) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
+    const record = await row(
+      `SELECT u.id,u.role,us.user_id subscription_user_id,us.plan,us.expires_at
+       FROM sessions s
+       JOIN users u ON u.id=s.user_id
+       LEFT JOIN user_subscriptions us ON us.user_id=u.id
+       WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+      token,
+    );
+    if (!record) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
+    const adminAccess = record.role === 'admin';
+    const expires = dateValue(record.expires_at);
+    const ownActive = Boolean(record.subscription_user_id) && (record.expires_at == null || (expires && expires.getTime() > Date.now()));
     json(res, 200, {
-      active: adminAccess || Boolean(own?.active),
-      plan: adminAccess ? 'pro' : (own?.plan || null),
-      permanent: adminAccess || Boolean(own?.permanent),
-      expiresAt: adminAccess ? null : (own?.expiresAt || null),
-      source: adminAccess ? 'admin' : own?.active ? 'manual' : 'none',
+      active: adminAccess || Boolean(ownActive),
+      plan: adminAccess ? 'pro' : (record.plan || null),
+      permanent: adminAccess || (Boolean(record.subscription_user_id) && record.expires_at == null),
+      expiresAt: adminAccess || !expires ? null : expires.toISOString(),
+      source: adminAccess ? 'admin' : ownActive ? 'manual' : 'none',
     });
     return true;
   }
 
+  const user = await currentUser(req);
+  if (!user) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
   if (!url.pathname.startsWith('/api/subscription-admin')) return false;
   if (user.role !== 'admin') { json(res, 403, { error: 'Подписками управляет только администратор' }); return true; }
 
