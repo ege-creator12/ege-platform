@@ -48,13 +48,38 @@ const json = (res, status, data) => {
   res.end(JSON.stringify(data));
 };
 
+const sessionToken = req => (req.headers.cookie || '').match(/(?:^|; )session=([^;]+)/)?.[1] || null;
+
 async function userFor(req) {
-  const token = (req.headers.cookie || '').match(/(?:^|; )session=([^;]+)/)?.[1];
+  const token = sessionToken(req);
   if (!token) return null;
   return database.row(
     'SELECT u.id,u.name,u.email,u.role,u.xp FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP',
     token,
   );
+}
+
+function activeSubscriptionFromRow(record) {
+  if (!record) return false;
+  if (record.role === 'admin') return true;
+  if (!record.subscription_user_id) return false;
+  if (record.subscription_expires_at == null) return true;
+  const expires = new Date(record.subscription_expires_at);
+  return Number.isFinite(expires.getTime()) && expires.getTime() > Date.now();
+}
+
+function publicSubscriptionFromRow(record) {
+  if (!record) return { active: false, plan: null, permanent: false, expiresAt: null, source: 'none' };
+  const admin = record.role === 'admin';
+  const active = activeSubscriptionFromRow(record);
+  const expires = record.subscription_expires_at == null ? null : new Date(record.subscription_expires_at);
+  return {
+    active,
+    plan: admin ? 'pro' : (record.subscription_plan || null),
+    permanent: admin || (Boolean(record.subscription_user_id) && record.subscription_expires_at == null),
+    expiresAt: admin || !expires || !Number.isFinite(expires.getTime()) ? null : expires.toISOString(),
+    source: admin ? 'admin' : active ? 'manual' : 'none',
+  };
 }
 
 function isStudentAiPath(pathname) {
@@ -65,12 +90,24 @@ function isStudentAiPath(pathname) {
 
 async function requireProForAi(req, res, pathname) {
   if (!isStudentAiPath(pathname)) return false;
-  const user = await userFor(req);
-  if (!user) {
+  const token = sessionToken(req);
+  if (!token) {
     json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
     return true;
   }
-  if (!(await subscriptions.hasActiveSubscription(user))) {
+  const access = await database.row(
+    `SELECT u.id,u.role,us.user_id subscription_user_id,us.expires_at subscription_expires_at
+     FROM sessions s
+     JOIN users u ON u.id=s.user_id
+     LEFT JOIN user_subscriptions us ON us.user_id=u.id
+     WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+    token,
+  );
+  if (!access) {
+    json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
+    return true;
+  }
+  if (!activeSubscriptionFromRow(access)) {
     json(res, 403, { error: 'Эта AI-функция доступна по подписке ОСНОВА PRO', code: 'PRO_REQUIRED' });
     return true;
   }
@@ -361,7 +398,53 @@ async function handleAiLineTasks(req, res, url) {
   }
 }
 async function handleFastApi(req, res, pathname) {
-  if (req.method !== 'GET' || pathname !== '/api/topics') return false;
+  if (req.method !== 'GET') return false;
+
+  if (pathname === '/api/me' && new URL(req.url, 'http://localhost').searchParams.get('light') === '1') {
+    const token = sessionToken(req);
+    if (!token) {
+      json(res, 401, { error: 'Войдите в аккаунт' });
+      return true;
+    }
+    const record = await database.row(
+      `SELECT u.id,u.name,u.email,u.role,u.xp,
+              us.user_id subscription_user_id,us.plan subscription_plan,us.expires_at subscription_expires_at,
+              mu.user_id moderator_user_id
+       FROM sessions s
+       JOIN users u ON u.id=s.user_id
+       LEFT JOIN user_subscriptions us ON us.user_id=u.id
+       LEFT JOIN moderator_users mu ON mu.user_id=u.id
+       WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+      token,
+    );
+    if (!record) {
+      json(res, 401, { error: 'Войдите в аккаунт' });
+      return true;
+    }
+    const xp = Number(record.xp) || 0;
+    const moderatorState = {
+      moderator: record.role !== 'admin' && Boolean(record.moderator_user_id),
+      admin: record.role === 'admin',
+    };
+    json(res, 200, {
+      user: {
+        id: Number(record.id),
+        name: record.name,
+        email: record.email,
+        role: record.role,
+        xp,
+        level: Math.floor(xp / 500) + 1,
+        isModerator: moderatorState.moderator,
+      },
+      examDate: process.env.EXAM_DATE || '2027-06-05',
+      subscription: publicSubscriptionFromRow(record),
+      moderator: moderatorState,
+      fastBootstrap: true,
+    });
+    return true;
+  }
+
+  if (pathname !== '/api/topics') return false;
   const user = await userFor(req);
   if (!user) {
     json(res, 401, { error: 'Войдите в аккаунт' });
