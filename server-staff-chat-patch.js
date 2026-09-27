@@ -43,12 +43,26 @@ async function staffInfo(user) {
 }
 
 async function requireStaff(req, res) {
-  const user = await userFor(req);
+  const token = (req.headers.cookie || '').match(/(?:^|; )session=([^;]+)/)?.[1];
+  if (!token) {
+    json(res, 401, { error: 'Войдите в аккаунт' });
+    return null;
+  }
+  const user = await database.row(
+    `SELECT u.id,u.name,u.role,mu.user_id moderator_user_id
+     FROM sessions s
+     JOIN users u ON u.id=s.user_id
+     LEFT JOIN moderator_users mu ON mu.user_id=u.id
+     WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+    token,
+  );
   if (!user) {
     json(res, 401, { error: 'Войдите в аккаунт' });
     return null;
   }
-  const staff = await staffInfo(user);
+  const admin = user.role === 'admin';
+  const moderator = !admin && Boolean(user.moderator_user_id);
+  const staff = { staff: admin || moderator, admin, moderator };
   if (!staff.staff) {
     json(res, 403, { error: 'Чат доступен только модерации и администрации' });
     return null;
