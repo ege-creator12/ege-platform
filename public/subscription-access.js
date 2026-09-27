@@ -16,11 +16,37 @@
   document.head.appendChild(style);
 
   async function getStatus(force=false){
+    const bootstrap=window.__OSNOVA_BOOTSTRAP__;
+    const bootstrapStatus=bootstrap?.subscription&&Number(bootstrap.userId)===Number(typeof state!=='undefined'&&state.user?.id||bootstrap.userId)
+      ? bootstrap.subscription
+      : null;
+    if(!force&&bootstrapStatus&&(!status||statusAt===0)){
+      status=bootstrapStatus;
+      statusAt=Date.now();
+      return status;
+    }
     if(!force&&status&&Date.now()-statusAt<30000)return status;
     if(loading)return loading;
     loading=fetch('/api/subscription/status',{credentials:'same-origin',headers:{accept:'application/json'}})
-      .then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'status');status=d;statusAt=Date.now();return d})
-      .catch(()=>{status={active:false,plan:null,expiresAt:null};statusAt=Date.now();return status})
+      .then(async r=>{
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.error||'status');
+        status=d;
+        statusAt=Date.now();
+        if(window.__OSNOVA_BOOTSTRAP__&&Number(window.__OSNOVA_BOOTSTRAP__.userId)===Number(typeof state!=='undefined'&&state.user?.id||0)){
+          window.__OSNOVA_BOOTSTRAP__.subscription=d;
+          window.__OSNOVA_BOOTSTRAP__.at=Date.now();
+        }
+        return d;
+      })
+      .catch(()=>{
+        const fallback=status||bootstrapStatus||{active:false,plan:null,expiresAt:null,permanent:false,unavailable:true};
+        status=fallback;
+        // Keep a short stale window so a transient DB/pooler timeout does not
+        // create a request storm and does not falsely revoke an already known PRO state.
+        statusAt=Date.now()-25000;
+        return fallback;
+      })
       .finally(()=>{loading=null});
     return loading;
   }
