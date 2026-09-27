@@ -108,6 +108,15 @@
   async function refreshModeratorStatus(){
     const id=userId();
     if(!id||user()?.role==='admin')return;
+    const bootstrap=window.__OSNOVA_BOOTSTRAP__;
+    if(bootstrap?.moderator&&Number(bootstrap.userId)===id){
+      status={moderator:Boolean(bootstrap.moderator.moderator),admin:Boolean(bootstrap.moderator.admin)};
+      statusUserId=id;
+      saveCached(id,status.moderator&&!status.admin);
+      if(typeof state!=='undefined'&&state.user&&Number(state.user.id)===id)state.user.isModerator=Boolean(status.moderator&&!status.admin);
+      syncModeratorNav();
+      return status;
+    }
     if(request)return request;
 
     request=(async()=>{
