@@ -88,3 +88,34 @@
   .ai-tutor-actions .btn{width:100%!important}
   .ai-msg{max-width:92%!important}
 }
+
+
+/* Mobile foreground hardening: AI tutor must never sit under staff/community controls. */
+body.ai-tutor-open{overflow:hidden!important}
+body.ai-tutor-open .staff-chat-mobile-launch,
+body.ai-tutor-open .community-chat-mobile-launch,
+body.ai-tutor-open .problem-report-fab{display:none!important}
+.ai-tutor-modal{z-index:2147483500!important}
+
+@media(max-width:900px){
+  .ai-tutor-modal{
+    inset:0!important;
+    padding:0!important;
+    align-items:stretch!important;
+  }
+  .ai-tutor-card{
+    width:100%!important;
+    min-width:0!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    border-radius:0!important;
+    border-left:0!important;
+    border-right:0!important;
+  }
+  .ai-tutor-head{
+    padding-top:calc(14px + env(safe-area-inset-top))!important;
+  }
+  #ai-tutor-form{
+    padding-bottom:calc(14px + env(safe-area-inset-bottom))!important;
+  }
+}
