@@ -51,10 +51,23 @@ function formatAi(text){
 }
 
 async function status(force=false){
+  const bootstrap=window.__OSNOVA_BOOTSTRAP__;
+  const currentId=Number(typeof state!=='undefined'&&state.user?.id)||0;
+  if(!force&&bootstrap?.moderator&&Number(bootstrap.userId)===currentId){
+    statusCache={moderator:Boolean(bootstrap.moderator.moderator),admin:Boolean(bootstrap.moderator.admin)};
+    statusAt=Date.now();
+    return statusCache;
+  }
   if(!force&&statusCache&&Date.now()-statusAt<30000)return statusCache;
-  try{const r=await fetch('/api/moderator/status',{credentials:'same-origin',cache:'no-store'});const d=await r.json().catch(()=>({}));statusCache={moderator:Boolean(d.moderator),admin:Boolean(d.admin)}}
-  catch{statusCache={moderator:false,admin:typeof state!=='undefined'&&state.user?.role==='admin'}}
-  statusAt=Date.now();return statusCache;
+  try{
+    const r=await fetch('/api/moderator/status',{credentials:'same-origin',cache:'no-store'});
+    const d=await r.json().catch(()=>({}));
+    statusCache={moderator:Boolean(d.moderator),admin:Boolean(d.admin)};
+  }catch{
+    statusCache=statusCache||{moderator:false,admin:typeof state!=='undefined'&&state.user?.role==='admin'};
+  }
+  statusAt=Date.now();
+  return statusCache;
 }
 
 function ensureTab(){
