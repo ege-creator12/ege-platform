@@ -82,6 +82,34 @@ function publicSubscriptionFromRow(record) {
   };
 }
 
+const aiAccessCache = new Map();
+const aiAccessInflight = new Map();
+const AI_ACCESS_TTL_MS = 15000;
+
+function rememberAiAccess(token, record) {
+  if (!token || !record) return record;
+  aiAccessCache.set(token, { record, expiresAt: Date.now() + AI_ACCESS_TTL_MS });
+  if (aiAccessCache.size > 500) aiAccessCache.delete(aiAccessCache.keys().next().value);
+  return record;
+}
+
+async function loadAiAccess(token) {
+  const cached = aiAccessCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) return cached.record;
+  if (cached) aiAccessCache.delete(token);
+  if (aiAccessInflight.has(token)) return aiAccessInflight.get(token);
+  const request = database.row(
+    `SELECT u.id,u.role,us.user_id subscription_user_id,us.expires_at subscription_expires_at
+     FROM sessions s
+     JOIN users u ON u.id=s.user_id
+     LEFT JOIN user_subscriptions us ON us.user_id=u.id
+     WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+    token,
+  ).then(record => rememberAiAccess(token, record)).finally(() => aiAccessInflight.delete(token));
+  aiAccessInflight.set(token, request);
+  return request;
+}
+
 function isStudentAiPath(pathname) {
   return pathname.startsWith('/api/ai/')
     || pathname.startsWith('/api/ai-pro/')
@@ -95,14 +123,7 @@ async function requireProForAi(req, res, pathname) {
     json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
     return true;
   }
-  const access = await database.row(
-    `SELECT u.id,u.role,us.user_id subscription_user_id,us.expires_at subscription_expires_at
-     FROM sessions s
-     JOIN users u ON u.id=s.user_id
-     LEFT JOIN user_subscriptions us ON us.user_id=u.id
-     WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
-    token,
-  );
+  const access = await loadAiAccess(token);
   if (!access) {
     json(res, 401, { error: 'Войдите в аккаунт', code: 'AUTH_REQUIRED' });
     return true;
@@ -421,6 +442,7 @@ async function handleFastApi(req, res, pathname) {
       json(res, 401, { error: 'Войдите в аккаунт' });
       return true;
     }
+    rememberAiAccess(token, record);
     const xp = Number(record.xp) || 0;
     const moderatorState = {
       moderator: record.role !== 'admin' && Boolean(record.moderator_user_id),
