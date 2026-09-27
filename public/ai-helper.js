@@ -76,6 +76,7 @@
   if($('#ai-tutor-modal'))return;
   const wrap=document.createElement('div');wrap.id='ai-tutor-modal';wrap.className='ai-tutor-modal';wrap.innerHTML=`<section class="ai-tutor-card" role="dialog" aria-modal="true" aria-labelledby="ai-tutor-title"><div class="ai-tutor-head"><div><span>ОСНОВА · AI</span><h2 id="ai-tutor-title">ИИ-репетитор</h2></div><button class="icon-btn" id="ai-tutor-close" aria-label="Закрыть">×</button></div><div class="ai-tutor-chat" id="ai-tutor-chat"></div><form id="ai-tutor-form"><div class="ai-tutor-modes" aria-label="Быстрые режимы ИИ">${tutorModes.map(([mode,label])=>`<button type="button" class="ai-tutor-mode" data-tutor-mode="${mode}">${label}</button>`).join('')}</div><textarea id="ai-tutor-input" maxlength="2000" rows="3" placeholder="Например: объясни, как отличать окислитель от восстановителя" required></textarea><div class="ai-tutor-actions"><small>Чат сохраняется на этом устройстве. ИИ может ошибаться — важные ответы сверяй с теорией сайта.</small><button class="btn" type="submit">Отправить</button></div></form></section>`;
   document.body.appendChild(wrap);
+  document.body.classList.add('ai-tutor-open');
   const form=$('#ai-tutor-form',wrap),input=$('#ai-tutor-input',wrap),chat=$('#ai-tutor-chat',wrap),submit=$('button[type=submit]',form),modeButtons=[...wrap.querySelectorAll('[data-tutor-mode]')];
   let tutorHistory=loadTutorHistory();
   let busy=false;
@@ -84,7 +85,7 @@
   if(tutorHistory.length){tutorHistory.forEach(item=>renderMessage(item.role,item.text));}
   else renderMessage('assistant','Спроси меня по биологии или химии ЕГЭ. После ответа можешь использовать быстрые режимы: объяснить проще, разобрать как на ЕГЭ, получить пример или проверить себя.');
   chat.scrollTop=chat.scrollHeight;
-  const close=()=>wrap.remove();
+  const close=()=>{wrap.remove();document.body.classList.remove('ai-tutor-open');};
   $('#ai-tutor-close',wrap).onclick=close;wrap.onclick=e=>{if(e.target===wrap)close();};
   const sendTutorMessage=async(message,{displayMessage=message,clearInput=true}={})=>{
    if(busy)return;
@@ -120,7 +121,7 @@
   input.focus();
   form.onsubmit=e=>{e.preventDefault();const message=input.value.trim();if(message)sendTutorMessage(message);};
  }
- function cleanup(){if(!$('.app')){$('#ai-tutor-fab')?.remove();$('#ai-tutor-modal')?.remove();}}
+ function cleanup(){if(!$('.app')){$('#ai-tutor-fab')?.remove();$('#ai-tutor-modal')?.remove();document.body.classList.remove('ai-tutor-open');}}
  function refresh(){attachMistakeReview();attachExplainButton();ensureTutorButton();cleanup();}
  let scheduled=false;const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;refresh();});});observer.observe(document.documentElement,{childList:true,subtree:true});refresh();
 })();
