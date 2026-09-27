@@ -188,10 +188,18 @@ async function handle(req, res, url) {
   const path = url.pathname;
 
   if (path === '/api/moderator/status' && req.method === 'GET') {
-    const user = await userFor(req);
-    if (!user) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
-    const record = await moderatorRecord(user.id);
-    json(res, 200, { moderator: Boolean(record), admin: user.role === 'admin' });
+    const token = (req.headers.cookie || '').match(/(?:^|; )session=([^;]+)/)?.[1];
+    if (!token) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
+    const record = await row(
+      `SELECT u.role,mu.user_id moderator_user_id
+       FROM sessions s
+       JOIN users u ON u.id=s.user_id
+       LEFT JOIN moderator_users mu ON mu.user_id=u.id
+       WHERE s.token=? AND s.expires_at>CURRENT_TIMESTAMP`,
+      token,
+    );
+    if (!record) { json(res, 401, { error: 'Войдите в аккаунт' }); return true; }
+    json(res, 200, { moderator: Boolean(record.moderator_user_id), admin: record.role === 'admin' });
     return true;
   }
 
