@@ -7,6 +7,7 @@ const database=require('./src/db');
 const registry=require('./content/chemistry/exam-lines');
 const {createChemistryMockExamService}=require('./src/chemistry-mock-exams');
 const {CHEMISTRY_BANK_VERSION}=require('./src/chemistry-bank-version');
+const {lineTheorySections}=require('./src/line-theory');
 const {rows,row,run}=database;
 const chemistryMocks=createChemistryMockExamService(database,registry);
 const PORT=Number(process.env.PORT||3000),UPSTREAM_PORT=Number(process.env.CHEMISTRY_UPSTREAM_PORT||(PORT+1));
@@ -22,13 +23,16 @@ async function chemistryLinePayload(line,userId){
  const subject=await row("SELECT id FROM subjects WHERE slug='chemistry'");if(!subject)return null;
  const lessonMarks=info.lessonRefs.map(()=>'?').join(',');
  const lessons=info.lessonRefs.length?await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress,COALESCE(lp.status,'not_started') progress_status FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE t.subject_id=? AND t.published=1 AND l.slug IN (${lessonMarks}) AND l.published=1 ORDER BY l.id`,userId,subject.id,...info.lessonRefs):[];
+ const lessonBySlug=new Map(lessons.map(x=>[x.slug,x]));
+ const orderedLessons=info.lessonRefs.map(x=>lessonBySlug.get(x)).filter(Boolean);
+ const theorySections=await lineTheorySections(database,orderedLessons);
  const pattern=`chemistry-bank-${CHEMISTRY_BANK_VERSION}-line${line}-%`;
  const count=await row('SELECT COUNT(*) n FROM questions WHERE subject_id=? AND active=1 AND published=1 AND exam_line=? AND external_key LIKE ?',subject.id,line,pattern);
  const stat=await row('SELECT COUNT(*) attempted,COALESCE(SUM(a.correct),0) correct,MAX(a.created_at) last_attempt_at FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.subject_id=? AND q.exam_line=? AND q.external_key LIKE ?',userId,subject.id,line,pattern);
  const wrong=await rows(`WITH latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.external_key FROM latest a JOIN questions q ON q.id=a.question_id WHERE a.rn=1 AND a.correct=FALSE AND q.subject_id=? AND q.exam_line=? AND q.external_key LIKE ? ORDER BY a.created_at DESC`,userId,subject.id,line,pattern);
  const examples=await rows('SELECT q.id,q.type,q.question_type,q.prompt,q.instruction,q.content_json,q.media_json,q.difficulty,q.points,q.max_score,t.title topic FROM questions q JOIN topics t ON t.id=q.topic_id WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line=? AND q.external_key LIKE ? ORDER BY q.difficulty,q.id LIMIT 3',subject.id,line,pattern);
  const attempted=Number(stat?.attempted||0),correct=Number(stat?.correct||0);
- return {...info,questionCount:Number(count?.n||0),lessons,examples:examples.map(q=>({id:q.id,type:q.type,questionType:q.question_type,prompt:q.prompt,instruction:q.instruction,difficulty:q.difficulty,maxScore:q.max_score,topic:q.topic})),progress:{attempted,correct,accuracy:attempted?Math.round(correct/attempted*100):0,lastAttemptAt:stat?.last_attempt_at||null,wrongQuestionRefs:wrong.map(x=>x.external_key)}};
+ return {...info,questionCount:Number(count?.n||0),lessons:orderedLessons,theorySections,examples:examples.map(q=>({id:q.id,type:q.type,questionType:q.question_type,prompt:q.prompt,instruction:q.instruction,difficulty:q.difficulty,maxScore:q.max_score,topic:q.topic})),progress:{attempted,correct,accuracy:attempted?Math.round(correct/attempted*100):0,lastAttemptAt:stat?.last_attempt_at||null,wrongQuestionRefs:wrong.map(x=>x.external_key)}};
 }
 
 async function chemistryLinesPayload(userId){

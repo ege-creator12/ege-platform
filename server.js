@@ -8,6 +8,7 @@ const { formatAnswerForReview } = require('./src/answer-review');
 const { isCorrectAnswer,needsManualReview } = require('./src/question-answer');
 const { search: searchBiology } = require('./src/biology-search');
 const { createMockExamService } = require('./src/mock-exams');
+const { lineTheorySections } = require('./src/line-theory');
 const biologyExamRegistry = require('./content/biology/exam-lines.json');
 const { migrate, rows, row, run, healthcheck } = database;
 const mockExams=createMockExamService(database,biologyExamRegistry);
@@ -68,12 +69,14 @@ async function biologyExamLinePayload(line,userId){
  const item=biologyExamRegistry.lines.find(x=>x.line===line);if(!item)return null;
  const lessons=await rows(`SELECT l.id,l.slug,l.title,t.title topic_title,s.title section_title,COALESCE(lp.reading_progress,0) progress,COALESCE(lp.status,'not_started') progress_status FROM lessons l JOIN topics t ON t.id=l.topic_id JOIN sections s ON s.id=t.section_id LEFT JOIN lesson_progress lp ON lp.lesson_id=l.id AND lp.user_id=? WHERE l.slug IN (${item.lessonRefs.map(()=>'?').join(',')}) AND l.published=1`,userId,...item.lessonRefs);
  const lessonBySlug=new Map(lessons.map(x=>[x.slug,x]));
+ const orderedLessons=item.lessonRefs.map(x=>lessonBySlug.get(x)).filter(Boolean);
+ const theorySections=await lineTheorySections(database,orderedLessons);
  const count=await row(`SELECT COUNT(*) n FROM questions q JOIN subjects s ON s.id=q.subject_id WHERE s.slug='biology' AND q.active=1 AND q.exam_line=?`,line);
  const stat=await row(`SELECT COUNT(*) attempted,COALESCE(SUM(a.correct),0) correct,MAX(a.created_at) last_attempt_at FROM attempts a JOIN questions q ON q.id=a.question_id WHERE a.user_id=? AND q.exam_line=?`,userId,line);
  const wrong=await rows(`WITH latest AS (SELECT a.*,ROW_NUMBER() OVER(PARTITION BY question_id ORDER BY id DESC) rn FROM attempts a WHERE user_id=?) SELECT q.external_key FROM latest a JOIN questions q ON q.id=a.question_id WHERE a.rn=1 AND a.correct=0 AND q.exam_line=? ORDER BY a.created_at DESC`,userId,line);
  const examples=await rows(`SELECT q.id,q.type,q.question_type,q.prompt,q.instruction,q.content_json,q.media_json,q.difficulty,q.points,q.max_score,t.title topic FROM questions q JOIN topics t ON t.id=q.topic_id WHERE q.active=1 AND q.exam_line=? ORDER BY q.difficulty,q.id LIMIT 3`,line);
  const attempted=Number(stat.attempted),correct=Number(stat.correct);
- return {...item,questionCount:Number(count.n),lessons:item.lessonRefs.map(x=>lessonBySlug.get(x)).filter(Boolean),examples:examples.map(publicQuestion),progress:{attempted,correct,accuracy:attempted?Math.round(correct/attempted*100):0,lastAttemptAt:stat.last_attempt_at||null,wrongQuestionRefs:wrong.map(x=>x.external_key)}};
+ return {...item,questionCount:Number(count.n),lessons:orderedLessons,theorySections,examples:examples.map(publicQuestion),progress:{attempted,correct,accuracy:attempted?Math.round(correct/attempted*100):0,lastAttemptAt:stat.last_attempt_at||null,wrongQuestionRefs:wrong.map(x=>x.external_key)}};
 }
 async function sessionPayload(sessionId,userId){
  const session=await row('SELECT * FROM training_sessions WHERE id=? AND user_id=?',sessionId,userId);
