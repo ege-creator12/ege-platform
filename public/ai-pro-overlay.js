@@ -26,7 +26,8 @@ async function getStatus(force=false){
     statusCache=await response.json();
     return statusCache||{active:false};
   }catch{
-    statusCache={active:false,plan:null,expiresAt:null,permanent:false};
+    const bootstrap=window.__OSNOVA_BOOTSTRAP__?.subscription;
+    statusCache=statusCache||bootstrap||{active:false,plan:null,expiresAt:null,permanent:false,unavailable:true};
     return statusCache;
   }finally{
     statusBusy=false;
@@ -103,7 +104,7 @@ async function openOverlay(){
   document.body.appendChild(overlay);
   document.documentElement.classList.add('ai-pro-overlay-open');
   requestAnimationFrame(()=>overlay?.classList.add('is-open'));
-  const status=await getStatus(true);
+  const status=await getStatus();
   if(!overlay)return;
   overlay.innerHTML=content(status);
   overlay.querySelectorAll('[data-ai-pro-close]').forEach(el=>el.addEventListener('click',closeOverlay));
