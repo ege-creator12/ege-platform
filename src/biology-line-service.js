@@ -1,6 +1,7 @@
 'use strict';
 
 const { BIOLOGY_BANK_VERSION } = require('./biology-bank-version');
+const { lineTheorySections } = require('./line-theory');
 const strictPattern = line => `biology-bank-v${BIOLOGY_BANK_VERSION}-line${Number(line)}-%`;
 
 function safeJson(value) {
@@ -56,6 +57,8 @@ async function biologyLinePayload(db, registry, line, userId) {
       ORDER BY l.position,l.id`, userId, subjectId, ...refs);
   }
   const lessonBySlug = new Map(lessons.map(x => [x.slug, x]));
+  const orderedLessons = refs.map(slug => lessonBySlug.get(slug)).filter(Boolean);
+  const theorySections = await lineTheorySections(db, orderedLessons);
 
   const count = await db.row(`SELECT COUNT(*) n FROM questions q
     WHERE q.subject_id=? AND q.active=1 AND q.published=1 AND q.exam_line=? AND q.external_key LIKE ?`,
@@ -86,7 +89,8 @@ async function biologyLinePayload(db, registry, line, userId) {
   return {
     ...item,
     questionCount: Number(count?.n || 0),
-    lessons: refs.map(slug => lessonBySlug.get(slug)).filter(Boolean),
+    lessons: orderedLessons,
+    theorySections,
     examples: examples.map(publicExample),
     progress: {
       attempted,
