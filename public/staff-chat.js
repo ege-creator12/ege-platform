@@ -7,6 +7,7 @@ let access='unknown';
 let checking=false;
 let loading=false;
 let lastMessages=[];
+let pollFailures=0;
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 const toast=message=>{if(typeof notify==='function')return notify(message);const t=document.querySelector('#toast');if(t){t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}};
@@ -19,7 +20,7 @@ style.textContent=`
 .staff-chat-overlay{position:fixed;inset:0;z-index:2147483100;background:rgba(3,9,8,.72);backdrop-filter:blur(12px);display:grid;place-items:center;padding:18px}
 .staff-chat-panel{width:min(760px,100%);height:min(720px,calc(100vh - 36px));display:grid;grid-template-rows:auto 1fr auto;background:linear-gradient(180deg,rgba(13,28,24,.98),rgba(7,16,14,.99));border:1px solid rgba(133,231,181,.18);border-radius:22px;box-shadow:0 28px 90px rgba(0,0,0,.5);overflow:hidden;color:#eef8f3}
 .staff-chat-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.07)}
-.staff-chat-head h2{margin:3px 0 5px;font-size:22px}.staff-chat-head p{margin:0;color:#9eb8ac;font-size:13px}
+.staff-chat-head h2{margin:3px 0 5px;font-size:22px}.staff-chat-head p{margin:0;color:#9eb8ac;font-size:13px}.staff-chat-connection{display:block;margin-top:7px;font-size:11px;color:#8ce2b2}.staff-chat-connection.bad{color:#f1c27b}
 .staff-chat-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:#79dfa9;font-weight:800}
 .staff-chat-close{border:0;background:rgba(255,255,255,.07);color:#fff;width:36px;height:36px;border-radius:12px;font-size:24px;cursor:pointer}
 .staff-chat-feed{overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
@@ -40,27 +41,75 @@ style.textContent=`
 `;
 document.head.appendChild(style);
 
+function setConnection(text='',bad=false){
+  const node=overlay?.querySelector('.staff-chat-connection');
+  if(!node)return;
+  node.textContent=text;
+  node.classList.toggle('bad',Boolean(bad));
+  node.hidden=!text;
+}
+
 function render(data){
   if(!overlay)return;
-  lastMessages=Array.isArray(data.messages)?data.messages:lastMessages;
+  const incoming=Array.isArray(data.messages)?data.messages:[];
+  if(data.full){
+    lastMessages=incoming.slice(-150);
+  }else if(incoming.length){
+    const map=new Map(lastMessages.map(m=>[Number(m.id),m]));
+    incoming.forEach(m=>map.set(Number(m.id),m));
+    lastMessages=[...map.values()].sort((a,b)=>Number(a.id)-Number(b.id)).slice(-150);
+  }
+
   const feed=overlay.querySelector('.staff-chat-feed');
   const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<100;
   feed.innerHTML=lastMessages.length?lastMessages.map(m=>`<article class="staff-chat-message ${m.mine?'mine':''}"><div class="staff-chat-meta"><span class="staff-chat-name">${esc(m.name)}</span><span class="staff-chat-badge">${esc(m.badge||'Персонал')}</span><span class="staff-chat-time">${esc(fmt(m.createdAt))}</span></div><div class="staff-chat-text">${esc(m.body)}</div></article>`).join(''):'<div class="staff-chat-empty"><b>Служебный чат пуст</b><span>Здесь видны только модерация и администрация.</span></div>';
   if(nearBottom||!feed.dataset.ready)feed.scrollTop=feed.scrollHeight;
   feed.dataset.ready='1';
+
+  if(data.stale)setConnection('Связь нестабильна · показываю последние сообщения',true);
+  else setConnection('');
+}
+
+async function getChatResponse(url){
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt+=1){
+    try{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),6500);
+      const r=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'},signal:controller.signal});
+      clearTimeout(timer);
+      return r;
+    }catch(error){
+      lastError=error;
+      if(attempt<2)await new Promise(resolve=>setTimeout(resolve,300+attempt*550));
+    }
+  }
+  throw lastError||new Error('Нет связи с сервером');
 }
 
 async function load(initial=false){
   if(!overlay||loading)return;
   loading=true;
   try{
-    const r=await fetch('/api/staff-chat',{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});
+    const lastId=initial?0:Number(lastMessages[lastMessages.length-1]?.id||0);
+    const url=lastId>0?`/api/staff-chat?since=${encodeURIComponent(lastId)}`:'/api/staff-chat';
+    const r=await getChatResponse(url);
     const d=await r.json().catch(()=>({}));
     if(r.status===403){access='denied';close();removeLaunchers();return}
+    if(r.status===401){access='unknown';setConnection('Сессия обновляется…',true);return}
     if(!r.ok)throw new Error(d.error||'Не удалось загрузить служебный чат');
-    access='allowed';render(d);
+    access='allowed';pollFailures=0;render(d);
   }catch(e){
-    if(initial&&overlay){const feed=overlay.querySelector('.staff-chat-feed');if(feed)feed.innerHTML=`<div class="staff-chat-empty"><b>Чат недоступен</b><span>${esc(e.message||'Попробуйте позже')}</span></div>`}
+    pollFailures+=1;
+    if(overlay){
+      if(lastMessages.length){
+        setConnection('Переподключаюсь к чату…',true);
+      }else{
+        const feed=overlay.querySelector('.staff-chat-feed');
+        if(feed)feed.innerHTML='<div class="staff-chat-empty"><b>Переподключаюсь…</b><span>Соединение с сервером восстанавливается автоматически.</span></div>';
+        setConnection('Нет связи · повторяю запрос',true);
+      }
+    }
   }finally{loading=false}
 }
 
@@ -79,15 +128,26 @@ async function send(){
 }
 
 function close(){
-  if(poller){clearInterval(poller);poller=null}
+  if(poller){clearTimeout(poller);poller=null}
   overlay?.remove();overlay=null;
+}
+
+function schedulePoll(){
+  if(!overlay)return;
+  if(poller)clearTimeout(poller);
+  const delay=2400+Math.floor(Math.random()*900);
+  poller=setTimeout(async()=>{
+    poller=null;
+    await load(false);
+    schedulePoll();
+  },delay);
 }
 function open(){
   if(access!=='allowed')return;
   if(overlay?.isConnected)return overlay.querySelector('textarea')?.focus({preventScroll:true});
   overlay=document.createElement('div');
   overlay.className='staff-chat-overlay';
-  overlay.innerHTML=`<section class="staff-chat-panel" role="dialog" aria-modal="true" aria-label="Чат персонала"><header class="staff-chat-head"><div><div class="staff-chat-eyebrow">Закрытый канал</div><h2>Чат модерации и администрации</h2><p>Доступ только персоналу сайта.</p></div><button type="button" class="staff-chat-close" aria-label="Закрыть">×</button></header><div class="staff-chat-feed"><div class="staff-chat-empty"><b>Загружаем…</b></div></div><footer class="staff-chat-compose"><div class="staff-chat-form"><textarea maxlength="1200" rows="1" placeholder="Сообщение для команды…"></textarea><button type="button" class="staff-chat-send">Отправить</button></div><div class="staff-chat-hint">Enter — отправить · Shift + Enter — новая строка</div></footer></section>`;
+  overlay.innerHTML=`<section class="staff-chat-panel" role="dialog" aria-modal="true" aria-label="Чат персонала"><header class="staff-chat-head"><div><div class="staff-chat-eyebrow">Закрытый канал</div><h2>Чат модерации и администрации</h2><p>Доступ только персоналу сайта.</p><span class="staff-chat-connection" hidden></span></div><button type="button" class="staff-chat-close" aria-label="Закрыть">×</button></header><div class="staff-chat-feed"><div class="staff-chat-empty"><b>Загружаем…</b></div></div><footer class="staff-chat-compose"><div class="staff-chat-form"><textarea maxlength="1200" rows="1" placeholder="Сообщение для команды…"></textarea><button type="button" class="staff-chat-send">Отправить</button></div><div class="staff-chat-hint">Enter — отправить · Shift + Enter — новая строка</div></footer></section>`;
   document.body.appendChild(overlay);
   overlay.querySelector('.staff-chat-close').onclick=close;
   overlay.onclick=e=>{if(e.target===overlay)close()};
@@ -96,7 +156,7 @@ function open(){
   area.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};
   overlay.querySelector('.staff-chat-send').onclick=send;
   void load(true);
-  poller=setInterval(()=>void load(false),2200);
+  schedulePoll();
   setTimeout(()=>area.focus({preventScroll:true}),100);
 }
 
