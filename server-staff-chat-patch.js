@@ -6,6 +6,10 @@ const communityChat = require('./server-community-chat');
 const MAX_BODY = 8 * 1024;
 const MAX_MESSAGE = 1200;
 const recentSends = new Map();
+const actorCache = new Map();
+const ACTOR_CACHE_MS = 30000;
+let messageSnapshot = [];
+let messageSnapshotAt = 0;
 
 const json = (res, status, data) => {
   res.writeHead(status, {
@@ -48,6 +52,10 @@ async function requireStaff(req, res) {
     json(res, 401, { error: 'Войдите в аккаунт' });
     return null;
   }
+
+  const cached = actorCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) return cached.actor;
+
   const user = await database.row(
     `SELECT u.id,u.name,u.role,mu.user_id moderator_user_id
      FROM sessions s
@@ -57,6 +65,7 @@ async function requireStaff(req, res) {
     token,
   );
   if (!user) {
+    actorCache.delete(token);
     json(res, 401, { error: 'Войдите в аккаунт' });
     return null;
   }
@@ -64,10 +73,16 @@ async function requireStaff(req, res) {
   const moderator = !admin && Boolean(user.moderator_user_id);
   const staff = { staff: admin || moderator, admin, moderator };
   if (!staff.staff) {
+    actorCache.delete(token);
     json(res, 403, { error: 'Чат доступен только модерации и администрации' });
     return null;
   }
-  return { user, staff };
+  const actor = { user, staff };
+  actorCache.set(token, { actor, expiresAt: Date.now() + ACTOR_CACHE_MS });
+  if (actorCache.size > 100) {
+    for (const [key, value] of actorCache) if (value.expiresAt <= Date.now()) actorCache.delete(key);
+  }
+  return actor;
 }
 
 function spamLimited(userId) {
@@ -99,31 +114,75 @@ async function ensureSchema() {
   await database.run('CREATE INDEX IF NOT EXISTS idx_staff_chat_user ON staff_chat_messages(user_id,created_at)');
 }
 
-async function listMessages(res, actor) {
-  const list = await database.rows(`SELECT m.id,m.user_id,m.body,m.created_at,u.name,u.role,
+async function listMessages(res, actor, since = 0) {
+  const baseSelect = `SELECT m.id,m.user_id,m.body,m.created_at,u.name,u.role,
       CASE WHEN mu.user_id IS NULL THEN 0 ELSE 1 END is_moderator
     FROM staff_chat_messages m
     JOIN users u ON u.id=m.user_id
-    LEFT JOIN moderator_users mu ON mu.user_id=u.id
-    ORDER BY m.id DESC
-    LIMIT 150`);
-  list.reverse();
-  json(res, 200, {
-    messages: list.map(item => ({
+    LEFT JOIN moderator_users mu ON mu.user_id=u.id`;
+
+  try {
+    let list;
+    if (since > 0) {
+      list = await database.rows(`${baseSelect}
+        WHERE m.id>?
+        ORDER BY m.id ASC
+        LIMIT 150`, since);
+    } else {
+      list = await database.rows(`${baseSelect}
+        ORDER BY m.id DESC
+        LIMIT 150`);
+      list.reverse();
+    }
+
+    const normalized = list.map(item => ({
       id: Number(item.id),
       body: String(item.body || ''),
       createdAt: item.created_at,
       name: String(item.name || 'Сотрудник'),
       mine: Number(item.user_id) === Number(actor.user.id),
       badge: item.role === 'admin' ? 'Администратор' : Number(item.is_moderator || 0) === 1 ? 'Модератор' : 'Персонал',
-    })),
-    me: {
-      id: Number(actor.user.id),
-      name: String(actor.user.name || ''),
-      admin: actor.staff.admin,
-      moderator: actor.staff.moderator,
-    },
-  });
+    }));
+
+    if (since === 0) {
+      messageSnapshot = normalized.slice(-150);
+    } else if (normalized.length) {
+      const merged = new Map(messageSnapshot.map(item => [Number(item.id), item]));
+      normalized.forEach(item => merged.set(Number(item.id), item));
+      messageSnapshot = [...merged.values()].sort((a,b) => Number(a.id)-Number(b.id)).slice(-150);
+    }
+    messageSnapshotAt = Date.now();
+
+    json(res, 200, {
+      messages: normalized,
+      full: since === 0,
+      stale: false,
+      messagesCachedAt: messageSnapshotAt,
+      me: {
+        id: Number(actor.user.id),
+        name: String(actor.user.name || ''),
+        admin: actor.staff.admin,
+        moderator: actor.staff.moderator,
+      },
+    });
+  } catch (error) {
+    if (!messageSnapshot.length) throw error;
+    const fallback = since > 0
+      ? messageSnapshot.filter(item => Number(item.id) > since)
+      : messageSnapshot;
+    json(res, 200, {
+      messages: fallback,
+      full: since === 0,
+      stale: true,
+      messagesCachedAt: messageSnapshotAt,
+      me: {
+        id: Number(actor.user.id),
+        name: String(actor.user.name || ''),
+        admin: actor.staff.admin,
+        moderator: actor.staff.moderator,
+      },
+    });
+  }
 }
 
 async function sendMessage(req, res, actor) {
@@ -151,7 +210,8 @@ async function handleStaff(req, res, url) {
   if (!actor) return true;
 
   if (url.pathname === '/api/staff-chat' && req.method === 'GET') {
-    await listMessages(res, actor);
+    const since = Math.max(0, Number(url.searchParams.get('since')) || 0);
+    await listMessages(res, actor, since);
     return true;
   }
   if (url.pathname === '/api/staff-chat/messages' && req.method === 'POST') {
