@@ -5,6 +5,8 @@
   // Фразы вроде «объясни, как решается 26 задание ЕГЭ» должны идти обычному
   // AI-репетитору, а не в генератор JSON-заданий.
   const TASK_REQUEST=/(?:дай|составь|создай|сгенерируй|подбери|хочу|нужны?|сделай|задай|пришли)[\s\S]{0,120}(?:задан|вопрос|тест)/i;
+  const EXPLANATION_REQUEST=/(?:объясн|разбер|разбор|реши|решать|решается|решение|алгоритм|почему|как\s+(?:решить|решать|решается|делать|выполнять|выполнить)|покажи\s+(?:как|решение)|что\s+(?:значит|такое)|помоги\s+(?:решить|разобрать|понять))/i;
+  const TASK_CONTEXT=/(?:задан|вопрос|тест|лини|вариант|биолог|хими|егэ)/i;
   const MAX_TASKS=10;
   let activeModal=null;
 
@@ -397,7 +399,27 @@
     // старый launcher тренировки, откуда и появлялось «Не удалось начать тренировку».
     const interceptTaskSubmit=event=>{
       const text=input.value.trim();
-      if(!text||(!armed&&!TASK_REQUEST.test(text)))return;
+      if(!text)return;
+
+      const normalized=normalize(text);
+      const wantsExplanation=EXPLANATION_REQUEST.test(normalized);
+
+      // Объяснение/разбор всегда важнее режима «Задания».
+      // Даже если пользователь раньше нажал кнопку «Задания», фразы вроде
+      // «объясни как решать 26 задание ЕГЭ химия» должны идти обычному репетитору.
+      if(wantsExplanation){
+        if(armed){
+          armed=false;
+          mode.classList.remove('active');
+          input.placeholder='Например: объясни, как отличать окислитель от восстановителя';
+        }
+        return;
+      }
+
+      const explicitTaskRequest=TASK_REQUEST.test(text);
+      const armedTaskRequest=armed&&TASK_CONTEXT.test(normalized);
+      if(!explicitTaskRequest&&!armedTaskRequest)return;
+
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -414,7 +436,7 @@
       requestedLine,
       requestedSubject,
       generatePractice:(text)=>generatePractice(modal,String(text||'')),
-      version:'20260919-bankfix4'
+      version:'20260928-intentfix2'
     };
   }
 
