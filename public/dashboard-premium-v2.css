@@ -113,7 +113,7 @@ main{max-width:none!important;padding:18px 30px 58px!important;background:linear
 .premium-section-title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:16px}
 .premium-section-title h2{font-size:19px;margin:0}.premium-section-title span{color:#61eca0}
 .premium-continue-body{display:grid;grid-template-columns:145px 1fr auto;gap:20px;align-items:center}
-.premium-cover{height:126px;border-radius:16px;background:linear-gradient(rgba(4,16,10,.14),rgba(4,16,10,.4)),url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=82&w=700') center/cover;border:1px solid rgba(112,255,174,.12)}
+.premium-cover{height:126px;border-radius:16px;background:linear-gradient(rgba(4,16,10,.14),rgba(4,16,10,.4)),url('/images/forest-studio.webp') center/cover no-repeat;border:1px solid rgba(112,255,174,.12)}
 .premium-course-meta{font-size:12px;color:#6cefa2;margin-bottom:7px}.premium-course-copy h3{font-size:20px;margin:0 0 9px}.premium-course-copy p{color:#9caf9f;margin:0 0 13px}.premium-progress-row{display:flex;align-items:center;gap:12px}.premium-progress-row .progress{flex:1;margin:0}.premium-progress-row b{font-size:12px;color:#dff7e8}
 .premium-continue .btn{white-space:nowrap}
 
