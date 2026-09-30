@@ -89,6 +89,9 @@ async function repairContentInBackground(){
 
 (async()=>{
   await database.migrate();
+  await require('./server-staff-chat-patch').ensureSchema();
+  await database.run('DELETE FROM staff_chat_messages');
+  console.log('One-time cleanup: staff_chat_messages cleared.');
   await Promise.all([ensureAiUsageStorage(),ensureAiCoachStorage()]);
 
   // Render requires the service to bind its HTTP port quickly. Building hundreds
