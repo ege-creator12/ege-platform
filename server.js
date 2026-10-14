@@ -3,6 +3,7 @@ const { readFileSync, existsSync } = require('node:fs');
 const { extname, join, normalize } = require('node:path');
 const { randomBytes, scryptSync, timingSafeEqual } = require('node:crypto');
 const database = require('./src/db');
+const { getPwaIcon } = require('./src/pwa-icons');
 const { coverageReport } = require('./src/coverage');
 const { formatAnswerForReview } = require('./src/answer-review');
 const { isCorrectAnswer,needsManualReview } = require('./src/question-answer');
@@ -227,10 +228,10 @@ async function api(req,res,path){
  }catch(e){const status=e.status||500,code=e.code&&typeof e.code==='string'&&!/^\d+$/.test(e.code)?e.code:'INTERNAL_ERROR';console.error(JSON.stringify({route:`${req.method} ${path}`,code,postgresCode:e.code||null,message:e.message,stack:e.stack}));if(!res.headersSent)json(res,status,{error:status===500?'Внутренняя ошибка сервера':e.message,code})}
 }
 async function login(res,userId){const token=randomBytes(32).toString('hex');await run("INSERT INTO sessions(token,user_id,expires_at) VALUES(?,?,?)",token,userId,new Date(Date.now()+2592000000).toISOString());res.setHeader('set-cookie',`session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax${process.env.NODE_ENV==='production'?'; Secure':''}`);json(res,200,{ok:true});}
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json; charset=utf-8','.png':'image/png','.webp':'image/webp'};
 async function start() {
  await migrate();
- return http.createServer((req,res)=>{const path=new URL(req.url,'http://x').pathname;if(path.startsWith('/api/'))return api(req,res,path);let file=normalize(join(PUBLIC,path==='/'?'index.html':path));if(!file.startsWith(PUBLIC)||!existsSync(file))file=join(PUBLIC,'index.html');res.writeHead(200,{'content-type':mime[extname(file)]||'application/octet-stream','cache-control':'no-cache'});res.end(readFileSync(file));}).listen(PORT,()=>console.log(`EGE Platform: http://localhost:${PORT}`));
+ return http.createServer((req,res)=>{const path=new URL(req.url,'http://x').pathname;if(path.startsWith('/api/'))return api(req,res,path);if((path==='/pwa-icon-192.png'||path==='/pwa-icon-512.png')&&(req.method==='GET'||req.method==='HEAD')){const icon=getPwaIcon(path==='/pwa-icon-512.png'?512:192);res.writeHead(200,{'content-type':'image/png','cache-control':'public, max-age=86400','content-length':icon.length});res.end(req.method==='HEAD'?undefined:icon);return;}let file=normalize(join(PUBLIC,path==='/'?'index.html':path));if(!file.startsWith(PUBLIC)||!existsSync(file))file=join(PUBLIC,'index.html');res.writeHead(200,{'content-type':mime[extname(file)]||'application/octet-stream','cache-control':'no-cache'});res.end(readFileSync(file));}).listen(PORT,()=>console.log(`EGE Platform: http://localhost:${PORT}`));
 }
 if (require.main === module) start().catch(error=>{console.error(error);process.exit(1)});
 module.exports={start,api};
