@@ -324,16 +324,20 @@
   async function generatePractice(modal,userPrompt){
     const line=requestedLine(userPrompt);
     if(line)return startRealLinePractice(modal,userPrompt,line);
-    if(/лини(?:я|и|ю|е)?/i.test(normalize(userPrompt))){
-      const chat=modal.querySelector('#ai-tutor-chat');
+    const chat=modal.querySelector('#ai-tutor-chat');
     const input=modal.querySelector('#ai-tutor-input');
     if(!chat||!input)return;
-    const subject=requestedSubject(userPrompt,0);
     const query=normalize(userPrompt);
+    if(/лини(?:я|и|ю|е)?/i.test(query)){
+      addBubble(chat,'assistant','Не смог распознать номер линии. Напиши, например: «дай 3 задания по 18 линии ЕГЭ, химия».');
+      input.focus({preventScroll:true});
+      return;
+    }
+    const subject=requestedSubject(userPrompt,0);
     const count=requestedCount(userPrompt);
     addBubble(chat,'user',userPrompt);
-    // Never generate alleged EGE exam tasks from unchecked LLM JSON.
-    // The verified local line bank is the only source for interactive exam practice.
+    // Only the built-in line bank is used for interactive EGE questions.
+    // Do not treat unchecked generated JSON as exam practice.
     const topics=subject==='chemistry'
       ? (/(?:оксид|соль|солей|кислот|основан|щелоч|амфотер|желез|хром|марган|металл|неметалл|реагир|взаимодейств|неорган)/.test(query)
         ? [[7,'Свойства веществ'],[8,'Продукты реакций'],[31,'Цепочки превращений']]
