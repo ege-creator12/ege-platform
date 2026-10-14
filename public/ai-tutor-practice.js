@@ -4,7 +4,7 @@
   // Перехватываем только явные просьбы СОЗДАТЬ/ДАТЬ задания.
   // Фразы вроде «объясни, как решается 26 задание ЕГЭ» должны идти обычному
   // AI-репетитору, а не в генератор JSON-заданий.
-  const TASK_REQUEST=/(?:дай|составь|создай|сгенерируй|подбери|хочу|нужны?|сделай|задай|пришли)[\s\S]{0,120}(?:задан|вопрос|тест)/i;
+  const TASK_REQUEST=/(?:дай|составь|создай|сгенерируй|подбери|хочу|нужны?|сделай|задай|пришли)[\s\S]{0,120}(?:задан|вопрос|тест|задач|упражнен)/i;
   const EXPLANATION_REQUEST=/(?:объясн|разбер|разбор|реши|решать|решается|решение|алгоритм|почему|как\s+(?:решить|решать|решается|делать|выполнять|выполнить)|покажи\s+(?:как|решение)|что\s+(?:значит|такое)|помоги\s+(?:решить|разобрать|понять))/i;
   const TASK_CONTEXT=/(?:задан|вопрос|тест|лини|вариант|биолог|хими|егэ)/i;
   const MAX_TASKS=10;
@@ -284,7 +284,7 @@
 
     const showResult=(given,skipped=false)=>{
       const manual=Boolean(task.manualReview);
-      const correct=manual?!skipped:(!skipped&&isCorrect(given,task));
+      const correct=!manual&&!skipped&&isCorrect(given,task);
       if(correct)state.correct+=1;
       input.disabled=true;
       check.hidden=true;
@@ -294,7 +294,7 @@
       feedback.classList.toggle('wrong',!correct&&!manual);
       feedback.innerHTML='';
       const verdict=document.createElement('strong');
-      verdict.textContent=manual?'Сверь свой ответ с эталоном':(correct?'✓ Верно':'✕ Неверно');
+      verdict.textContent=manual?'Самопроверка: сравни ответ с эталоном (балл не выставлен)':(correct?'✓ Верно':'✕ Неверно');
       const answer=document.createElement('p');
       answer.textContent=`Правильный ответ: ${task.answer}`;
       const explanation=document.createElement('p');
@@ -326,48 +326,44 @@
     if(line)return startRealLinePractice(modal,userPrompt,line);
     if(/лини(?:я|и|ю|е)?/i.test(normalize(userPrompt))){
       const chat=modal.querySelector('#ai-tutor-chat');
-      const input=modal.querySelector('#ai-tutor-input');
-      if(chat)addBubble(chat,'assistant','Не смог распознать номер линии. Напиши, например: «дай 3 задания по 18 линии ЕГЭ, химия».');
-      if(input)input.focus({preventScroll:true});
-      return;
-    }
-    const chat=modal.querySelector('#ai-tutor-chat');
     const input=modal.querySelector('#ai-tutor-input');
-    const submit=modal.querySelector('#ai-tutor-form button[type="submit"]');
-    if(!chat||!input||!submit)return;
-
+    if(!chat||!input)return;
+    const subject=requestedSubject(userPrompt,0);
+    const query=normalize(userPrompt);
     const count=requestedCount(userPrompt);
     addBubble(chat,'user',userPrompt);
-    const loading=addBubble(chat,'assistant','Создаю задания под твой запрос…','loading');
-    submit.disabled=true;
-    input.disabled=true;
-
-    const instruction=`Создай ровно ${count} самостоятельных заданий по запросу ученика: «${clean(userPrompt).slice(0,700)}».\nЗадания должны соответствовать школьной программе и ЕГЭ по биологии или химии. Не повторяй один и тот же вопрос. Ответы должны быть однозначно проверяемыми и достаточно короткими для ввода учеником. Если уместно, можно дать варианты ответа, но не раскрывай правильный вариант в тексте задания.\nВерни ТОЛЬКО валидный JSON без markdown и без пояснений вокруг него строго такого вида:\n{"tasks":[{"prompt":"условие","instruction":"краткая инструкция или пустая строка","options":[],"answer":"эталонный ответ","acceptedAnswers":["эталонный ответ","допустимый вариант"],"explanation":"короткий разбор после проверки","difficulty":"ЕГЭ"}]}\nНе добавляй ответы внутрь prompt или options.`;
-
-    try{
-      const response=await fetch('/api/ai/tutor',{
-        method:'POST',credentials:'same-origin',cache:'no-store',
-        headers:{'content-type':'application/json','accept':'application/json'},
-        body:JSON.stringify({message:instruction}),
-      });
-      const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||'Не удалось создать задания');
-      const tasks=toTasks(parseJson(data.answer));
-      if(!tasks.length)throw new Error('ИИ вернул задания в неподходящем формате. Повтори запрос.');
-      loading.remove();
-      const card=document.createElement('section');
-      card.className='ai-practice-card';
-      chat.appendChild(card);
-      renderTask(card,{tasks,index:0,correct:0,originalPrompt:userPrompt});
-      chat.scrollTop=chat.scrollHeight;
-    }catch(error){
-      loading.classList.remove('loading');
-      loading.textContent=error.message||'Не удалось создать задания. Попробуй ещё раз.';
-    }finally{
-      submit.disabled=false;
-      input.disabled=false;
+    // Never generate alleged EGE exam tasks from unchecked LLM JSON.
+    // The verified local line bank is the only source for interactive exam practice.
+    const topics=subject==='chemistry'
+      ? (/(?:оксид|соль|солей|кислот|основан|щелоч|амфотер|желез|хром|марган|металл|неметалл|реагир|взаимодейств|неорган)/.test(query)
+        ? [[7,'Свойства веществ'],[8,'Продукты реакций'],[31,'Цепочки превращений']]
+        : [[7,'Свойства веществ'],[8,'Продукты реакций'],[29,'ОВР']])
+      : [[5,'Клетка'],[22,'Эксперимент'],[27,'Генетика']];
+    if(!subject){
+      addBubble(chat,'assistant','Для тренировки по ЕГЭ укажи предмет и номер задания. Например: «дай 5 заданий по химии, линия 7» или «дай 5 заданий по биологии, линия 27». Так я не выдам случайные задания не того формата.');
+      input.placeholder='Например: дай 5 заданий по химии, линия 7';
       input.focus({preventScroll:true});
+      return;
     }
+    const note=addBubble(chat,'assistant',`Чтобы задания действительно соответствовали формату ЕГЭ, выбери линию по ${subject==='chemistry'?'химии':'биологии'}. Тематические запросы без номера линии пока не заменяю случайными заданиями нейросети:`);
+    const buttons=document.createElement('div');
+    buttons.className='ai-practice-actions';
+    buttons.style.flexWrap='wrap';
+    topics.forEach(([topicLine,label])=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='btn ghost';
+      button.textContent=`№${topicLine} · ${label}`;
+      button.addEventListener('click',()=>{
+        buttons.remove();
+        note.textContent=`Выбрана линия ${topicLine}. Загружаю задания из банка ОСНОВЫ.`;
+        void startRealLinePractice(modal,`дай ${count} заданий по ${subject==='chemistry'?'химии':'биологии'}, линия ${topicLine}`,topicLine);
+      });
+      buttons.appendChild(button);
+    });
+    chat.appendChild(buttons);
+    chat.scrollTop=chat.scrollHeight;
+    input.focus({preventScroll:true});
   }
 
   function attach(modal){
@@ -436,7 +432,7 @@
       requestedLine,
       requestedSubject,
       generatePractice:(text)=>generatePractice(modal,String(text||'')),
-      version:'20260928-intentfix2'
+      version:'20261014-bank-first'
     };
   }
 

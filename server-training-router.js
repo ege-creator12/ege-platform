@@ -101,11 +101,15 @@ async function lineTasksForAi(subject,line,count){
     const options=await rows('SELECT value,label FROM question_options WHERE question_id=? ORDER BY position',question.id);
     const formatted=displayAnswerForBankTask(question,options);
     const content=parseStoredJson(question.content_json,{})||{};
+    if(!String(question.prompt||'').trim() || !String(formatted.answer||'').trim()) continue;
     tasks.push({
       id:Number(question.id),
       prompt:String(question.prompt||''),
       instruction:String(question.instruction||''),
       options:options.map(option=>String(option.label)),
+      content,
+      type:String(question.type||question.question_type||''),
+      imageUrl:String(content.imageUrl||content.image_url||''),
       answer:formatted.answer,
       acceptedAnswers:formatted.accepted,
       explanation:String(question.explanation||''),

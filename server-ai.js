@@ -14,13 +14,13 @@ const UPSTREAM_PORT = Number(process.env.AI_UPSTREAM_PORT || (PORT + 1));
 const DAILY_LIMIT = Math.max(1, Number(process.env.AI_DAILY_LIMIT) || 30);
 const MINUTE_LIMIT = Math.max(1, Number(process.env.AI_MINUTE_LIMIT) || 6);
 const MAX_CONCURRENT = Math.max(1, Number(process.env.AI_MAX_CONCURRENT) || 3);
-const GEMINI_TIMEOUT_MS = Math.max(5000, Number(process.env.GEMINI_TIMEOUT_MS) || 15000);
+const GEMINI_TIMEOUT_MS = Math.max(5000, Number(process.env.GEMINI_TIMEOUT_MS) || 9000);
+const AI_TOTAL_TIMEOUT_MS = Math.max(8000, Number(process.env.AI_TOTAL_TIMEOUT_MS) || 20000);
 const AI_TIMEZONE = process.env.AI_TIMEZONE || 'Europe/Moscow';
 const MODEL_CANDIDATES = [...new Set([
   process.env.GEMINI_MODEL,
-  'gemini-3.6-flash',
+  'gemini-2.5-flash',
   process.env.GEMINI_FALLBACK_MODEL,
-  'gemini-3.1-flash-lite',
   'gemini-2.5-flash-lite',
 ].filter(Boolean))];
 
@@ -178,7 +178,7 @@ function generateText(data) {
     .trim();
 }
 
-async function googleRequest(url, payload) {
+async function googleRequest(url, payload, timeoutMs = GEMINI_TIMEOUT_MS) {
   let lastError;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
@@ -189,7 +189,7 @@ async function googleRequest(url, payload) {
           'x-goog-api-key': process.env.GEMINI_API_KEY,
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       let data = null;
       try {
@@ -248,12 +248,12 @@ function geminiError(response, data) {
   });
 }
 
-async function generateContent(model, prompt) {
+async function generateContent(model, prompt, timeoutMs = GEMINI_TIMEOUT_MS) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const { response, data } = await googleRequest(url, {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { maxOutputTokens: 2800, temperature: 0.2, topP: 0.85 },
-  });
+  }, timeoutMs);
 
   if (!response.ok) throw geminiError(response, data);
   const text = generateText(data);
@@ -303,10 +303,13 @@ async function askGemini(prompt) {
 
   activeRequests += 1;
   let lastError;
+  const startedAt = Date.now();
   try {
     for (const model of MODEL_CANDIDATES) {
+      const remaining = AI_TOTAL_TIMEOUT_MS - (Date.now() - startedAt);
+      if (remaining < 1200) break;
       try {
-        return await generateContent(model, prompt);
+        return await generateContent(model, prompt, Math.min(GEMINI_TIMEOUT_MS, remaining));
       } catch (rawError) {
         const error = normalizeTransportError(rawError);
         lastError = error;
